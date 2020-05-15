@@ -1,0 +1,66 @@
+//! The Point Example Pkg
+
+use std::ops::IAdd
+
+/// Point type
+#[derive(IDebug, ICopy, ICmp)]
+#<T>
+pub struct Point {
+    x: T
+    y: T
+}
+
+#<T>
+extention Point#<T> {
+    /// create a new point
+    #[inline]
+    pub fn new(x: T, y: T) -> Self {
+        Self{x, y}
+    }
+
+    /// get x
+    #[inline]
+    pub fn x(self) -> T {
+        self.x
+    }
+
+    /// get y
+    #[inline]
+    pub fn y(self) -> T {
+        self.y
+    }
+
+    /// set x
+    #[inline]
+    pub fn set_x(*self, x: T) {
+        self.x = x
+    }
+
+    /// set y
+    #[inline]
+    pub fn set_y(*self, y: T) {
+        self.y = y
+    }
+}
+
+#<T: IAdd<Output=T>>
+extention Point#<T>: IAdd {
+    type Output = Self
+
+    pub add(self, other: Self) -> Self {
+        Self {
+            x: self.x() + other.y()
+            y: self.x() + other.y()
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn point_add() {
+        let p1 = Point::new(1, 0)
+        let p2 = Point::new(2, 3)
+        assert_eq!(p1 + p2, Point{.x=3, .y=3})
+    }
+}

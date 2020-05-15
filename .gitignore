@@ -1,0 +1,10 @@
+build/
+codes/
+docs/
+*.o
+*.gch
+core
+*.core
+*.bin
+*.tmp
+vgcore.*

@@ -1,0 +1,184 @@
+lexer/literal.fu:1:1:TOK_COMMENT
+lexer/literal.fu:2:1:TOK_IDENT:true
+lexer/literal.fu:2:5:TOK_NEWLINE
+lexer/literal.fu:3:1:TOK_IDENT:false
+lexer/literal.fu:3:6:TOK_NEWLINE
+lexer/literal.fu:5:1:TOK_COMMENT
+lexer/literal.fu:6:1:TOK_RAW_IDENT:keyword
+lexer/literal.fu:6:10:TOK_NEWLINE
+lexer/literal.fu:8:1:TOK_COMMENT
+lexer/literal.fu:9:1:TOK_INT:12
+lexer/literal.fu:9:3:TOK_NEWLINE
+lexer/literal.fu:10:1:TOK_INT:1i32
+lexer/literal.fu:10:5:TOK_NEWLINE
+lexer/literal.fu:11:1:TOK_INT:0b101_010
+lexer/literal.fu:11:10:TOK_NEWLINE
+lexer/literal.fu:12:1:TOK_INT:0b101_010i32
+lexer/literal.fu:12:13:TOK_NEWLINE
+lexer/literal.fu:13:1:TOK_INT:0o12_345
+lexer/literal.fu:13:9:TOK_NEWLINE
+lexer/literal.fu:14:1:TOK_INT:0o12_345u32
+lexer/literal.fu:14:12:TOK_NEWLINE
+lexer/literal.fu:15:1:TOK_INT:0x12_345_abc_def
+lexer/literal.fu:15:17:TOK_NEWLINE
+lexer/literal.fu:16:1:TOK_INT:0x12_345_abc_def_uint
+lexer/literal.fu:16:22:TOK_NEWLINE
+lexer/literal.fu:17:1:TOK_FLOAT:1.0
+lexer/literal.fu:17:4:TOK_NEWLINE
+lexer/literal.fu:18:1:TOK_FLOAT:1.0f32
+lexer/literal.fu:18:7:TOK_NEWLINE
+lexer/literal.fu:19:1:TOK_FLOAT:1e2f32
+lexer/literal.fu:19:7:TOK_NEWLINE
+lexer/literal.fu:20:1:TOK_FLOAT:1.2e5
+lexer/literal.fu:20:6:TOK_NEWLINE
+lexer/literal.fu:21:1:TOK_FLOAT:1.2e5f32
+lexer/literal.fu:21:9:TOK_NEWLINE
+lexer/literal.fu:23:1:TOK_COMMENT
+lexer/literal.fu:24:1:TOK_BYTE:a
+lexer/literal.fu:24:5:TOK_NEWLINE
+lexer/literal.fu:25:1:TOK_BYTE:\'
+lexer/literal.fu:25:6:TOK_NEWLINE
+lexer/literal.fu:26:1:TOK_BYTE:\n
+lexer/literal.fu:26:6:TOK_NEWLINE
+lexer/literal.fu:27:1:TOK_BYTE:\x20
+lexer/literal.fu:27:8:TOK_NEWLINE
+lexer/literal.fu:29:1:TOK_COMMENT
+lexer/literal.fu:30:1:TOK_CHAR:c
+lexer/literal.fu:30:4:TOK_NEWLINE
+lexer/literal.fu:31:1:TOK_CHAR:中
+lexer/literal.fu:31:4:TOK_NEWLINE
+lexer/literal.fu:32:1:TOK_CHAR:\'
+lexer/literal.fu:32:5:TOK_NEWLINE
+lexer/literal.fu:33:1:TOK_CHAR:\n
+lexer/literal.fu:33:5:TOK_NEWLINE
+lexer/literal.fu:34:1:TOK_CHAR:\x20
+lexer/literal.fu:34:7:TOK_NEWLINE
+lexer/literal.fu:35:1:TOK_CHAR:\u{7FFF}
+lexer/literal.fu:35:11:TOK_NEWLINE
+lexer/literal.fu:37:1:TOK_COMMENT
+lexer/literal.fu:38:1:TOK_STR:abc中文
+lexer/literal.fu:38:8:TOK_NEWLINE
+lexer/literal.fu:39:1:TOK_STR:    first line 第一行
+    second line 第二行
+lexer/literal.fu:42:2:TOK_NEWLINE
+lexer/literal.fu:43:1:TOK_STR:first line 第一行
+second line 第二行
+lexer/literal.fu:46:6:TOK_NEWLINE
+lexer/literal.fu:47:1:TOK_STR:abc"def
+lexer/literal.fu:47:12:TOK_NEWLINE
+lexer/literal.fu:48:1:TOK_STR:    first line 第一行
+    "
+    second line 第二行
+lexer/literal.fu:52:3:TOK_NEWLINE
+lexer/literal.fu:53:1:TOK_STR:first line 第一行
+"
+second line 第二行
+lexer/literal.fu:57:7:TOK_NEWLINE
+lexer/literal.fu:58:1:TOK_STR:    first line 第一行
+    #"#
+    second line 第二行
+lexer/literal.fu:62:4:TOK_NEWLINE
+lexer/literal.fu:63:1:TOK_STR:first line 第一行
+#"#
+second line 第二行
+lexer/literal.fu:67:8:TOK_NEWLINE
+lexer/literal.fu:68:1:TOK_RAW_STR:abc\ndef
+lexer/literal.fu:68:12:TOK_NEWLINE
+lexer/literal.fu:69:1:TOK_RAW_STR:    first line 第一行
+    second line 第二行
+lexer/literal.fu:72:2:TOK_NEWLINE
+lexer/literal.fu:73:1:TOK_RAW_STR:first line 第一行
+second line 第二行
+lexer/literal.fu:76:6:TOK_NEWLINE
+lexer/literal.fu:77:1:TOK_RAW_STR:abc\n"\nbar
+lexer/literal.fu:77:17:TOK_NEWLINE
+lexer/literal.fu:78:1:TOK_RAW_STR:    first line 第一行
+    #"#
+    second line 第二行
+lexer/literal.fu:82:4:TOK_NEWLINE
+lexer/literal.fu:83:1:TOK_RAW_STR:first line 第一行
+#"#
+second line 第二行
+lexer/literal.fu:87:8:TOK_NEWLINE
+lexer/literal.fu:89:1:TOK_COMMENT
+lexer/literal.fu:90:1:TOK_BYTE_STR:abc
+lexer/literal.fu:90:7:TOK_NEWLINE
+lexer/literal.fu:91:1:TOK_BYTE_STR:    first line
+    second line
+lexer/literal.fu:94:2:TOK_NEWLINE
+lexer/literal.fu:95:1:TOK_BYTE_STR:first line
+second line
+lexer/literal.fu:98:6:TOK_NEWLINE
+lexer/literal.fu:99:1:TOK_BYTE_STR:abc"def
+lexer/literal.fu:99:13:TOK_NEWLINE
+lexer/literal.fu:100:1:TOK_BYTE_STR:    first line
+    #"#
+    second line
+lexer/literal.fu:104:4:TOK_NEWLINE
+lexer/literal.fu:105:1:TOK_BYTE_STR:first line
+#"#
+second line
+lexer/literal.fu:109:8:TOK_NEWLINE
+lexer/literal.fu:110:1:TOK_BYTE_RAW_STR:bytes\n
+lexer/literal.fu:110:12:TOK_NEWLINE
+lexer/literal.fu:111:1:TOK_BYTE_RAW_STR:    first line
+    second line
+lexer/literal.fu:114:2:TOK_NEWLINE
+lexer/literal.fu:115:1:TOK_BYTE_RAW_STR:first line
+second line
+lexer/literal.fu:118:6:TOK_NEWLINE
+lexer/literal.fu:119:1:TOK_BYTE_RAW_STR:abc\n"\nbar
+lexer/literal.fu:119:18:TOK_NEWLINE
+lexer/literal.fu:120:1:TOK_BYTE_RAW_STR:    first line
+    #"#
+    second line
+lexer/literal.fu:124:4:TOK_NEWLINE
+lexer/literal.fu:125:1:TOK_BYTE_RAW_STR:first line
+#"#
+second line
+lexer/literal.fu:129:8:TOK_NEWLINE
+lexer/literal.fu:131:1:TOK_COMMENT
+lexer/literal.fu:132:1:TOK_FORMAT_STR:hello {name}
+lexer/literal.fu:132:16:TOK_NEWLINE
+lexer/literal.fu:133:1:TOK_FORMAT_STR:    first line
+    {name}
+    second line
+lexer/literal.fu:137:2:TOK_NEWLINE
+lexer/literal.fu:138:1:TOK_FORMAT_STR:first line
+{name}
+second line
+lexer/literal.fu:142:6:TOK_NEWLINE
+lexer/literal.fu:143:1:TOK_FORMAT_STR:abc"def{name}
+lexer/literal.fu:143:19:TOK_NEWLINE
+lexer/literal.fu:144:1:TOK_FORMAT_STR:    first line
+    #"#
+    {name}
+    second line
+lexer/literal.fu:149:4:TOK_NEWLINE
+lexer/literal.fu:150:1:TOK_FORMAT_STR:first line
+#"#
+{name}
+second line
+lexer/literal.fu:155:8:TOK_NEWLINE
+lexer/literal.fu:156:1:TOK_FORMAT_RAW_STR:hello{name}
+lexer/literal.fu:156:16:TOK_NEWLINE
+lexer/literal.fu:157:1:TOK_FORMAT_RAW_STR:    first line
+    {name}
+    second line
+lexer/literal.fu:161:2:TOK_NEWLINE
+lexer/literal.fu:162:1:TOK_FORMAT_RAW_STR:first line
+{name}
+second line
+lexer/literal.fu:166:6:TOK_NEWLINE
+lexer/literal.fu:167:1:TOK_FORMAT_RAW_STR:hello {name}
+lexer/literal.fu:167:19:TOK_NEWLINE
+lexer/literal.fu:168:1:TOK_FORMAT_RAW_STR:    first line
+    #"#
+    {name}
+    second line
+lexer/literal.fu:173:4:TOK_NEWLINE
+lexer/literal.fu:174:1:TOK_FORMAT_RAW_STR:first line
+#"#
+{name}
+second line
+lexer/literal.fu:179:8:TOK_NEWLINE

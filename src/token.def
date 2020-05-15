@@ -1,0 +1,97 @@
+#ifndef TOKEN
+#error "You must define TOKEN macro before include this file"
+#endif
+
+TOKEN(TOK_UNKNOWN, "unknow")
+TOKEN(TOK_EOF, "EOF")
+
+TOKEN(TOK_OPEN_PAREN, "(")
+TOKEN(TOK_CLOSE_PAREN, ")")
+TOKEN(TOK_OPEN_BRACKET, "[")
+TOKEN(TOK_CLOSE_BRACKET, "]")
+TOKEN(TOK_OPEN_BRACE, "{")
+TOKEN(TOK_CLOSE_BRACE, "}")
+TOKEN(TOK_PLUS, "+")
+TOKEN(TOK_MINUS, "-")
+TOKEN(TOK_STAR, "*")
+TOKEN(TOK_SLASH, "/")
+TOKEN(TOK_PERCENT, "%")
+TOKEN(TOK_AND, "&")
+TOKEN(TOK_OR, "|")
+TOKEN(TOK_CARET, "^")
+TOKEN(TOK_SHL, "<<")
+TOKEN(TOK_SHR, ">>")
+TOKEN(TOK_EQ, "=")
+TOKEN(TOK_PLUS_EQ, "+=")
+TOKEN(TOK_MINUS_EQ, "-=")
+TOKEN(TOK_STAR_EQ, "*=")
+TOKEN(TOK_SLASH_EQ, "/=")
+TOKEN(TOK_PERCENT_EQ, "%=")
+TOKEN(TOK_AND_EQ, "&=")
+TOKEN(TOK_OR_EQ, "|=")
+TOKEN(TOK_CARET_EQ, "^=")
+TOKEN(TOK_SHL_EQ, "<<=")
+TOKEN(TOK_SHR_EQ, ">>=")
+TOKEN(TOK_LT, "<")
+TOKEN(TOK_LE, "<=")
+TOKEN(TOK_GT, ">")
+TOKEN(TOK_GE, ">=")
+TOKEN(TOK_EE, "==")
+TOKEN(TOK_NE, "!=")
+TOKEN(TOK_AND_AND, "&&")
+TOKEN(TOK_OR_OR, "||")
+TOKEN(TOK_NOT, "!")
+TOKEN(TOK_TILDE, "~")
+TOKEN(TOK_AT, "@")
+TOKEN(TOK_DOT, ".")
+TOKEN(TOK_DOT_DOT, "..")
+TOKEN(TOK_DOT_DOT_LT, "..<")
+TOKEN(TOK_DOT_DOT_DOT, "...")
+TOKEN(TOK_COMMA, ",")
+TOKEN(TOK_SEMI, ";")
+TOKEN(TOK_COLON, ":")
+TOKEN(TOK_MOD_SEP, "::")
+TOKEN(TOK_RARROW, "->")
+TOKEN(TOK_LARROW, "<-")
+TOKEN(TOK_FAT_ARROW, "=>")
+TOKEN(TOK_POUND, "#")
+TOKEN(TOK_DOLLAR, "$")
+TOKEN(TOK_QUESTION, "?")
+
+TOKEN(TOK_WHITESPACE, "whitespace")
+TOKEN(TOK_NEWLINE, "newline")
+TOKEN(TOK_COMMENT, "//")
+
+/* need inter symbol */
+TOKEN(TOK_DOC_COMMENT, "//")
+TOKEN(TOK_IDENT, "ident")
+/* r#abc */
+TOKEN(TOK_RAW_IDENT, "raw ident")
+/* 'abc */
+TOKEN(TOK_LABEL, "label")
+
+/* literals */
+/* nil, true, false => TOK_IDENT */
+/* b'a', b'\\', b''' */
+TOKEN(TOK_BYTE, "byte")
+/* 'a', '\\', ''' */
+TOKEN(TOK_CHAR, "char")
+/* 12_u8, 0o100, 0b120i99 */
+TOKEN(TOK_INT, "int")
+/* 12.34f32, 0b100.100 */
+TOKEN(TOK_FLOAT, "float")
+/* 这里 str 与 raw str 分开对待，便于以后代码格式化 */
+/* "abc" #"abc"def"# */
+TOKEN(TOK_STR, "str")
+/* r"abc", r#"abc"#, r####"ab"###"c"#### */
+TOKEN(TOK_RAW_STR, "raw str")
+/* 这里 byte str 与 raw byte str 分开对待，便于以后代码格式化 */
+/* b"abc" b#"abc"# */
+TOKEN(TOK_BYTE_STR, "byte str")
+/* br"abc", br#"abc"#, br####"ab"###"c"####" */
+TOKEN(TOK_BYTE_RAW_STR, "byte raw str")
+/* 这里 format str 与 raw format str 分开对待，便于以后代码格式化 */
+/* f"abc" f#"abc"# */
+TOKEN(TOK_FORMAT_STR, "format str")
+/* fr"abc" fr#"abc"# */
+TOKEN(TOK_FORMAT_RAW_STR, "format raw str")

@@ -1,0 +1,179 @@
+// bool
+true
+false
+
+// raw ident
+r#keyword
+
+// number
+12
+1i32
+0b101_010
+0b101_010i32
+0o12_345
+0o12_345u32
+0x12_345_abc_def
+0x12_345_abc_def_uint
+1.0
+1.0f32
+1e2f32
+1.2e5
+1.2e5f32
+
+// byte
+b'a'
+b'\''
+b'\n'
+b'\x20'
+
+// char
+'c'
+'中'
+'\''
+'\n'
+'\x20'
+'\u{7FFF}'
+
+// [char]
+"abc中文"
+"
+    first line 第一行
+    second line 第二行
+"
+"
+    first line 第一行
+    second line 第二行
+    "
+#"abc"def"#
+#"
+    first line 第一行
+    "
+    second line 第二行
+"#
+#"
+    first line 第一行
+    "
+    second line 第二行
+    "#
+##"
+    first line 第一行
+    #"#
+    second line 第二行
+"##
+##"
+    first line 第一行
+    #"#
+    second line 第二行
+    "##
+r"abc\ndef"
+r"
+    first line 第一行
+    second line 第二行
+"
+r"
+    first line 第一行
+    second line 第二行
+    "
+r#"abc\n"\nbar"#
+r##"
+    first line 第一行
+    #"#
+    second line 第二行
+"##
+r##"
+    first line 第一行
+    #"#
+    second line 第二行
+    "##
+
+// [byte]
+b"abc"
+b"
+    first line
+    second line
+"
+b"
+    first line
+    second line
+    "
+b#"abc"def"#
+b##"
+    first line
+    #"#
+    second line
+"##
+b##"
+    first line
+    #"#
+    second line
+    "##
+br"bytes\n"
+br"
+    first line
+    second line
+"
+br"
+    first line
+    second line
+    "
+br#"abc\n"\nbar"#
+br##"
+    first line
+    #"#
+    second line
+"##
+br##"
+    first line
+    #"#
+    second line
+    "##
+
+// Vec<char>
+f"hello {name}"
+f"
+    first line
+    {name}
+    second line
+"
+f"
+    first line
+    {name}
+    second line
+    "
+f#"abc"def{name}"#
+f##"
+    first line
+    #"#
+    {name}
+    second line
+"##
+f##"
+    first line
+    #"#
+    {name}
+    second line
+    "##
+fr"hello{name}"
+fr"
+    first line
+    {name}
+    second line
+"
+fr"
+    first line
+    {name}
+    second line
+    "
+fr#"hello {name}"#
+fr##"
+    first line
+    #"#
+    {name}
+    second line
+"##
+fr##"
+    first line
+    #"#
+    {name}
+    second line
+    "##
