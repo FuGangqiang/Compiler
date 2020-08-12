@@ -345,6 +345,8 @@ void FuParser_drop(FuParser *p);
 
 void FuParser_for_file(FuParser *p, char *fpath, fu_size_t len);
 
+FuNode *FuParser_parse_lit(FuParser *p);
+
 struct FuType {
     fu_type_k kd;
     fu_tid_t tid;
@@ -576,6 +578,8 @@ struct FuLit {
 };
 
 FuLit *FuLit_new(FuSpan span, fu_lit_k kind);
+void FuLit_drop(FuLit *lit);
+FuStr *FuLit_display(FuLit *lit, fu_size_t indent);
 
 struct FuExpr {
     FuSpan span;

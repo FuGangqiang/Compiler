@@ -1,0 +1,4 @@
+nid: 0
+kd: ND_LIT
+  kd: LIT_INT
+  size: 0, is_signed: 0, v: 255

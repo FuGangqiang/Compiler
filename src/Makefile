@@ -24,21 +24,25 @@ map.o: map.c map.h def.h hash.o alloc.o
 set.o: set.c set.h def.h hash.o alloc.o
 bitset.o: bitset.c bitset.h def.h alloc.o
 
-kind.o: kind.c parse.h keyword.def token.def
-context.o: context.c parse.h str.o vec.o map.o set.o keyword.def symbol.def
+kind.o: kind.c parse.h keyword.def token.def symbol.def node.def node_arm.def node_expr.def node_ge_arg.def \
+    node_ge_param.def node_lit.def node_op.def node_pat.def node_use.def node_variant.def node_vis.def
+context.o: context.c parse.h str.o vec.o map.o set.o keyword.def symbol.def node.o
 span.o: span.c parse.h str.o error.o context.o
 error.o: error.c error.h parse.h span.o
 token.o: token.c parse.h kind.o span.o error.o
 lexer.o: lexer.c parse.h token.o str.o char.o hash.o set.o span.o error.o
-node.o: node.c parse.h 
+node.o: node.c parse.h alloc.o kind.o
+parser.o: parser.c parse.h node.o alloc.o error.o
 
 # dep objs
 
-DEP_OBJS=char.o str.o hash.o span.o context.o vec.o map.o set.o error.o alloc.o kind.o node.o
+DEP_OBJS=char.o bytes.o str.o hash.o span.o context.o vec.o map.o set.o error.o alloc.o kind.o node.o
 
 # tools
 
 lexer_dump: $(TOOL_DIR)/lexer_dump.c lexer.o token.o $(DEP_OBJS)
+	$(FU_CC) -o $(TOOL_DIR)/$@.bin $^
+parser_dump: $(TOOL_DIR)/parser_dump.c parser.o lexer.o token.o $(DEP_OBJS)
 	$(FU_CC) -o $(TOOL_DIR)/$@.bin $^
 
 # tests
@@ -49,7 +53,8 @@ else
   MEM_CHECK_CMD=
 endif
 
-test: char_test bytes_test str_test vec_test map_test set_test bitset_test context_test alloc_test lexer_test
+test: char_test bytes_test str_test vec_test map_test set_test bitset_test context_test alloc_test \
+	  lexer_test parser_test
 test-mem: test
 
 char_test: $(TEST_DIR)/char_test.c char.o
@@ -97,6 +102,10 @@ lexer_test: lexer_dump
 
 	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(TOOL_DIR)/lexer_dump.bin parser/point.fu > parser/point.fu.tokens.tmp
 	cmp -s $(TEST_DIR)/parser/point.fu.tokens  $(TEST_DIR)/parser/point.fu.tokens.tmp
+
+parser_test: parser_dump
+	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(TOOL_DIR)/parser_dump.bin parser/tmp.fu > parser/tmp.fu.nodes.tmp
+	cmp -s $(TEST_DIR)/parser/tmp.fu.nodes  $(TEST_DIR)/parser/tmp.fu.nodes.tmp
 
 clean:
 	rm -rf $(TOOL_DIR)/*.bin
