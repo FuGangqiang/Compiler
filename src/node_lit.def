@@ -1,0 +1,23 @@
+#ifndef LIT
+#error "You must define Lit macro before include this file"
+#endif
+
+LIT(LIT_ERR, "lit err")
+/* `nil` */
+LIT(LIT_NIL, "lit nil")
+/* `true`, `false` */
+LIT(LIT_BOOL, "lit bool")
+/* b'a' */
+LIT(LIT_BYTE, "lit byte")
+/* `c` */
+LIT(LIT_CHAR, "lit char")
+/* `123` */
+LIT(LIT_INT, "lit int")
+/* `12.3` */
+LIT(LIT_FLOAT, "lit float")
+/* "foo" */
+LIT(LIT_STR, "lit str")
+/* b"foo" */
+LIT(LIT_BYTE_STR, "lit byte str")
+/* f"{foo}" */
+LIT(LIT_FORMAT_STR, "lit format str")

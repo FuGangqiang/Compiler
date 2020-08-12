@@ -1,0 +1,7 @@
+#ifndef VARIANT
+#error "You must define VARIANT macro before include this file"
+#endif
+
+VARIANT(VA_UNIT, "unit variant")
+VARIANT(VA_STRUCT, "struct variant")
+VARIANT(VA_TUPLE, "tuple variant")

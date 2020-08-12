@@ -1,0 +1,18 @@
+#ifndef USE
+#error "You must define USE macro before include this file"
+#endif
+
+/* `use foo::bar` */
+USE(USE_NULL, "null use")
+/* `use foo::bar!` */
+USE(USE_NULL_MACRO, "null macro use")
+/* `*` in `use foo::*` */
+USE(USE_GLOB, "glob use")
+/* `*!` in `use foo::*!` */
+USE(USE_GLOB_MACRO, "glob macro use")
+/* `FooBar` in `use foo::bar as FooBar` */
+USE(USE_ALIAS, "alias use")
+/* `FooBar!` in `use foo::bar! as FooBar!` */
+USE(USE_ALIAS_MACRO, "alias macro")
+/* `{bar, baz as FooBaz}` in `use foo::{bar, baz as FooBaz}` */
+USE(USE_NESTED, "nested use")

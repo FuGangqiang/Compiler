@@ -1,0 +1,8 @@
+#ifndef GE_PARAM
+#error "You must define GE_PARAM macro before include this file"
+#endif
+
+/* `Bar` in `#<Bar>` */
+GE_PARAM(GE_PARAM_TYPE, "generic type param")
+/* `const N: int` in `#<cosnt N: int>` */
+GE_PARAM(GE_PARAM_CONST_TYPE, "generic const type param")

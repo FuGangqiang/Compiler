@@ -1,0 +1,8 @@
+#ifndef ATTR
+#error "You must define ATTR macro before include this file"
+#endif
+
+/* `#[attr]`, `#![attr]`, `#[attr(args)]` */
+ATTR(ATTR_NORMAL, "normal attribute")
+/* `/// comment`, `//! comment` */
+ATTR(ATTR_DOC_COMMENT, "doc comment attribute")

@@ -1,0 +1,49 @@
+#ifndef TYPE
+#error "You must define TYPE macro before include this file"
+#endif
+
+TYPE(TY_NIL, "nil")
+TYPE(TY_NEVER, "never")
+TYPE(TY_BOOL, "bool")
+TYPE(TY_BYTE, "byte")
+TYPE(TY_CHAR, "char")
+TYPE(TY_I8, "i8")
+TYPE(TY_I16, "i16")
+TYPE(TY_I32, "i32")
+TYPE(TY_I64, "i64")
+TYPE(TY_INT, "int")
+TYPE(TY_U8, "u8")
+TYPE(TY_U16, "u16")
+TYPE(TY_U32, "u32")
+TYPE(TY_U64, "u64")
+TYPE(TY_UINT, "uint")
+TYPE(TY_F32, "f32")
+TYPE(TY_F64, "f64")
+TYPE(TY_VA_LIST, "...")
+
+/* builtins type above */
+
+TYPE(TY_ERR, "err")
+
+/* ctx->types[kd] index type above */
+
+TYPE(TY_FN, "function")
+TYPE(TY_PTR, "pointer")
+TYPE(TY_ARRAY, "array")
+TYPE(TY_SLICE, "slice")
+TYPE(TY_TUPLE, "tuple")
+TYPE(TY_STRUCT, "struct")
+TYPE(TY_TUPLE_STRUCT, "tuple struct")
+TYPE(TY_ENUM, "enum")
+TYPE(TY_UNION, "union")
+
+TYPE(TY_INTERFACE, "interface")
+TYPE(TY_ALIAS, "alias")
+
+TYPE(TY_PATH, "path")
+
+TYPE(TY_GENERIC, "generic")
+TYPE(TY_PARAM, "param")
+
+TYPE(TY_UNRESOLVED, "unresolved")
+TYPE(TY_VAR, "var")

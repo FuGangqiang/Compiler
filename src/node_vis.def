@@ -1,0 +1,8 @@
+#ifndef VIS
+#error "You must define VIS macro before include this file"
+#endif
+
+VIS(VIS_BUILTIN, "builtin visual")
+VIS(VIS_PUB, "pub visual")
+VIS(VIS_PKG, "pkg visual")
+VIS(VIS_INHERIT, "inherit visual")

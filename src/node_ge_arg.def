@@ -1,0 +1,10 @@
+#ifndef GE_ARG
+#error "You must define GE_ARG macro before include this file"
+#endif
+
+/* `Bar` in `Foo#<Bar>` */
+GE_ARG(GE_ARG_Type, "generic type argument")
+/* `1` in `Foo#<1>` */
+GE_ARG(GE_ARG_CONST, "generic const argument")
+/* `A = Bar` in `Foo#<A = Bar>` */
+GE_ARG(GE_ARG_BINDING, "generic argument binding")

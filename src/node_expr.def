@@ -1,0 +1,91 @@
+#ifndef EXPR
+#error "You must define EXPR macro before include this file"
+#endif
+
+EXPR(EXPR_ERR, "expr err")
+/* `123` */
+EXPR(EXPR_LIT, "expr lit")
+/* `foo::bar::<baz>` */
+/* `<Vec#<T> as IInterface>::SomeType` */
+EXPR(EXPR_PATH, "expr path")
+/* 
+ * [a, b, c, d] 
+ * [[0]=1, [4]=2, 0...; 10]
+ */
+EXPR(EXPR_ARRAY, "expr array")
+/*
+ * (a, b, c)
+ * (.0=a, .2=c, 0...)
+ */
+EXPR(EXPR_TUPLE, "expr tuple")
+/* 
+ * Foo {x: 1, y: 2}
+ * Foo {x: 1, ...base}
+ * Foo {x: 1, 0...}
+ */
+EXPR(EXPR_STRUCT, "expr struct")
+/* `1..4`, `1..<4` */
+EXPR(EXPR_RANGE, "expr range")
+/* `obj.foo` */
+EXPR(EXPR_FIELD, "expr field")
+/* `obj[index]` */
+EXPR(EXPR_INDEX, "expr index")
+/* `&expr` */
+EXPR(EXPR_ADDRESS_OF, "expr address of")
+/* `a as u32` */
+EXPR(EXPR_CAST, "expr cast")
+/* `fname(a, b, c)` */
+EXPR(EXPR_CALL, "expr call")
+/* `x.foo#<Bar, Baz>(a, b, c, d)` */
+EXPR(EXPR_METHOD_CALL, "expr method call")
+/* `!b` */
+EXPR(EXPR_UNARY, "expr unary")
+/* `a + b` */
+EXPR(EXPR_BINARY, "expr binary")
+/* `a = b` */
+EXPR(EXPR_ASSIGN, "expr assign")
+/* `a += b` */
+EXPR(EXPR_ASSIGN_OP, "expr assign op")
+/* `break` */
+EXPR(EXPR_BREAK, "expr break")
+/* `continue` */
+EXPR(EXPR_CONTINUE, "expr continue")
+/* `yield expr` */
+EXPR(EXPR_YIELD, "expr yield")
+/* `throw expr` */
+EXPR(EXPR_THROW, "expr throw")
+/* `return` */
+EXPR(EXPR_RETURN, "expr return")
+/* `future.await` */
+EXPR(EXPR_AWAIT, "expr await")
+/* `{ block }` */
+EXPR(EXPR_BLOCK, "expr block")
+EXPR(ND_CLOSURE, "expr closure")
+/* `let pat = expr` in `if` / `while` cond expressions */
+EXPR(EXPR_LET_COND, "expr let cond")
+/* `if expr { block } else { expr }` */
+EXPR(EXPR_IF, "expr if")
+/* `while expr { block }` */
+EXPR(EXPR_WHILE, "expr while")
+/* `do { block } while expr` */
+EXPR(EXPR_DO_WHILE, "expr do while")
+/* `for pat in expr { block }` */
+EXPR(EXPR_FOR, "expr for")
+/* `loop { block }` */
+EXPR(EXPR_LOOP, "expr loop")
+/* `match expr { arms }` */
+EXPR(EXPR_MATCH, "expr match")
+/*
+ * try {
+ *     block
+ * } catch Error::Wrong(msg) {
+ *     block
+ * } catch err {
+ *     block
+ * } finally {
+ *     block
+ * }
+ */
+EXPR(EXPR_TRY, "expr try")
+/* `foo!(xxx)`, `foo![xxx]`, `foo!{xxx}` */
+EXPR(EXPR_MACRO_CALL, "expr macro call")

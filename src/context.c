@@ -14,6 +14,7 @@ FuContext *FuContext_new() {
     ctx->symbols = FuSet_with_capacity(1024 * 20, sizeof(FuStr *), (FuEqFn)FuStr_eq, (FuHashFn)FuStr_hash);
     ctx->fmap = FuMap_new(sizeof(FuSymbol), sizeof(fu_size_t), (FuEqFn)FuSymbol_eq, (FuHashFn)FuSymbol_hash);
     ctx->fcontents = FuVec_new(sizeof(FuStr *));
+    ctx->nodes = FuVec_new(sizeof(FuNode *));
     return ctx;
 }
 
@@ -31,6 +32,7 @@ void FuContext_init(FuContext *ctx) {
 }
 
 void FuContext_drop(FuContext *ctx) {
+    FuVec_drop_with_ptrs(ctx->nodes, (FuDropFn)FuNode_drop);
     FuVec_drop_with_ptrs(ctx->fcontents, (FuDropFn)FuStr_drop);
     FuMap_drop(ctx->fmap);
     FuSet_drop_with_ptrs(ctx->symbols, (FuDropFn)FuStr_drop);

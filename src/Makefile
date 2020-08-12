@@ -30,10 +30,11 @@ span.o: span.c parse.h str.o error.o context.o
 error.o: error.c error.h parse.h span.o
 token.o: token.c parse.h kind.o span.o error.o
 lexer.o: lexer.c parse.h token.o str.o char.o hash.o set.o span.o error.o
+node.o: node.c parse.h 
 
 # dep objs
 
-DEP_OBJS=char.o str.o hash.o span.o context.o vec.o map.o set.o error.o alloc.o kind.o
+DEP_OBJS=char.o str.o hash.o span.o context.o vec.o map.o set.o error.o alloc.o kind.o node.o
 
 # tools
 

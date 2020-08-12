@@ -1,0 +1,6 @@
+#ifndef ARM
+#error "You must define ARM macro before include this file"
+#endif
+
+ARM(ARM_MATCH, "match arm")
+ARM(ARM_CATCH, "catch arm")

@@ -1,0 +1,61 @@
+#ifndef PAT
+#error "You must define PAT macro before include this file"
+#endif
+
+/* `_` */
+PAT(PAT_WILD, "pat wild")
+/* `123` */
+PAT(PAT_LIT, "pat lit")
+/* `Foo::Bar` */
+PAT(PAT_PATH, "pat path")
+/* 
+ * 1..4
+ * 1..=3
+ */
+PAT(PAT_RANGE, "pat range")
+
+/* `1 | 2 | 3` */
+PAT(PAT_OR, "pat or")
+/* (a, _) */
+PAT(PAT_TUPLE, "pat tuple")
+/*
+ * Point{x, y}
+ * Point{x: x1, y: y1}
+ * Point{x, ...base}
+ * Point{x, ...}
+ * Point{x, _...}
+ * Point{x, repeat...}
+ */
+PAT(PAT_STRUCT, "pat struct")
+/* 
+ * Point{x, y}
+ * Point{x: x1, y: y1}
+ */
+PAT(PAT_FIELD, "pat field")
+/* `foo(_, _)` */
+PAT(PAT_TUPLE_STRUCT, "pat tuple struct")
+/* 
+ * [1, 2, mids @ ..., 9]
+ */
+PAT(PAT_SLICE, "pat slice")
+/* only inside of pat
+ * - slice pat: `[a, ..., b]`, `[a, r @ ...]`
+ * - tuple pat: `(a, ..., b)`
+ * - tuple struct pat: `Foo(a, ..., b)`
+ * 
+ * repeat pattern
+ * [1, 2, 3, 0...]: any [{integer}; N] with N ≥ 3
+ * [1, 2, 3, 0...; 6]: [1, 2, 3, 0, 0, 0]
+ * [1, 0..., 1]
+ * [1, 0..., 1; 6]
+ * [1, ..., 6]: [1, _..., 6]
+ */
+PAT(PAT_REPEAT, "pat repeat")
+/*
+ * - a new binding variable: `binding @ sub_pattern`
+ * - a struct/variant pattern
+ * - a const pattern
+ *
+ * `foo`, `*foo @ 1...5`
+ */
+PAT(PAT_BINDING, "pat binding")

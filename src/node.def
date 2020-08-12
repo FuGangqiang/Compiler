@@ -1,0 +1,45 @@
+#ifndef NODE
+#error "You must define NODE macro before include this file"
+#endif
+
+NODE(ND_LIT, "node literal")
+NODE(ND_EXPR, "node expr")
+/*
+ * use foo
+ * use foo::bar
+ * use foo::bar as FooBar
+ */
+NODE(ND_USE, "node use")
+/* `static FOO: i32 = 42` */
+NODE(ND_STATIC, "node static")
+/* `const FOO: i32 = 42` */
+NODE(ND_CONST, "node const")
+NODE(ND_LET, "node let")
+/* `fn foo(bar: usize) -> usize { ... }` */
+NODE(ND_FN, "node function")
+NODE(ND_TYPE, "node type")
+/* `extern { ... }` */
+NODE(ND_EXTERN, "node extern")
+/* `extension Foo { ... }` or `extension IInterface for Foo { .. }` */
+NODE(ND_EXTENSION, "node extension")
+/* `macro foo(xxx) { ... }` */
+NODE(ND_MACRO_DEF, "node macro define")
+/* `foo!(...)` */
+NODE(ND_MACRO_CALL, "node macro call")
+/* 
+ * mod foo
+ * mod foo { ... }
+ */
+NODE(ND_MOD, "node module")
+NODE(ND_PKG, "node package")
+/* `x: int` */
+NODE(ND_FN_PARAM, "node fn param")
+/*
+ * pat => expr
+ * pat if guard_expr => expr
+ */
+NODE(ND_ARM, "node arm")
+NODE(ND_PAT, "node pat")
+NODE(ND_FIELD_DEF, "node field def")
+NODE(ND_VARIANT, "node variant")
+NODE(ND_FIELD_INIT, "node field init")
