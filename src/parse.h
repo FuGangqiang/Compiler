@@ -35,6 +35,7 @@ typedef struct FuContext FuContext;
 typedef struct FuToken FuToken;
 typedef struct FuLexer FuLexer;
 typedef struct FuScope FuScope;
+typedef struct FuParser FuParser;
 
 typedef struct FuType FuType;
 typedef struct FuNode FuNode;
@@ -326,6 +327,23 @@ FuScope *FuScope_new(FuContext *ctx, FuScope *super, FuSymbol name);
 void FuScope_drop(FuScope *scp);
 
 FuType *FuScope_get_type(FuScope *scp, FuSymbol name);
+
+typedef fu_bool_t (*FuCheckTokenFn)(FuToken tok);
+
+struct FuParser {
+    FuContext *ctx;
+    FuLexer *lexer;
+    /* FuToken */
+    FuVec *tok_buf;
+    fu_size_t cursor;
+    /* FuToken */
+    FuVec *unclosed_delims;
+};
+
+FuParser *FuParser_new(FuContext *ctx);
+void FuParser_drop(FuParser *p);
+
+void FuParser_for_file(FuParser *p, char *fpath, fu_size_t len);
 
 struct FuType {
     fu_type_k kd;
