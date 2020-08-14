@@ -346,6 +346,7 @@ void FuParser_drop(FuParser *p);
 void FuParser_for_file(FuParser *p, char *fpath, fu_size_t len);
 
 FuNode *FuParser_parse_lit(FuParser *p);
+FuIdent *FuParser_parse_ident(FuParser *p);
 
 struct FuType {
     fu_type_k kd;
@@ -431,6 +432,9 @@ struct FuIdent {
     FuSpan span;
     FuSymbol name;
 };
+
+FuIdent *FuIdent_new(FuSpan span, FuSymbol sym);
+void FuIdent_drop(FuIdent *ident);
 
 struct FuLabel {
     FuSpan span;

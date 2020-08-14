@@ -56,6 +56,11 @@ static FuToken FuParser_expect_token_fn(FuParser *p, FuCheckTokenFn fn, char *wa
     return FuParser_bump(p);
 }
 
+static FuSpan FuParser_current_span(FuParser *p) {
+    FuToken tok = FuParser_nth_token(p, 0);
+    return tok.span;
+}
+
 FuLit *FuToken_to_lit_nil(FuToken tok) {
     assert(tok.kd == TOK_IDENT);
     assert(tok.sym == KW_NIL);
@@ -696,4 +701,17 @@ FuNode *FuParser_parse_lit(FuParser *p) {
     FuNode *node = FuNode_new(p->ctx, tok.span, ND_LIT);
     node->_lit.lit = lit;
     return node;
+}
+
+/*
+  关键字 nil, true, false 的 kd 属于 TOK_IDENT，
+  这样在宏里面这些关键字可以统一作为 TOK_IDENT 类型
+ */
+FuIdent *FuParser_parse_ident(FuParser *p) {
+    FuSpan span = FuParser_current_span(p);
+    FuToken tok = FuParser_expect_token_fn(p, FuToken_is_ident, "expect ident");
+    FuIdent *ident = FuMem_new(FuIdent);
+    ident->span = span;
+    ident->name = tok.sym;
+    return ident;
 }

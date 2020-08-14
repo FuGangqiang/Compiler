@@ -9,6 +9,17 @@ static void FuStr_push_indent(FuStr *str, fu_size_t n) {
     }
 }
 
+FuIdent *FuIdent_new(FuSpan span, FuSymbol name) {
+    FuIdent *ident = FuMem_new(FuIdent);
+    ident->span = span;
+    ident->name = name;
+    return ident;
+}
+
+void FuIdent_drop(FuIdent *ident) {
+    FuMem_free(ident);
+}
+
 FuLit *FuLit_new(FuSpan span, fu_lit_k kind) {
     FuLit *lit = FuMem_new(FuLit);
     lit->span = span;
