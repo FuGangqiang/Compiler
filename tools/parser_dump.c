@@ -15,9 +15,8 @@ int main(int argc, char **argv) {
     FuParser *p = FuParser_new(ctx);
     FuParser_for_file(p, argv[1], strlen(argv[1]));
 
-    FuNode *nd = FuParser_parse_lit(p);
-
-    FuStr *dump = FuNode_display(nd, 0);
+    FuNode *pkg = FuParser_parse_pkg(p);
+    FuStr *dump = FuNode_display(pkg, 0);
     FuStr_print(stdout, dump);
 
     FuStr_drop(dump);

@@ -357,6 +357,8 @@ void FuParser_for_file(FuParser *p, char *fpath, fu_size_t len);
 FuNode *FuParser_parse_lit(FuParser *p);
 FuIdent *FuParser_parse_ident(FuParser *p);
 
+FuNode *FuParser_parse_pkg(FuParser *p);
+
 struct FuType {
     fu_type_k kd;
     fu_tid_t tid;
@@ -942,6 +944,8 @@ struct FuNode {
 
 FuNode *FuNode_new(FuContext *ctx, FuSpan span, fu_node_k kind);
 void FuNode_drop(FuNode *nd);
+
+FuNode *FuNode_new_pkg(FuContext *ctx, FuSpan span);
 
 FuStr *FuNode_display(FuNode *nd, fu_size_t indent);
 

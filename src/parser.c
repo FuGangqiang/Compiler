@@ -715,3 +715,20 @@ FuIdent *FuParser_parse_ident(FuParser *p) {
     ident->name = tok.sym;
     return ident;
 }
+
+FuNode *FuParser_parse_pkg(FuParser *p) {
+    FuSpan lo = FuParser_current_span(p);
+    FuVec *attrs = FuVec_new(sizeof(FuAttr *));
+
+    FuNode *mod = FuParser_parse_lit(p);
+    /* todo:
+    FuNode *mod = FuParser_parse_mod(p, TOK_EOF, attrs);
+    */
+
+    FuSpan hi = FuParser_current_span(p);
+    FuSpan span = FuSpan_join(lo, hi);
+    FuNode *nd = FuNode_new_pkg(p->ctx, span);
+    nd->_pkg.mod = mod;
+    nd->attrs = attrs;
+    return nd;
+}

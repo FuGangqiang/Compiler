@@ -111,10 +111,27 @@ void FuNode_drop(FuNode *nd) {
     case ND_LIT:
         FuLit_drop(nd->_lit.lit);
         break;
+    case ND_PKG:
+        FuScope_drop(nd->_pkg.globals);
+        FuScope_drop(nd->_pkg.builtins);
+        break;
     default:
-        FATAL(NULL, "unimplemented!");
+        FATAL(NULL, "unimplemented: %s", FuKind_node_cstr(nd->kd));
+    }
+    if (nd->attrs) {
+        FuVec_drop(nd->attrs);
     }
     FuMem_free(nd);
+}
+
+FuNode *FuNode_new_pkg(FuContext *ctx, FuSpan span) {
+    FuNode *nd = FuNode_new(ctx, span, ND_PKG);
+    FuScope *builtins = FuScope_new(ctx, NULL, 0);
+    FuScope *globals = FuScope_new(ctx, builtins, 0);
+    nd->_pkg.builtins = builtins;
+    nd->_pkg.globals = globals;
+    FuType_init_pkg_builtins(ctx, nd);
+    return nd;
 }
 
 FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
@@ -129,8 +146,12 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         FuStr_append(str, lit);
         break;
     }
+    case ND_PKG:
+        FuStr_push_utf8_cstr(str, "pkg:\n");
+        FuStr_append(str, FuNode_display(nd->_pkg.mod, indent + 1));
+        break;
     default:
-        FATAL(NULL, "unimplemented");
+        FATAL(NULL, "unimplemented: %s", FuKind_node_cstr(nd->kd));
         break;
     }
     return str;
