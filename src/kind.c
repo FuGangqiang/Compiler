@@ -237,3 +237,20 @@ char *FuKind_vis_cstr(fu_vis_k kd) {
         break;
     }
 }
+
+char *FuKind_type_cstr(fu_type_k kd) {
+    switch (kd) {
+/* clang-format off */
+#define TYPE(kd, comment) \
+    case kd: \
+        return #kd; \
+        break;
+/* clang-format on */
+#include "type.def"
+#undef TYPE
+    default:
+        /* can not be here */
+        return "";
+        break;
+    }
+}

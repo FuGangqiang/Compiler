@@ -33,10 +33,12 @@ token.o: token.c parse.h kind.o span.o error.o
 lexer.o: lexer.c parse.h token.o str.o char.o hash.o set.o span.o error.o
 node.o: node.c parse.h alloc.o kind.o
 parser.o: parser.c parse.h node.o alloc.o error.o
+type.o: type.c parse.h
+scope.o: scope.c parse.h
 
 # dep objs
 
-DEP_OBJS=char.o bytes.o str.o hash.o span.o context.o vec.o map.o set.o error.o alloc.o kind.o node.o
+DEP_OBJS=char.o bytes.o str.o hash.o span.o context.o vec.o map.o set.o error.o alloc.o kind.o node.o type.o scope.o
 
 # tools
 

@@ -15,6 +15,7 @@ FuContext *FuContext_new() {
     ctx->fmap = FuMap_new(sizeof(FuSymbol), sizeof(fu_size_t), (FuEqFn)FuSymbol_eq, (FuHashFn)FuSymbol_hash);
     ctx->fcontents = FuVec_new(sizeof(FuStr *));
     ctx->nodes = FuVec_new(sizeof(FuNode *));
+    ctx->types = FuVec_new(sizeof(FuType *));
     return ctx;
 }
 
@@ -32,6 +33,7 @@ void FuContext_init(FuContext *ctx) {
 }
 
 void FuContext_drop(FuContext *ctx) {
+    FuVec_drop_with_ptrs(ctx->types, (FuDropFn)FuType_drop);
     FuVec_drop_with_ptrs(ctx->nodes, (FuDropFn)FuNode_drop);
     FuVec_drop_with_ptrs(ctx->fcontents, (FuDropFn)FuStr_drop);
     FuMap_drop(ctx->fmap);
@@ -68,4 +70,14 @@ FuStr *FuContext_get_file(FuContext *ctx, FuSymbol fpath) {
     }
     fu_size_t *idx_p = FuMap_get(ctx->fmap, &fpath);
     return FuVec_get_ptr(ctx->fcontents, *idx_p);
+}
+
+fu_tid_t FuContext_push_type(FuContext *ctx, FuType *ty) {
+    fu_tid_t tid = FuVec_len(ctx->types);
+    FuVec_push_ptr(ctx->types, ty);
+    return tid;
+}
+
+FuType *FuContext_get_type(FuContext *ctx, fu_tid_t tid) {
+    return FuVec_get_ptr(ctx->types, tid);
 }

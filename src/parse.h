@@ -211,17 +211,26 @@ struct FuContext {
 
     /* ast nodes */
     FuVec *nodes;
+
+    /* types */
+    FuVec *types;
 };
 
 FuContext *FuContext_new();
 void FuContext_init(FuContext *ctx);
 void FuContext_drop(FuContext *ctx);
 
+/* intern symbol */
 FuSymbol FuContext_intern_symbol(FuContext *ctx, FuStr *symbol);
 FuStr *FuContext_get_symbol(FuContext *ctx, FuSymbol sym);
 
+/* intern file content */
 void FuContext_intern_file(FuContext *ctx, FuSymbol fpath, FuStr *fcontent);
 FuStr *FuContext_get_file(FuContext *ctx, FuSymbol fpath);
+
+/* collects types */
+fu_tid_t FuContext_push_type(FuContext *ctx, FuType *ty);
+FuType *FuContext_get_type(FuContext *ctx, fu_tid_t tid);
 
 struct FuToken {
     fu_token_k kd;
@@ -412,6 +421,11 @@ struct FuType {
         } _alias;
     };
 };
+
+FuType *FuType_new(FuContext *ctx, fu_type_k kd, fu_vis_k vis);
+void FuType_drop(FuType *ty);
+
+void FuType_init_pkg_builtins(FuContext *ctx, FuNode *nd);
 
 struct FuTokTree {
     FuSpan span;
