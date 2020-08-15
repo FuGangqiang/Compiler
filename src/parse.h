@@ -355,9 +355,9 @@ void FuParser_drop(FuParser *p);
 
 void FuParser_for_file(FuParser *p, char *fpath, fu_size_t len);
 
-FuNode *FuParser_parse_lit(FuParser *p);
 FuNode *FuParser_parse_expr(FuParser *p);
 
+FuLit *FuParser_parse_lit(FuParser *p);
 FuIdent *FuParser_parse_ident(FuParser *p);
 FuPathItem *FuParser_parse_path_item(FuParser *p);
 FuPath *FuParser_parse_path(FuParser *p);
@@ -617,6 +617,7 @@ struct FuExpr {
     fu_expr_k kd;
     fu_bool_t is_const;
     union {
+        FuLit *_lit;
         struct {
             FuAnnoSelf *anno;
             FuPath *path;
@@ -624,86 +625,86 @@ struct FuExpr {
         struct {
             /* FuNode._field_init */
             FuVec *fields;
-            FuNode *base_expr;
+            FuExpr *base_expr;
             fu_size_t size;
         } _array;
         struct {
             /* FuNode._field_init */
             FuVec *fields;
-            FuNode *base_expr;
+            FuExpr *base_expr;
         } _tuple;
         struct {
             FuPath *path;
             /* FuNode._field_init */
             FuVec *fields;
-            FuNode *base_expr;
+            FuExpr *base_expr;
         } _struct;
         struct {
             fu_bool_t is_inclusive;
-            FuNode *start_expr;
-            FuNode *stop_expr;
+            FuExpr *start_expr;
+            FuExpr *stop_expr;
         } _range;
         struct {
-            FuNode *obj_expr;
+            FuExpr *obj_expr;
             FuIdent *ident;
         } _field;
         struct {
-            FuNode *obj_expr;
-            FuNode *idx_expr;
+            FuExpr *obj_expr;
+            FuExpr *idx_expr;
         } _index;
         struct {
-            FuNode *expr;
+            FuExpr *expr;
         } _address_of;
         struct {
-            FuNode *expr;
+            FuExpr *expr;
             FuType *ty;
         } _cast;
         struct {
             FuNode *path;
-            /* FuNode._expr */
+            /* FuExpr */
             FuVec *expr_args;
         } _call;
         struct {
-            FuNode *path;
-            /* FuNode._expr */
+            FuExpr *obj_expr;
+            /* FuExpr */
             FuVec *expr_args;
         } _method_call;
         struct {
             fu_op_k op;
-            FuNode *expr;
+            FuExpr *expr;
         } _unary;
         struct {
             fu_op_k op;
-            FuNode *lexpr;
-            FuNode *rexpr;
+            FuExpr *lexpr;
+            FuExpr *rexpr;
         } _binary;
         struct {
-            FuNode *lexpr;
-            FuNode *rexpr;
+            FuExpr *lexpr;
+            FuExpr *rexpr;
         } _assign;
         struct {
             fu_op_k op;
-            FuNode *lexpr;
-            FuNode *rexpr;
+            FuExpr *lexpr;
+            FuExpr *rexpr;
         } _assign_op;
         struct {
             FuLabel *label;
-            FuNode *expr;
+            FuExpr *expr;
         } _break;
         struct {
             FuLabel *label;
         } _continue;
         struct {
-            FuNode *expr;
+            FuExpr *expr;
         } _yield;
         struct {
-            FuNode *expr;
+            FuExpr *expr;
         } _throw;
         struct {
-            FuNode *expr;
+            FuExpr *expr;
         } _return;
         struct {
-            FuNode *expr;
+            FuExpr *expr;
         } _await;
         struct {
             fu_bool_t is_unsafe;
@@ -717,50 +718,52 @@ struct FuExpr {
             FuScope *scope;
             /* FuNode._fn_param */
             FuVec *params;
-            FuNode *body;
+            FuExpr *body;
         } _closure;
         struct {
             FuPat *pat;
-            FuNode *expr;
+            FuExpr *expr;
         } _let_cond;
         struct {
-            FuNode *cond_expr;
-            FuNode *block;
-            FuNode *next_if;
+            FuExpr *cond_expr;
+            FuExpr *block;
+            FuExpr *next_if;
         } _if;
         struct {
-            FuNode *cond_expr;
-            FuNode *block;
+            FuExpr *cond_expr;
+            FuExpr *block;
         } _while;
         struct {
-            FuNode *cond_expr;
-            FuNode *block;
+            FuExpr *cond_expr;
+            FuExpr *block;
         } _do_while;
         struct {
             FuPat *pat;
-            FuNode *expr;
-            FuNode *block;
+            FuExpr *expr;
+            FuExpr *block;
         } _for;
         struct {
-            FuNode *block;
+            FuExpr *block;
         } _loop;
         struct {
-            FuNode *expr;
+            FuExpr *expr;
             /* FuNode._arm */
             FuVec *arms;
         } _match;
         struct {
-            FuNode *block;
+            FuExpr *block;
             /* FuNode._arm */
             FuVec *arms;
-            FuNode *finally;
+            FuExpr *finally;
         } _try;
         FuMacroCall *_macro_call;
     };
 };
 
 FuExpr *FuExpr_new(FuSpan span, fu_expr_k kd);
+FuExpr *FuExpr_new_lit(FuLit *lit);
 FuExpr *FuExpr_new_path(FuAnnoSelf *anno, FuPath *path);
+
 void FuExpr_drop(FuExpr *expr);
 FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent);
 
@@ -838,10 +841,6 @@ struct FuNode {
     fu_nid_t nid;
     fu_bool_t is_inferred;
     union {
-        struct {
-            FuType *ty;
-            FuLit *lit;
-        } _lit;
         struct {
             FuType *ty;
             FuExpr *expr;

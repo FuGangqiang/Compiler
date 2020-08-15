@@ -2,6 +2,7 @@
 #error "You must define EXPR macro before include this file"
 #endif
 
+EXPR(EXPR_LIT, "expr literal")
 EXPR(EXPR_ERR, "expr err")
 /* `foo::bar::<baz>` */
 /* `<Vec#<T> as IInterface>::SomeType` */
@@ -58,7 +59,7 @@ EXPR(EXPR_RETURN, "expr return")
 EXPR(EXPR_AWAIT, "expr await")
 /* `{ block }` */
 EXPR(EXPR_BLOCK, "expr block")
-EXPR(ND_CLOSURE, "expr closure")
+EXPR(EXPR_CLOSURE, "expr closure")
 /* `let pat = expr` in `if` / `while` cond expressions */
 EXPR(EXPR_LET_COND, "expr let cond")
 /* `if expr { block } else { expr }` */

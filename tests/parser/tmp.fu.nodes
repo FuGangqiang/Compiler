@@ -3,5 +3,8 @@ kd: ND_PKG
 pkg:
   nid: 0
   kd: ND_EXPR
-    kd: EXPR_PATH
-    path: a
+  expr:
+    kd: EXPR_LIT
+    lit:
+      kd: LIT_STR
+      len: 4, v: byte

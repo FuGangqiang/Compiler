@@ -143,6 +143,12 @@ FuExpr *FuExpr_new(FuSpan span, fu_expr_k kd) {
     return expr;
 }
 
+FuExpr *FuExpr_new_lit(FuLit *lit) {
+    FuExpr *expr = FuExpr_new(lit->span, EXPR_LIT);
+    expr->_lit = lit;
+    return expr;
+}
+
 FuExpr *FuExpr_new_path(FuAnnoSelf *anno, FuPath *path) {
     FuExpr *expr = FuExpr_new(path->span, EXPR_PATH);
     expr->_path.anno = anno;
@@ -152,6 +158,9 @@ FuExpr *FuExpr_new_path(FuAnnoSelf *anno, FuPath *path) {
 
 void FuExpr_drop(FuExpr *expr) {
     switch (expr->kd) {
+    case EXPR_LIT:
+        FuLit_drop(expr->_lit);
+        break;
     case EXPR_PATH:
         /* todo: expr->_path.anno */
         FuPath_drop(expr->_path.path);
@@ -171,6 +180,10 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
     }
     switch (expr->kd) {
     case EXPR_ERR:
+        break;
+    case EXPR_LIT:
+        FuStr_push_utf8_cstr(str, "lit:\n");
+        FuStr_append(str, FuLit_display(expr->_lit, indent + 1));
         break;
     case EXPR_PATH:
         FuStr_push_utf8_cstr(str, "path: ");
@@ -194,9 +207,6 @@ FuNode *FuNode_new(FuContext *ctx, FuSpan span, fu_node_k kind) {
 
 void FuNode_drop(FuNode *nd) {
     switch (nd->kd) {
-    case ND_LIT:
-        FuLit_drop(nd->_lit.lit);
-        break;
     case ND_EXPR:
         FuExpr_drop(nd->_expr.expr);
         break;
@@ -229,11 +239,10 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
     FuStr_push_utf8_format(str, "nid: %d\n", nd->nid);
     FuStr_push_indent(str, indent);
     FuStr_push_utf8_format(str, "kd: %s\n", FuKind_node_cstr(nd->kd));
+    FuStr_push_indent(str, indent);
     switch (nd->kd) {
-    case ND_LIT:
-        FuStr_append(str, FuLit_display(nd->_lit.lit, indent + 1));
-        break;
     case ND_EXPR:
+        FuStr_push_utf8_cstr(str, "expr:\n");
         FuStr_append(str, FuExpr_display(nd->_expr.expr, indent + 1));
         break;
     case ND_PKG:

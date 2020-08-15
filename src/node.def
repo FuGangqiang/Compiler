@@ -2,7 +2,6 @@
 #error "You must define NODE macro before include this file"
 #endif
 
-NODE(ND_LIT, "node literal")
 NODE(ND_EXPR, "node expr")
 /*
  * use foo

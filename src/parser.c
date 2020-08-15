@@ -678,7 +678,7 @@ FuLit *FuToken_to_lit_format_str(FuToken tok) {
     return lit;
 }
 
-FuNode *FuParser_parse_lit(FuParser *p) {
+FuLit *FuParser_parse_lit(FuParser *p) {
     FuToken tok = FuParser_expect_token_fn(p, FuToken_is_lit, "literal");
     FuLit *lit = NULL;
     switch (tok.kd) {
@@ -713,23 +713,37 @@ FuNode *FuParser_parse_lit(FuParser *p) {
         break;
     case TOK_FORMAT_STR:
     case TOK_FORMAT_RAW_STR:
-        FATAL(&tok.span, "todo");
+        FATAL(&tok.span, "unimplemented: %s", FuKind_token_cstr(tok.kd));
+        break;
     default:
         FATAL(&tok.span, "can not be here");
     }
-    FuNode *node = FuNode_new(p->ctx, tok.span, ND_LIT);
-    node->_lit.lit = lit;
-    return node;
+    return lit;
 }
 
 FuNode *FuParser_parse_expr(FuParser *p) {
     FuToken tok = FuParser_nth_token(p, 0);
     FuExpr *expr;
     switch (tok.kd) {
+    case TOK_BYTE:
+    case TOK_CHAR:
+    case TOK_INT:
+    case TOK_FLOAT:
+    case TOK_STR:
+    case TOK_RAW_STR:
+    case TOK_BYTE_STR:
+    case TOK_BYTE_RAW_STR:
+    case TOK_FORMAT_STR:
+    case TOK_FORMAT_RAW_STR:
     case TOK_IDENT: {
-        /* todo: expr->_path.anno */
-        FuPath *path = FuParser_parse_path(p);
-        expr = FuExpr_new_path(NULL, path);
+        if (FuToken_is_lit(tok)) {
+            FuLit *lit = FuParser_parse_lit(p);
+            expr = FuExpr_new_lit(lit);
+        } else {
+            /* todo: expr->_path.anno */
+            FuPath *path = FuParser_parse_path(p);
+            expr = FuExpr_new_path(NULL, path);
+        }
         break;
     }
     default:
