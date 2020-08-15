@@ -3,7 +3,7 @@
 char *FuKind_arm_cstr(fu_arm_k kd) {
     switch (kd) {
 /* clang-format off */
-#define ARM(kd, comment) \
+#define ARM(kd, _doc) \
     case kd: \
         return #kd; \
         break;
@@ -20,7 +20,7 @@ char *FuKind_arm_cstr(fu_arm_k kd) {
 char *FuKind_attr_cstr(fu_attr_k kd) {
     switch (kd) {
 /* clang-format off */
-#define ATTR(kd, comment) \
+#define ATTR(kd, _doc) \
     case kd: \
         return #kd; \
         break;
@@ -37,7 +37,7 @@ char *FuKind_attr_cstr(fu_attr_k kd) {
 char *FuKind_expr_cstr(fu_expr_k kd) {
     switch (kd) {
 /* clang-format off */
-#define EXPR(kd, comment) \
+#define EXPR(kd, _doc) \
     case kd: \
         return #kd; \
         break;
@@ -54,7 +54,7 @@ char *FuKind_expr_cstr(fu_expr_k kd) {
 char *FuKind_ge_arg_cstr(fu_ge_arg_k kd) {
     switch (kd) {
 /* clang-format off */
-#define GE_ARG(kd, comment) \
+#define GE_ARG(kd, _doc) \
     case kd: \
         return #kd; \
         break;
@@ -71,7 +71,7 @@ char *FuKind_ge_arg_cstr(fu_ge_arg_k kd) {
 char *FuKind_ge_param_cstr(fu_ge_param_k kd) {
     switch (kd) {
 /* clang-format off */
-#define GE_PARAM(kd, comment) \
+#define GE_PARAM(kd, _doc) \
     case kd: \
         return #kd; \
         break;
@@ -88,7 +88,7 @@ char *FuKind_ge_param_cstr(fu_ge_param_k kd) {
 char *FuKind_lit_cstr(fu_lit_k kd) {
     switch (kd) {
 /* clang-format off */
-#define LIT(kd, comment) \
+#define LIT(kd, _doc) \
     case kd: \
         return #kd; \
         break;
@@ -105,7 +105,7 @@ char *FuKind_lit_cstr(fu_lit_k kd) {
 char *FuKind_node_cstr(fu_node_k kd) {
     switch (kd) {
 /* clang-format off */
-#define NODE(kd, comment) \
+#define NODE(kd, _doc) \
     case kd: \
         return #kd; \
         break;
@@ -122,7 +122,7 @@ char *FuKind_node_cstr(fu_node_k kd) {
 char *FuKind_op_cstr(fu_op_k kd) {
     switch (kd) {
 /* clang-format off */
-#define OP(kd, comment) \
+#define OP(kd, _doc) \
     case kd: \
         return #kd; \
         break;
@@ -139,7 +139,7 @@ char *FuKind_op_cstr(fu_op_k kd) {
 char *FuKind_pat_cstr(fu_pat_k kd) {
     switch (kd) {
 /* clang-format off */
-#define PAT(kd, comment) \
+#define PAT(kd, _doc) \
     case kd: \
         return #kd; \
         break;
@@ -156,7 +156,7 @@ char *FuKind_pat_cstr(fu_pat_k kd) {
 char *FuKind_token_cstr(fu_token_k kd) {
     switch (kd) {
 /* clang-format off */
-#define TOKEN(kd, comment) \
+#define TOKEN(kd, _doc) \
     case kd: \
         return #kd; \
         break;
@@ -173,7 +173,7 @@ char *FuKind_token_cstr(fu_token_k kd) {
 char *FuKind_keyword_cstr(fu_keyword_k kd) {
     switch (kd) {
 /* clang-format off */
-#define TYPE(kd, comment) \
+#define TYPE(kd, _doc) \
     case kd: \
         return #kd; \
         break;
@@ -190,7 +190,7 @@ char *FuKind_keyword_cstr(fu_keyword_k kd) {
 char *FuKind_use_cstr(fu_use_k kd) {
     switch (kd) {
 /* clang-format off */
-#define USE(kd, comment) \
+#define USE(kd, _doc) \
     case kd: \
         return #kd; \
         break;
@@ -207,7 +207,7 @@ char *FuKind_use_cstr(fu_use_k kd) {
 char *FuKind_variant_cstr(fu_variant_k kd) {
     switch (kd) {
 /* clang-format off */
-#define VARIANT(kd, comment) \
+#define VARIANT(kd, _doc) \
     case kd: \
         return #kd; \
         break;
@@ -224,7 +224,7 @@ char *FuKind_variant_cstr(fu_variant_k kd) {
 char *FuKind_vis_cstr(fu_vis_k kd) {
     switch (kd) {
 /* clang-format off */
-#define VIS(kd, comment) \
+#define VIS(kd, _doc) \
     case kd: \
         return #kd; \
         break;
@@ -241,7 +241,7 @@ char *FuKind_vis_cstr(fu_vis_k kd) {
 char *FuKind_type_cstr(fu_type_k kd) {
     switch (kd) {
 /* clang-format off */
-#define TYPE(kd, comment) \
+#define TYPE(kd, _doc) \
     case kd: \
         return #kd; \
         break;

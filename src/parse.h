@@ -62,105 +62,105 @@ fu_bool_t FuSymbol_eq(FuSymbol *sym1, FuSymbol *sym2);
 fu_size_t FuSymbol_hash(FuSymbol *sym);
 
 enum fu_arm_k {
-#define ARM(kd, comment) kd,
+#define ARM(kd, _doc) kd,
 #include "node_arm.def"
 #undef ARM
     _ARM_LAST_UNUSED
 };
 
 enum fu_attr_k {
-#define ATTR(kd, str) kd,
+#define ATTR(kd, _doc) kd,
 #include "node_attr.def"
 #undef ATTR
     _ATTR_LAST_UNUSED
 };
 
 enum fu_expr_k {
-#define EXPR(kd, str) kd,
+#define EXPR(kd, _doc) kd,
 #include "node_expr.def"
 #undef EXPR
     _EXPR_LAST_UNUSED
 };
 
 enum fu_ge_arg_k {
-#define GE_ARG(kd, str) kd,
+#define GE_ARG(kd, _doc) kd,
 #include "node_ge_arg.def"
 #undef GE_ARG
     _GE_ARG_LAST_UNUSED
 };
 
 enum fu_ge_param_k {
-#define GE_PARAM(kd, str) kd,
+#define GE_PARAM(kd, _doc) kd,
 #include "node_ge_param.def"
 #undef GE_PARAM
     _GE_PARAM_LAST_UNUSED,
 };
 
 enum fu_keyword_k {
-#define KEYWORD(kd, str) kd,
+#define KEYWORD(kd, _doc) kd,
 #include "keyword.def"
 #undef KEYWORD
     _KW_LAST_UNUSED,
 };
 
 enum fu_lit_k {
-#define LIT(kd, str) kd,
+#define LIT(kd, _doc) kd,
 #include "node_lit.def"
 #undef LIT
     _LIT_LAST_UNUSED
 };
 
 enum fu_node_k {
-#define NODE(kd, str) kd,
+#define NODE(kd, _doc) kd,
 #include "node.def"
 #undef NODE
     _ND_LAST_UNUSED
 };
 
 enum fu_op_k {
-#define OP(kd, str) kd,
+#define OP(kd, _doc) kd,
 #include "node_op.def"
 #undef OP
     _OP_LAST_UNUSED
 };
 
 enum fu_pat_k {
-#define PAT(kd, str) kd,
+#define PAT(kd, _doc) kd,
 #include "node_pat.def"
 #undef PAT
     _PAT_LAST_UNUSED
 };
 
 enum fu_token_k {
-#define TOKEN(kd, str) kd,
+#define TOKEN(kd, _doc) kd,
 #include "token.def"
 #undef TOKEN
     _TOK_LAST_UNUSED
 };
 
 enum fu_type_k {
-#define TYPE(kd, str) kd,
+#define TYPE(kd, _doc) kd,
 #include "type.def"
 #undef TYPE
     _TY_LAST_UNUSED,
 };
 
 enum fu_use_k {
-#define USE(kd, str) kd,
+#define USE(kd, _doc) kd,
 #include "node_use.def"
 #undef USE
     _USE_LAST_UNUSE
 };
 
 enum fu_variant_k {
-#define VARIANT(kd, str) kd,
+#define VARIANT(kd, _doc) kd,
 #include "node_variant.def"
 #undef VARIANT
     _VARIANT_LAST_UNUSE
 };
 
 enum fu_vis_k {
-#define VIS(kd, str) kd,
+#define VIS(kd, _doc) kd,
 #include "node_vis.def"
 #undef VIS
     _VIS_LAST_UNUSE
