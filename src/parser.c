@@ -56,6 +56,25 @@ static FuToken FuParser_expect_token_fn(FuParser *p, FuCheckTokenFn fn, char *wa
     return FuParser_bump(p);
 }
 
+static fu_bool_t FuParser_check_2_token(FuParser *p, fu_token_k kind0, fu_token_k kind1) {
+    FuToken tok0 = FuParser_nth_token(p, 0);
+    FuToken tok1 = FuParser_nth_token(p, 1);
+    if (tok0.kd == kind0 && tok1.kd == kind1) {
+        return FU_TRUE;
+    }
+    return FU_FALSE;
+}
+
+/*
+static fu_bool_t FuParser_check_token_fn(FuParser *p, FuCheckTokenFn fn) {
+    FuToken tok = FuParser_nth_token(p, 0);
+    if (fn(tok)) {
+        return FU_TRUE;
+    }
+    return FU_FALSE;
+}
+*/
+
 static FuSpan FuParser_current_span(FuParser *p) {
     FuToken tok = FuParser_nth_token(p, 0);
     return tok.span;
@@ -703,6 +722,24 @@ FuNode *FuParser_parse_lit(FuParser *p) {
     return node;
 }
 
+FuNode *FuParser_parse_expr(FuParser *p) {
+    FuToken tok = FuParser_nth_token(p, 0);
+    FuExpr *expr;
+    switch (tok.kd) {
+    case TOK_IDENT: {
+        /* todo: expr->_path.anno */
+        FuPath *path = FuParser_parse_path(p);
+        expr = FuExpr_new_path(NULL, path);
+        break;
+    }
+    default:
+        FATAL(NULL, "unimplemented: %s", FuKind_token_cstr(tok.kd));
+    }
+    FuNode *nd = FuNode_new(p->ctx, expr->span, ND_EXPR);
+    nd->_expr.expr = expr;
+    return nd;
+}
+
 /*
   关键字 nil, true, false 的 kd 属于 TOK_IDENT，
   这样在宏里面这些关键字可以统一作为 TOK_IDENT 类型
@@ -716,11 +753,47 @@ FuIdent *FuParser_parse_ident(FuParser *p) {
     return ident;
 }
 
+FuPathItem *FuParser_parse_path_item(FuParser *p) {
+    FuSpan lo = FuParser_current_span(p);
+    FuIdent *ident = FuParser_parse_ident(p);
+    FuVec *ge_args = NULL;
+    /* todo: generic
+    if (FuParser_check_2_token(p, TOK_POUND, TOK_LT)) {
+        ge_args = FuParser_parse_ge_args(p);
+    }
+    */
+    FuPathItem *item = FuMem_new(FuPathItem);
+    item->span = FuSpan_join(lo, FuParser_current_span(p));
+    item->ident = ident;
+    item->ge_args = ge_args;
+    return item;
+}
+
+/* todo: generic */
+FuPath *FuParser_parse_path(FuParser *p) {
+    FuPath *path = FuMem_new(FuPath);
+    path->segments = FuVec_new(sizeof(FuPathItem *));
+    while (1) {
+        FuPathItem *item = FuParser_parse_path_item(p);
+        FuVec_push_ptr(path->segments, item);
+        if (FuParser_check_2_token(p, TOK_COLON, TOK_COLON)) {
+            FuParser_bump(p);
+            FuParser_bump(p);
+        } else {
+            break;
+        }
+    }
+    FuPathItem *start = FuVec_first_ptr(path->segments);
+    FuPathItem *end = FuVec_last_ptr(path->segments);
+    path->span = FuSpan_join(start->span, end->span);
+    return path;
+}
+
 FuNode *FuParser_parse_pkg(FuParser *p) {
     FuSpan lo = FuParser_current_span(p);
     FuVec *attrs = FuVec_new(sizeof(FuAttr *));
 
-    FuNode *mod = FuParser_parse_lit(p);
+    FuNode *mod = FuParser_parse_expr(p);
     /* todo:
     FuNode *mod = FuParser_parse_mod(p, TOK_EOF, attrs);
     */

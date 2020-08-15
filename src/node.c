@@ -20,6 +20,45 @@ void FuIdent_drop(FuIdent *ident) {
     FuMem_free(ident);
 }
 
+FuStr *FuIdent_display(FuIdent *ident) {
+    FuStr *str = FuContext_get_symbol(ident->span.ctx, ident->name);
+    return FuStr_clone(str);
+}
+
+void FuPathItem_drop(FuPathItem *item) {
+    /* todo generic
+        item->ge_args
+    */
+    FuIdent_drop(item->ident);
+    FuMem_free(item);
+}
+
+FuStr *FuPathItem_display(FuPathItem *item) {
+    FuStr *str = FuStr_new();
+    /* todo: generic */
+    FuStr_append(str, FuIdent_display(item->ident));
+    return str;
+}
+
+void FuPath_drop(FuPath *path) {
+    FuVec_drop_with_ptrs(path->segments, (FuDropFn)FuPathItem_drop);
+    FuMem_free(path);
+}
+
+FuStr *FuPath_display(FuPath *path) {
+    FuStr *str = FuStr_new();
+    FuPathItem *item = FuVec_get_ptr(path->segments, 0);
+    FuStr_append(str, FuPathItem_display(item));
+    fu_size_t len = FuVec_len(path->segments);
+    fu_size_t i;
+    for (i = 1; i < len; i++) {
+        FuStr_push_utf8_cstr(str, "::");
+        item = FuVec_get_ptr(path->segments, 0);
+        FuStr_append(str, FuPathItem_display(item));
+    }
+    return str;
+}
+
 FuLit *FuLit_new(FuSpan span, fu_lit_k kind) {
     FuLit *lit = FuMem_new(FuLit);
     lit->span = span;
@@ -97,6 +136,53 @@ FuStr *FuLit_display(FuLit *lit, fu_size_t indent) {
     return str;
 }
 
+FuExpr *FuExpr_new(FuSpan span, fu_expr_k kd) {
+    FuExpr *expr = FuMem_new(FuExpr);
+    expr->span = span;
+    expr->kd = kd;
+    return expr;
+}
+
+FuExpr *FuExpr_new_path(FuAnnoSelf *anno, FuPath *path) {
+    FuExpr *expr = FuExpr_new(path->span, EXPR_PATH);
+    expr->_path.anno = anno;
+    expr->_path.path = path;
+    return expr;
+}
+
+void FuExpr_drop(FuExpr *expr) {
+    switch (expr->kd) {
+    case EXPR_PATH:
+        /* todo: expr->_path.anno */
+        FuPath_drop(expr->_path.path);
+        break;
+    default:
+        FATAL(&expr->span, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
+    }
+    FuMem_free(expr);
+}
+
+FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "kd: %s\n", FuKind_expr_cstr(expr->kd));
+    if (expr->kd != EXPR_ERR) {
+        FuStr_push_indent(str, indent);
+    }
+    switch (expr->kd) {
+    case EXPR_ERR:
+        break;
+    case EXPR_PATH:
+        FuStr_push_utf8_cstr(str, "path: ");
+        /* todo: expr->_path.anno */
+        FuStr_append(str, FuPath_display(expr->_path.path));
+        break;
+    default:
+        FATAL(&expr->span, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
+    }
+    return str;
+}
+
 FuNode *FuNode_new(FuContext *ctx, FuSpan span, fu_node_k kind) {
     FuNode *node = FuMem_new(FuNode);
     node->span = span;
@@ -110,6 +196,9 @@ void FuNode_drop(FuNode *nd) {
     switch (nd->kd) {
     case ND_LIT:
         FuLit_drop(nd->_lit.lit);
+        break;
+    case ND_EXPR:
+        FuExpr_drop(nd->_expr.expr);
         break;
     case ND_PKG:
         FuScope_drop(nd->_pkg.globals);
@@ -141,11 +230,12 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
     FuStr_push_indent(str, indent);
     FuStr_push_utf8_format(str, "kd: %s\n", FuKind_node_cstr(nd->kd));
     switch (nd->kd) {
-    case ND_LIT: {
-        FuStr *lit = FuLit_display(nd->_lit.lit, indent + 1);
-        FuStr_append(str, lit);
+    case ND_LIT:
+        FuStr_append(str, FuLit_display(nd->_lit.lit, indent + 1));
         break;
-    }
+    case ND_EXPR:
+        FuStr_append(str, FuExpr_display(nd->_expr.expr, indent + 1));
+        break;
     case ND_PKG:
         FuStr_push_utf8_cstr(str, "pkg:\n");
         FuStr_append(str, FuNode_display(nd->_pkg.mod, indent + 1));

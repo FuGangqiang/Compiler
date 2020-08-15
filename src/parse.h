@@ -289,6 +289,7 @@ fu_bool_t FuToken_is_bin_eq_op(FuToken tok);
 fu_bool_t FuToken_is_lit(FuToken tok);
 fu_bool_t FuToken_is_outer_doc_comment(FuToken tok);
 fu_bool_t FuToken_is_blank(FuToken tok);
+fu_bool_t FuToken_is_expr_start(FuToken tok);
 
 fu_size_t FuToken_left_skip_count(FuToken tok);
 
@@ -355,7 +356,11 @@ void FuParser_drop(FuParser *p);
 void FuParser_for_file(FuParser *p, char *fpath, fu_size_t len);
 
 FuNode *FuParser_parse_lit(FuParser *p);
+FuNode *FuParser_parse_expr(FuParser *p);
+
 FuIdent *FuParser_parse_ident(FuParser *p);
+FuPathItem *FuParser_parse_path_item(FuParser *p);
+FuPath *FuParser_parse_path(FuParser *p);
 
 FuNode *FuParser_parse_pkg(FuParser *p);
 
@@ -488,12 +493,18 @@ struct FuPathItem {
     FuVec *ge_args;
 };
 
+void FuPathItem_drop(FuPathItem *item);
+FuStr *FuPathItem_display(FuPathItem *item);
+
 /* `std::vec::Vec#<T>` */
 struct FuPath {
     FuSpan span;
     /* FuPathItem */
     FuVec *segments;
 };
+
+void FuPath_drop(FuPath *path);
+FuStr *FuPath_display(FuPath *path);
 
 /*
  * 类型注解
@@ -747,6 +758,11 @@ struct FuExpr {
         FuMacroCall *_macro_call;
     };
 };
+
+FuExpr *FuExpr_new(FuSpan span, fu_expr_k kd);
+FuExpr *FuExpr_new_path(FuAnnoSelf *anno, FuPath *path);
+void FuExpr_drop(FuExpr *expr);
+FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent);
 
 struct FuPat {
     FuSpan span;

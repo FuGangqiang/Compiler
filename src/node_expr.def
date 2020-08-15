@@ -3,8 +3,6 @@
 #endif
 
 EXPR(EXPR_ERR, "expr err")
-/* `123` */
-EXPR(EXPR_LIT, "expr lit")
 /* `foo::bar::<baz>` */
 /* `<Vec#<T> as IInterface>::SomeType` */
 EXPR(EXPR_PATH, "expr path")

@@ -207,6 +207,17 @@ fu_bool_t FuToken_is_blank(FuToken tok) {
     return FU_FALSE;
 }
 
+fu_bool_t FuToken_is_expr_start(FuToken tok) {
+    switch (tok.kd) {
+    case TOK_IDENT:
+        return FU_TRUE;
+        break;
+    default:
+        FATAL(NULL, "unimplemented: %d", FuKind_token_cstr(tok.kd));
+    }
+    return 0;
+}
+
 /* token 真正内容从哪里开始 */
 fu_size_t FuToken_left_skip_count(FuToken tok) {
     fu_size_t count = 0;
