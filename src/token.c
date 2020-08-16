@@ -11,13 +11,33 @@ FuToken FuToken_new(fu_token_k kd, FuSpan span) {
     return token;
 }
 
-FuToken FuToken_new_sym(fu_token_k kd, FuSpan span, FuSymbol sym) {
-    assert(kd >= TOK_DOC_COMMENT && kd < TOK_INT);
+static FuToken FuToken_new_sym(fu_token_k kd, FuSpan span, FuSymbol sym) {
+    assert(kd >= TOK_DOC_COMMENT && kd < TOK_BYTE);
     FuToken token;
     token.kd = kd;
     token.span = span;
     token.sym = sym;
     return token;
+}
+
+FuToken FuToken_new_doc_comment(FuSpan span, FuSymbol sym) {
+    return FuToken_new_sym(TOK_DOC_COMMENT, span, sym);
+}
+
+FuToken FuToken_new_keyword(FuSpan span, FuSymbol sym) {
+    return FuToken_new_sym(TOK_KEYWORD, span, sym);
+}
+
+FuToken FuToken_new_ident(FuSpan span, FuSymbol sym) {
+    return FuToken_new_sym(TOK_IDENT, span, sym);
+}
+
+FuToken FuToken_new_raw_ident(FuSpan span, FuSymbol sym) {
+    return FuToken_new_sym(TOK_RAW_IDENT, span, sym);
+}
+
+FuToken FuToken_new_lable(FuSpan span, FuSymbol sym) {
+    return FuToken_new_sym(TOK_LABEL, span, sym);
 }
 
 FuToken FuToken_new_lit_int(FuSpan span, FuSymbol sym, fu_size_t base, fu_bool_t empty_int, fu_size_t suffix_start) {
@@ -175,7 +195,7 @@ fu_bool_t FuToken_is_lit(FuToken tok) {
     if (TOK_BYTE <= tok.kd && tok.kd <= TOK_FORMAT_RAW_STR) {
         return FU_TRUE;
     }
-    if (tok.kd == TOK_IDENT) {
+    if (tok.kd == TOK_KEYWORD) {
         /* ident: nil, true, false */
         if (tok.sym == KW_NIL || tok.sym == KW_TRUE || tok.sym == KW_FALSE) {
             return FU_TRUE;

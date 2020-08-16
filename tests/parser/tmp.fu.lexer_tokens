@@ -1,0 +1,2 @@
+parser/tmp.fu:1:1:TOK_STR:byte
+parser/tmp.fu:1:7:TOK_NEWLINE

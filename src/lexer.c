@@ -10,6 +10,7 @@ FuLexer *FuLexer_new(FuContext *ctx) {
     l->cur_line = 1;
     l->cur_column = 1;
     l->cursor = 0;
+    l->tok_buf = FuVec_new(sizeof(FuToken));
     return l;
 }
 
@@ -17,6 +18,7 @@ void FuLexer_drop(FuLexer *l) {
     if (!l) {
         return;
     }
+    FuVec_drop(l->tok_buf);
     FuMem_free(l);
 }
 
@@ -350,7 +352,7 @@ static FuToken FuLexer_comment(FuLexer *l) {
     FuChar third_fc = FuStr_get_char(l->chars, start + 2);
     if (third_fc == '!' || third_fc == '/') {
         FuSymbol sym = FuLexer_token_sym(l, start + 2, span.len - 3);
-        return FuToken_new_sym(TOK_DOC_COMMENT, span, sym);
+        return FuToken_new_doc_comment(span, sym);
     } else {
         return FuToken_new(TOK_COMMENT, span);
     }
@@ -381,7 +383,7 @@ static FuToken FuLexer_identifier(FuLexer *l) {
     }
     FuSpan span = FuLexer_token_span(l, start);
     FuSymbol sym = FuLexer_token_sym(l, start, span.len);
-    return FuToken_new_sym(TOK_IDENT, span, sym);
+    return FuToken_new_ident(span, sym);
 }
 
 static FuToken FuLexer_raw_ident(FuLexer *l) {
@@ -390,7 +392,7 @@ static FuToken FuLexer_raw_ident(FuLexer *l) {
     FuLexer_eat_identifier(l);
     FuSpan span = FuLexer_token_span(l, start);
     FuSymbol sym = FuLexer_token_sym(l, start + 2, span.len - 2);
-    return FuToken_new_sym(TOK_RAW_IDENT, span, sym);
+    return FuToken_new_raw_ident(span, sym);
 }
 
 static FuToken FuLexer_number(FuLexer *l, FuChar first_digit) {
@@ -519,7 +521,7 @@ static FuToken FuLexer_label_or_char(FuLexer *l) {
     } else {
         FuSpan span = FuLexer_token_span(l, start);
         FuSymbol sym = FuLexer_token_sym(l, start, span.len);
-        return FuToken_new_sym(TOK_LABEL, span, sym);
+        return FuToken_new_lable(span, sym);
     }
 }
 
@@ -639,7 +641,19 @@ static FuToken FuLexer_raw_double_quoted_format_string(FuLexer *l) {
     return FuToken_new_lit_str(TOK_FORMAT_RAW_STR, span, sym, n_hashes, started, prefix_ignore, terminated);
 }
 
+void FuLexer_unget_token(FuLexer *l, FuToken tok) {
+    if (tok.kd == TOK_EOF) {
+        return;
+    }
+    FuVec_push(l->tok_buf, &tok);
+}
+
 FuToken FuLexer_get_token(FuLexer *l) {
+    if (!FuVec_is_empty(l->tok_buf)) {
+        FuToken tok;
+        FuVec_pop(l->tok_buf, &tok);
+        return tok;
+    }
     l->tok_line = l->cur_line;
     l->tok_column = l->cur_column;
 

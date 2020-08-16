@@ -45,8 +45,8 @@ TOKEN(TOK_TILDE, "~")
 TOKEN(TOK_AT, "@")
 TOKEN(TOK_DOT, ".")
 TOKEN(TOK_DOT_DOT, "..")
-TOKEN(TOK_DOT_DOT_LT, "..<")
 TOKEN(TOK_DOT_DOT_DOT, "...")
+TOKEN(TOK_DOT_DOT_EQ, "..=")
 TOKEN(TOK_COMMA, ",")
 TOKEN(TOK_SEMI, ";")
 TOKEN(TOK_COLON, ":")
@@ -64,6 +64,7 @@ TOKEN(TOK_COMMENT, "//")
 
 /* need inter symbol */
 TOKEN(TOK_DOC_COMMENT, "//")
+TOKEN(TOK_KEYWORD, "keyword")
 TOKEN(TOK_IDENT, "ident")
 /* r#abc */
 TOKEN(TOK_RAW_IDENT, "raw ident")

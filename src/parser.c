@@ -27,23 +27,320 @@ void FuParser_drop(FuParser *p) {
 void FuParser_for_file(FuParser *p, char *fpath, fu_size_t len) {
     p->lexer = FuLexer_new(p->ctx);
     FuLexer_for_file(p->lexer, fpath, len);
-    FuToken tok = FuLexer_get_token(p->lexer);
-    FuVec_push(p->tok_buf, &tok);
+}
+
+static FuToken FuParser_get_token(FuParser *p) {
+    FuToken tok0, tok1, tok2;
+    FuSpan span;
+
+    tok0 = FuLexer_get_token(p->lexer);
+    if (p->in_tok_tree) {
+        return tok0;
+    }
+
+    switch (tok0.kd) {
+    case TOK_COMMENT: {
+        /* ignore comment */
+        do {
+            tok0 = FuLexer_get_token(p->lexer);
+        } while (tok0.kd == TOK_COMMENT);
+        FuLexer_unget_token(p->lexer, tok0);
+        return FuToken_new(TOK_NEWLINE, tok0.span);
+        break;
+    }
+    case TOK_RAW_IDENT:
+        return FuToken_new_ident(tok0.span, tok0.sym);
+        break;
+    case TOK_IDENT: {
+        if (tok0.sym < _KW_LAST_UNUSED) {
+            return FuToken_new_keyword(tok0.span, tok0.sym);
+        } else {
+            return tok0;
+        }
+        break;
+    }
+    case TOK_PLUS: {
+        /* `+`, `+=` */
+        tok1 = FuLexer_get_token(p->lexer);
+        if (tok1.kd == TOK_EQ) {
+            /* `+=` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_PLUS_EQ, span);
+        } else {
+            /* `+` */
+            FuLexer_unget_token(p->lexer, tok1);
+            return tok0;
+        }
+        break;
+    }
+    case TOK_MINUS: {
+        /* `-`, `-=`, `->` */
+        tok1 = FuLexer_get_token(p->lexer);
+        if (tok1.kd == TOK_EQ) {
+            /* `-=` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_MINUS_EQ, span);
+        } else if (tok1.kd == TOK_GT) {
+            /* `->` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_RARROW, span);
+        } else {
+            /* `-` */
+            FuLexer_unget_token(p->lexer, tok1);
+            return tok0;
+        }
+        break;
+    }
+    case TOK_STAR: {
+        /* `*`, `*=` */
+        tok1 = FuLexer_get_token(p->lexer);
+        if (tok1.kd == TOK_EQ) {
+            /* `*=` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_STAR_EQ, span);
+        } else {
+            /* `*` */
+            FuLexer_unget_token(p->lexer, tok1);
+            return tok0;
+        }
+        break;
+    }
+    case TOK_SLASH: {
+        /* `/`, `/=` */
+        tok1 = FuLexer_get_token(p->lexer);
+        if (tok1.kd == TOK_EQ) {
+            /* `/=` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_SLASH_EQ, span);
+        } else {
+            /* `/` */
+            FuLexer_unget_token(p->lexer, tok1);
+            return tok0;
+        }
+        break;
+    }
+    case TOK_PERCENT: {
+        /* `%`, `%=` */
+        tok1 = FuLexer_get_token(p->lexer);
+        if (tok1.kd == TOK_EQ) {
+            /* `%=` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_PERCENT_EQ, span);
+        } else {
+            /* `%` */
+            FuLexer_unget_token(p->lexer, tok1);
+            return tok0;
+        }
+        break;
+    }
+    case TOK_AND: {
+        /* `&`, `&=`, `&&` */
+        tok1 = FuLexer_get_token(p->lexer);
+        if (tok1.kd == TOK_EQ) {
+            /* `&=` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_AND_EQ, span);
+        } else if (tok1.kd == TOK_AND) {
+            /* `&&` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_AND_AND, span);
+        } else {
+            /* `&` */
+            FuLexer_unget_token(p->lexer, tok1);
+            return tok0;
+        }
+        break;
+    }
+    case TOK_OR: {
+        /* `|`, `|=`, `||` */
+        tok1 = FuLexer_get_token(p->lexer);
+        if (tok1.kd == TOK_EQ) {
+            /* `|=` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_OR_EQ, span);
+        } else if (tok1.kd == TOK_OR) {
+            /* `||` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_OR_OR, span);
+        } else {
+            /* `|` */
+            FuLexer_unget_token(p->lexer, tok1);
+            return tok0;
+        }
+        break;
+    }
+    case TOK_CARET: {
+        /* `^`, `^=` */
+        tok1 = FuLexer_get_token(p->lexer);
+        if (tok1.kd == TOK_EQ) {
+            /* `^=` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_CARET_EQ, span);
+        } else {
+            /* `^` */
+            FuLexer_unget_token(p->lexer, tok1);
+            return tok0;
+        }
+        break;
+    }
+    case TOK_LT: {
+        /* `<`, `<<`, `<<=`, `<=`, `<-` */
+        tok1 = FuLexer_get_token(p->lexer);
+        if (tok1.kd == TOK_LT) {
+            /* `<<`, `<<=` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            tok2 = FuLexer_get_token(p->lexer);
+            if (tok2.kd == TOK_EQ) {
+                /* `<<=` */
+                span = FuSpan_join(span, tok2.span);
+                return FuToken_new(TOK_SHL_EQ, span);
+            } else {
+                /* `<<` */
+                FuLexer_unget_token(p->lexer, tok2);
+                return FuToken_new(TOK_SHL, span);
+            }
+        } else if (tok1.kd == TOK_EQ) {
+            /* `<=` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_LE, span);
+        } else if (tok1.kd == TOK_MINUS) {
+            /* `<-` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_LARROW, span);
+        } else {
+            /* `<` */
+            FuLexer_unget_token(p->lexer, tok1);
+            return tok0;
+        }
+        break;
+    }
+    case TOK_GT: {
+        /* `>`, `>>` `>>=`, `>=` */
+        tok1 = FuLexer_get_token(p->lexer);
+        if (tok1.kd == TOK_GT) {
+            /* `>>`, `>>=` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            tok2 = FuLexer_get_token(p->lexer);
+            if (tok2.kd == TOK_EQ) {
+                /* `>>=` */
+                span = FuSpan_join(span, tok2.span);
+                return FuToken_new(TOK_SHR_EQ, span);
+            } else {
+                /* `>>` */
+                FuLexer_unget_token(p->lexer, tok2);
+                return FuToken_new(TOK_SHR, span);
+            }
+        } else if (tok1.kd == TOK_EQ) {
+            /* `>=` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_GE, span);
+        } else {
+            /* `>` */
+            FuLexer_unget_token(p->lexer, tok1);
+            return tok0;
+        }
+        break;
+    }
+    case TOK_EQ: {
+        /* `=`, `==`, `=>` */
+        tok1 = FuLexer_get_token(p->lexer);
+        if (tok1.kd == TOK_EQ) {
+            /* `==` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_EE, span);
+        } else if (tok1.kd == TOK_GT) {
+            /* `=>` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_FAT_ARROW, span);
+        } else {
+            /* `=` */
+            FuLexer_unget_token(p->lexer, tok1);
+            return tok0;
+        }
+        break;
+    }
+    case TOK_NOT: {
+        /* `!`, `!=` */
+        tok1 = FuLexer_get_token(p->lexer);
+        if (tok1.kd == TOK_EQ) {
+            /* `!=` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_NE, span);
+        } else {
+            /* `!` */
+            FuLexer_unget_token(p->lexer, tok1);
+            return tok0;
+        }
+        break;
+    }
+    case TOK_DOT: {
+        /* `.`, `..`, `...`, `..=` */
+        tok1 = FuLexer_get_token(p->lexer);
+        if (tok1.kd == TOK_DOT) {
+            /* `..`, `...`, `..=` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            tok2 = FuLexer_get_token(p->lexer);
+            if (tok2.kd == TOK_DOT) {
+                /* `...` */
+                span = FuSpan_join(span, tok2.span);
+                return FuToken_new(TOK_DOT_DOT_DOT, span);
+            } else if (tok2.kd == TOK_EQ) {
+                /* `..=` */
+                span = FuSpan_join(span, tok2.span);
+                return FuToken_new(TOK_DOT_DOT_EQ, span);
+            } else {
+                /* `..` */
+                FuLexer_unget_token(p->lexer, tok2);
+                return FuToken_new(TOK_DOT_DOT, span);
+            }
+        } else {
+            /* `.` */
+            FuLexer_unget_token(p->lexer, tok1);
+            return tok0;
+        }
+        break;
+    }
+    case TOK_COLON: {
+        /* `:`, `::` */
+        tok1 = FuLexer_get_token(p->lexer);
+        if (tok1.kd == TOK_COLON) {
+            /* `::` */
+            span = FuSpan_join(tok0.span, tok1.span);
+            return FuToken_new(TOK_MOD_SEP, span);
+        } else {
+            /* `:` */
+            FuLexer_unget_token(p->lexer, tok1);
+            return tok0;
+        }
+        break;
+    }
+    default:
+        return tok0;
+        break;
+    }
 }
 
 static FuToken FuParser_nth_token(FuParser *p, fu_size_t n) {
     fu_size_t i = p->cursor + n;
     while (i >= FuVec_len(p->tok_buf)) {
-        FuToken tok = FuLexer_get_token(p->lexer);
+        FuToken tok = FuParser_get_token(p);
         FuVec_push(p->tok_buf, &tok);
     }
     return *(FuToken *)FuVec_get(p->tok_buf, i);
 }
 
+static fu_bool_t FuParser_is_eof(FuParser *p) {
+    FuToken tok = FuParser_nth_token(p, 0);
+    if (tok.kd == TOK_EOF) {
+        return FU_TRUE;
+    }
+    return FU_FALSE;
+}
+
 static FuToken FuParser_bump(FuParser *p) {
     FuToken cur_tok = FuParser_nth_token(p, 0);
     FuVec_remove_slice(p->tok_buf, 0, p->cursor + 1, NULL);
-    FuToken tok = FuLexer_get_token(p->lexer);
+    FuToken tok = FuParser_get_token(p);
     FuVec_push(p->tok_buf, &tok);
     return cur_tok;
 }
@@ -56,6 +353,15 @@ static FuToken FuParser_expect_token_fn(FuParser *p, FuCheckTokenFn fn, char *wa
     return FuParser_bump(p);
 }
 
+static fu_bool_t FuParser_check_token(FuParser *p, fu_token_k kd) {
+    FuToken tok0 = FuParser_nth_token(p, 0);
+    if (tok0.kd == kd) {
+        return FU_TRUE;
+    }
+    return FU_FALSE;
+}
+
+/*
 static fu_bool_t FuParser_check_2_token(FuParser *p, fu_token_k kind0, fu_token_k kind1) {
     FuToken tok0 = FuParser_nth_token(p, 0);
     FuToken tok1 = FuParser_nth_token(p, 1);
@@ -64,6 +370,7 @@ static fu_bool_t FuParser_check_2_token(FuParser *p, fu_token_k kind0, fu_token_
     }
     return FU_FALSE;
 }
+*/
 
 /*
 static fu_bool_t FuParser_check_token_fn(FuParser *p, FuCheckTokenFn fn) {
@@ -81,13 +388,13 @@ static FuSpan FuParser_current_span(FuParser *p) {
 }
 
 FuLit *FuToken_to_lit_nil(FuToken tok) {
-    assert(tok.kd == TOK_IDENT);
+    assert(tok.kd == TOK_KEYWORD);
     assert(tok.sym == KW_NIL);
     return FuLit_new(tok.span, LIT_NIL);
 }
 
 FuLit *FuToken_to_lit_bool(FuToken tok) {
-    assert(tok.kd == TOK_IDENT);
+    assert(tok.kd == TOK_KEYWORD);
     assert(tok.sym == KW_TRUE || tok.sym == KW_FALSE);
     FuLit *lit = FuLit_new(tok.span, LIT_BOOL);
     if (tok.sym == KW_TRUE) {
@@ -682,7 +989,7 @@ FuLit *FuParser_parse_lit(FuParser *p) {
     FuToken tok = FuParser_expect_token_fn(p, FuToken_is_lit, "literal");
     FuLit *lit = NULL;
     switch (tok.kd) {
-    case TOK_IDENT:
+    case TOK_KEYWORD:
         if (tok.sym == KW_NIL) {
             lit = FuToken_to_lit_nil(tok);
         } else if (tok.sym == KW_TRUE || tok.sym == KW_FALSE) {
@@ -735,15 +1042,17 @@ FuNode *FuParser_parse_expr(FuParser *p) {
     case TOK_BYTE_RAW_STR:
     case TOK_FORMAT_STR:
     case TOK_FORMAT_RAW_STR:
-    case TOK_IDENT: {
+    case TOK_KEYWORD: {
         if (FuToken_is_lit(tok)) {
             FuLit *lit = FuParser_parse_lit(p);
             expr = FuExpr_new_lit(lit);
-        } else {
-            /* todo: expr->_path.anno */
-            FuPath *path = FuParser_parse_path(p);
-            expr = FuExpr_new_path(NULL, path);
         }
+        break;
+    }
+    case TOK_IDENT: {
+        /* todo: expr->_path.anno */
+        FuPath *path = FuParser_parse_path(p);
+        expr = FuExpr_new_path(NULL, path);
         break;
     }
     default:
@@ -790,7 +1099,7 @@ FuPath *FuParser_parse_path(FuParser *p) {
     while (1) {
         FuPathItem *item = FuParser_parse_path_item(p);
         FuVec_push_ptr(path->segments, item);
-        if (FuParser_check_2_token(p, TOK_COLON, TOK_COLON)) {
+        if (FuParser_check_token(p, TOK_MOD_SEP)) {
             FuParser_bump(p);
             FuParser_bump(p);
         } else {
@@ -818,4 +1127,18 @@ FuNode *FuParser_parse_pkg(FuParser *p) {
     nd->_pkg.mod = mod;
     nd->attrs = attrs;
     return nd;
+}
+
+FuStr *FuParser_dump_tokens(FuParser *p) {
+    FuStr *dump = FuStr_new();
+    while (!FuParser_is_eof(p)) {
+        FuToken tok = FuParser_nth_token(p, 0);
+        FuStr *tok_str = FuToken_display(tok);
+        FuStr_append(dump, FuSpan_display(tok.span));
+        FuStr_push_utf8_cstr(dump, ":");
+        FuStr_append(dump, tok_str);
+        FuStr_push_utf8_cstr(dump, "\n");
+        FuParser_bump(p);
+    }
+    return dump;
 }

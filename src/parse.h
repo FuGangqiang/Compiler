@@ -269,7 +269,12 @@ struct FuToken {
 };
 
 FuToken FuToken_new(fu_token_k kd, FuSpan span);
-FuToken FuToken_new_sym(fu_token_k kd, FuSpan span, FuSymbol sym);
+FuToken FuToken_new_doc_comment(FuSpan span, FuSymbol sym);
+FuToken FuToken_new_keyword(FuSpan span, FuSymbol sym);
+FuToken FuToken_new_ident(FuSpan span, FuSymbol sym);
+FuToken FuToken_new_raw_ident(FuSpan span, FuSymbol sym);
+FuToken FuToken_new_lable(FuSpan span, FuSymbol sym);
+
 FuToken FuToken_new_lit_int(FuSpan span, FuSymbol sym, fu_size_t base, fu_bool_t empty_int, fu_size_t suffix_start);
 FuToken FuToken_new_lit_float(FuSpan span, FuSymbol sym, fu_size_t base, fu_bool_t empty_exponent,
                               fu_size_t suffix_start);
@@ -305,6 +310,8 @@ struct FuLexer {
     fu_size_t cur_line;
     fu_size_t cur_column;
     fu_size_t cursor;
+    /* for parseing multi-char ops */
+    FuVec *tok_buf;
 };
 
 FuLexer *FuLexer_new(FuContext *ctx);
@@ -314,6 +321,7 @@ void FuLexer_for_file(FuLexer *l, char *fname, fu_size_t len);
 
 fu_bool_t FuLexer_is_eof(FuLexer *l);
 FuToken FuLexer_get_token(FuLexer *l);
+void FuLexer_unget_token(FuLexer *l, FuToken tok);
 FuStr *FuLexer_display_token(FuLexer *l, FuToken token);
 
 FuStr *FuLexer_dump(FuLexer *l);
@@ -346,6 +354,7 @@ struct FuParser {
     /* FuToken */
     FuVec *tok_buf;
     fu_size_t cursor;
+    fu_bool_t in_tok_tree;
     /* FuToken */
     FuVec *unclosed_delims;
 };
@@ -363,6 +372,8 @@ FuPathItem *FuParser_parse_path_item(FuParser *p);
 FuPath *FuParser_parse_path(FuParser *p);
 
 FuNode *FuParser_parse_pkg(FuParser *p);
+
+FuStr *FuParser_dump_tokens(FuParser *p);
 
 struct FuType {
     fu_type_k kd;
