@@ -17,6 +17,9 @@ FuIdent *FuIdent_new(FuSpan span, FuSymbol name) {
 }
 
 void FuIdent_drop(FuIdent *ident) {
+    if (!ident) {
+        return;
+    }
     FuMem_free(ident);
 }
 
@@ -26,6 +29,9 @@ FuStr *FuIdent_display(FuIdent *ident) {
 }
 
 void FuPathItem_drop(FuPathItem *item) {
+    if (!item) {
+        return;
+    }
     /* todo generic
         item->ge_args
     */
@@ -41,6 +47,9 @@ FuStr *FuPathItem_display(FuPathItem *item) {
 }
 
 void FuPath_drop(FuPath *path) {
+    if (!path) {
+        return;
+    }
     FuVec_drop_with_ptrs(path->segments, (FuDropFn)FuPathItem_drop);
     FuMem_free(path);
 }
@@ -67,6 +76,9 @@ FuLit *FuLit_new(FuSpan span, fu_lit_k kind) {
 }
 
 void FuLit_drop(FuLit *lit) {
+    if (!lit) {
+        return;
+    }
     switch (lit->kd) {
     case LIT_ERR:
     case LIT_NIL:
@@ -157,6 +169,9 @@ FuExpr *FuExpr_new_path(FuAnnoSelf *anno, FuPath *path) {
 }
 
 void FuExpr_drop(FuExpr *expr) {
+    if (!expr) {
+        return;
+    }
     switch (expr->kd) {
     case EXPR_LIT:
         FuLit_drop(expr->_lit);
@@ -206,21 +221,38 @@ FuNode *FuNode_new(FuContext *ctx, FuSpan span, fu_node_k kind) {
 }
 
 void FuNode_drop(FuNode *nd) {
+    if (!nd) {
+        return;
+    }
     switch (nd->kd) {
     case ND_EXPR:
         FuExpr_drop(nd->_expr.expr);
         break;
+    case ND_STATIC:
+        FuExpr_drop(nd->_static.init_expr);
+        FuIdent_drop(nd->_static.ident);
+        break;
     case ND_PKG:
         FuScope_drop(nd->_pkg.globals);
         FuScope_drop(nd->_pkg.builtins);
+        FuVec_drop_with_ptrs(nd->_pkg.extern_pkgs, (FuDropFn)FuNode_drop);
+        /* node ptr is drop in the context */
+        FuVec_drop(nd->_pkg.items);
         break;
     default:
         FATAL(NULL, "unimplemented: %s", FuKind_node_cstr(nd->kd));
     }
     if (nd->attrs) {
+        /* todo: attr drop */
         FuVec_drop(nd->attrs);
     }
     FuMem_free(nd);
+}
+
+FuNode *FuNode_new_expr(FuContext *ctx, FuExpr *expr) {
+    FuNode *nd = FuNode_new(ctx, expr->span, ND_EXPR);
+    nd->_expr.expr = expr;
+    return nd;
 }
 
 FuNode *FuNode_new_pkg(FuContext *ctx, FuSpan span) {
@@ -229,8 +261,20 @@ FuNode *FuNode_new_pkg(FuContext *ctx, FuSpan span) {
     FuScope *globals = FuScope_new(ctx, builtins, 0);
     nd->_pkg.builtins = builtins;
     nd->_pkg.globals = globals;
+    nd->_pkg.extern_pkgs = FuVec_new(sizeof(FuNode *));
     FuType_init_pkg_builtins(ctx, nd);
     return nd;
+}
+
+FuStr *FuNode_display_items(FuVec *items, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    fu_size_t len = FuVec_len(items);
+    fu_size_t i;
+    for (i = 0; i < len; i++) {
+        FuNode *item = FuVec_get_ptr(items, i);
+        FuStr_append(str, FuNode_display(item, indent));
+    }
+    return str;
 }
 
 FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
@@ -245,9 +289,17 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         FuStr_push_utf8_cstr(str, "expr:\n");
         FuStr_append(str, FuExpr_display(nd->_expr.expr, indent + 1));
         break;
+    case ND_STATIC:
+        FuStr_push_utf8_cstr(str, "ident:");
+        FuStr_append(str, FuIdent_display(nd->_static.ident));
+        FuStr_push_utf8_cstr(str, "\n");
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "init_expr:\n");
+        FuStr_append(str, FuExpr_display(nd->_static.init_expr, indent + 1));
+        break;
     case ND_PKG:
-        FuStr_push_utf8_cstr(str, "pkg:\n");
-        FuStr_append(str, FuNode_display(nd->_pkg.mod, indent + 1));
+        FuStr_push_utf8_cstr(str, "items:\n");
+        FuStr_append(str, FuNode_display_items(nd->_pkg.items, indent + 1));
         break;
     default:
         FATAL(NULL, "unimplemented: %s", FuKind_node_cstr(nd->kd));

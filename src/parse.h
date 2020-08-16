@@ -364,12 +364,15 @@ void FuParser_drop(FuParser *p);
 
 void FuParser_for_file(FuParser *p, char *fpath, fu_size_t len);
 
-FuNode *FuParser_parse_expr(FuParser *p);
-
 FuLit *FuParser_parse_lit(FuParser *p);
 FuIdent *FuParser_parse_ident(FuParser *p);
 FuPathItem *FuParser_parse_path_item(FuParser *p);
 FuPath *FuParser_parse_path(FuParser *p);
+FuExpr *FuParser_parse_expr(FuParser *p);
+
+FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis);
+FuNode *FuParser_parse_mod_item(FuParser *p);
+FuVec *FuParser_parse_mod_items(FuParser *p);
 
 FuNode *FuParser_parse_pkg(FuParser *p);
 
@@ -931,7 +934,9 @@ struct FuNode {
             FuVec *items;
         } _mod;
         struct {
-            FuNode *mod;
+            FuSymbol name;
+            /* FuNode */
+            FuVec *items;
 
             FuVec *extern_pkgs;
             FuScope *builtins;
@@ -971,6 +976,7 @@ struct FuNode {
 FuNode *FuNode_new(FuContext *ctx, FuSpan span, fu_node_k kind);
 void FuNode_drop(FuNode *nd);
 
+FuNode *FuNode_new_expr(FuContext *ctx, FuExpr *expr);
 FuNode *FuNode_new_pkg(FuContext *ctx, FuSpan span);
 
 FuStr *FuNode_display(FuNode *nd, fu_size_t indent);

@@ -1,10 +1,11 @@
 nid: 1
 kd: ND_PKG
-pkg:
+items:
   nid: 0
-  kd: ND_EXPR
-  expr:
+  kd: ND_STATIC
+  ident:abc
+  init_expr:
     kd: EXPR_LIT
     lit:
-      kd: LIT_STR
-      len: 4, v: byte
+      kd: LIT_INT
+      size: 0, is_signed: 0, v: 1

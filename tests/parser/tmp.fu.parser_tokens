@@ -1,2 +1,10 @@
-parser/tmp.fu:1:1:TOK_STR:byte
-parser/tmp.fu:1:7:TOK_NEWLINE
+parser/tmp.fu:1:1:TOK_KEYWORD:pub
+parser/tmp.fu:1:4:TOK_WHITESPACE
+parser/tmp.fu:1:5:TOK_KEYWORD:static
+parser/tmp.fu:1:11:TOK_WHITESPACE
+parser/tmp.fu:1:12:TOK_IDENT:abc
+parser/tmp.fu:1:15:TOK_WHITESPACE
+parser/tmp.fu:1:16:TOK_EQ
+parser/tmp.fu:1:17:TOK_WHITESPACE
+parser/tmp.fu:1:18:TOK_INT:1
+parser/tmp.fu:1:19:TOK_NEWLINE
