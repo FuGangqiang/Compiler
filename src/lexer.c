@@ -267,9 +267,9 @@ static fu_bool_t FuLexer_eat_raw_double_quoted_string(FuLexer *l, fu_size_t *n_h
     }
 }
 
-static FuSpan FuLexer_token_span(FuLexer *l, fu_size_t start) {
-    FuSpan span = FuSpan_new(l->ctx, l->fpath, start, l->cursor - start, l->tok_line, l->tok_column);
-    return span;
+static FuSpan *FuLexer_token_span(FuLexer *l, fu_size_t start) {
+    FuSpan *sp = FuSpan_new(l->ctx, l->fpath, start, l->cursor - start, l->tok_line, l->tok_column);
+    return sp;
 }
 
 static fu_sym_t FuLexer_token_sym(FuLexer *l, fu_size_t start, fu_size_t len) {
@@ -281,9 +281,8 @@ static fu_sym_t FuLexer_token_sym(FuLexer *l, fu_size_t start, fu_size_t len) {
 /*
  * start 和 len 为去除了首尾的引号和井号后的内容
  */
-static fu_sym_t FuLexer_token_str_sym(FuLexer *l, FuSpan span, fu_size_t start, fu_size_t len,
-                                      fu_size_t prefix_ignore) {
-    fu_size_t offset = start - span.start;
+static fu_sym_t FuLexer_token_str_sym(FuLexer *l, FuSpan *sp, fu_size_t start, fu_size_t len, fu_size_t prefix_ignore) {
+    fu_size_t offset = start - sp->start;
     FuStr *str = FuStr_with_capacity(len);
 
     /* 忽略第一个换行符 */
@@ -315,8 +314,8 @@ static fu_sym_t FuLexer_token_str_sym(FuLexer *l, FuSpan span, fu_size_t start, 
                 break;
             }
             if (fc != ' ') {
-                FuSpan err_span = FuSpan_offset(span, offset);
-                FATAL(&err_span, "only `space` allow in prefix strips");
+                FuSpan *err_span = FuSpan_offset(sp, offset);
+                FATAL(err_span, "only `space` allow in prefix strips");
             }
             i++;
             offset++;
@@ -348,13 +347,13 @@ static FuToken FuLexer_comment(FuLexer *l) {
             break;
         }
     } while (fc != FuChar_EOF);
-    FuSpan span = FuLexer_token_span(l, start);
+    FuSpan *sp = FuLexer_token_span(l, start);
     FuChar third_fc = FuStr_get_char(l->chars, start + 2);
     if (third_fc == '!' || third_fc == '/') {
-        fu_sym_t sym = FuLexer_token_sym(l, start + 2, span.len - 3);
-        return FuToken_new_doc_comment(span, sym);
+        fu_sym_t sym = FuLexer_token_sym(l, start + 2, sp->len - 3);
+        return FuToken_new_doc_comment(sp, sym);
     } else {
-        return FuToken_new(TOK_COMMENT, span);
+        return FuToken_new(TOK_COMMENT, sp);
     }
 }
 
@@ -363,8 +362,8 @@ static FuToken FuLexer_whitespace(FuLexer *l) {
     while (FuChar_is_whitespace(FuLexer_first(l))) {
         FuLexer_bump(l);
     }
-    FuSpan span = FuLexer_token_span(l, start);
-    return FuToken_new(TOK_WHITESPACE, span);
+    FuSpan *sp = FuLexer_token_span(l, start);
+    return FuToken_new(TOK_WHITESPACE, sp);
 }
 
 static FuToken FuLexer_newline(FuLexer *l) {
@@ -372,8 +371,8 @@ static FuToken FuLexer_newline(FuLexer *l) {
     while (FuChar_is_newline(FuLexer_first(l))) {
         FuLexer_bump(l);
     }
-    FuSpan span = FuLexer_token_span(l, start);
-    return FuToken_new(TOK_NEWLINE, span);
+    FuSpan *sp = FuLexer_token_span(l, start);
+    return FuToken_new(TOK_NEWLINE, sp);
 }
 
 static FuToken FuLexer_identifier(FuLexer *l) {
@@ -381,18 +380,18 @@ static FuToken FuLexer_identifier(FuLexer *l) {
     while (FuChar_is_id_continue(FuLexer_first(l))) {
         FuLexer_bump(l);
     }
-    FuSpan span = FuLexer_token_span(l, start);
-    fu_sym_t sym = FuLexer_token_sym(l, start, span.len);
-    return FuToken_new_ident(span, sym);
+    FuSpan *sp = FuLexer_token_span(l, start);
+    fu_sym_t sym = FuLexer_token_sym(l, start, sp->len);
+    return FuToken_new_ident(sp, sym);
 }
 
 static FuToken FuLexer_raw_ident(FuLexer *l) {
     fu_size_t start = l->cursor - 1;
     FuLexer_bump(l);
     FuLexer_eat_identifier(l);
-    FuSpan span = FuLexer_token_span(l, start);
-    fu_sym_t sym = FuLexer_token_sym(l, start + 2, span.len - 2);
-    return FuToken_new_raw_ident(span, sym);
+    FuSpan *sp = FuLexer_token_span(l, start);
+    fu_sym_t sym = FuLexer_token_sym(l, start + 2, sp->len - 2);
+    return FuToken_new_raw_ident(sp, sym);
 }
 
 static FuToken FuLexer_number(FuLexer *l, FuChar first_digit) {
@@ -425,9 +424,9 @@ static FuToken FuLexer_number(FuLexer *l, FuChar first_digit) {
             fu_size_t suffix_start = l->cursor - start;
             FuLexer_eat_literal_suffix(l);
             fu_size_t len = l->cursor - start;
-            FuSpan span = FuLexer_token_span(l, start);
+            FuSpan *sp = FuLexer_token_span(l, start);
             fu_sym_t sym = FuLexer_token_sym(l, start, len);
-            return FuToken_new_lit_int(span, sym, base, FU_FALSE, suffix_start);
+            return FuToken_new_lit_int(sp, sym, base, FU_FALSE, suffix_start);
         }
 
         /* base prefix was provided, but there were no digits after it, e.g. "0x" */
@@ -435,9 +434,9 @@ static FuToken FuLexer_number(FuLexer *l, FuChar first_digit) {
             fu_size_t suffix_start = l->cursor - start;
             FuLexer_eat_literal_suffix(l);
             fu_size_t len = l->cursor - start;
-            FuSpan span = FuLexer_token_span(l, start);
+            FuSpan *sp = FuLexer_token_span(l, start);
             fu_sym_t sym = FuLexer_token_sym(l, start, len);
-            return FuToken_new_lit_int(span, sym, base, FU_TRUE, suffix_start);
+            return FuToken_new_lit_int(sp, sym, base, FU_TRUE, suffix_start);
         }
     } else {
         /* no base prefix */
@@ -451,9 +450,9 @@ static FuToken FuLexer_number(FuLexer *l, FuChar first_digit) {
         fu_size_t suffix_start = l->cursor - start;
         FuLexer_eat_literal_suffix(l);
         fu_size_t len = l->cursor - start;
-        FuSpan span = FuLexer_token_span(l, start);
+        FuSpan *sp = FuLexer_token_span(l, start);
         fu_sym_t sym = FuLexer_token_sym(l, start, len);
-        return FuToken_new_lit_float(span, sym, base, empty_exponent, suffix_start);
+        return FuToken_new_lit_float(sp, sym, base, empty_exponent, suffix_start);
     }
 
     /* Don't be greedy if  an integer literal followed by field/method access or a range pattern
@@ -473,17 +472,17 @@ static FuToken FuLexer_number(FuLexer *l, FuChar first_digit) {
         fu_size_t suffix_start = l->cursor - start;
         FuLexer_eat_literal_suffix(l);
         fu_size_t len = l->cursor - start;
-        FuSpan span = FuLexer_token_span(l, start);
+        FuSpan *sp = FuLexer_token_span(l, start);
         fu_sym_t sym = FuLexer_token_sym(l, start, len);
-        return FuToken_new_lit_float(span, sym, base, empty_exponent, suffix_start);
+        return FuToken_new_lit_float(sp, sym, base, empty_exponent, suffix_start);
     }
 
     fu_size_t suffix_start = l->cursor - start;
     FuLexer_eat_literal_suffix(l);
     fu_size_t len = l->cursor - start;
-    FuSpan span = FuLexer_token_span(l, start);
+    FuSpan *sp = FuLexer_token_span(l, start);
     fu_sym_t sym = FuLexer_token_sym(l, start, len);
-    return FuToken_new_lit_int(span, sym, base, FU_FALSE, suffix_start);
+    return FuToken_new_lit_int(sp, sym, base, FU_FALSE, suffix_start);
 }
 
 static FuToken FuLexer_label_or_char(FuLexer *l) {
@@ -503,9 +502,9 @@ static FuToken FuLexer_label_or_char(FuLexer *l) {
 
     if (!can_be_a_label) {
         fu_bool_t terminated = FuLexer_eat_single_quoted_string(l);
-        FuSpan span = FuLexer_token_span(l, start);
-        fu_sym_t sym = FuLexer_token_sym(l, start + 1, span.len - 2);
-        return FuToken_new_lit_char(span, sym, terminated);
+        FuSpan *sp = FuLexer_token_span(l, start);
+        fu_sym_t sym = FuLexer_token_sym(l, start + 1, sp->len - 2);
+        return FuToken_new_lit_char(sp, sym, terminated);
     }
 
     /* either label or a character literal with length greater than 1 */
@@ -515,13 +514,13 @@ static FuToken FuLexer_label_or_char(FuLexer *l) {
     }
     if (FuLexer_first(l) == '\'') {
         FuLexer_bump(l);
-        FuSpan span = FuLexer_token_span(l, start);
-        fu_sym_t sym = FuLexer_token_sym(l, start + 1, span.len - 2);
-        return FuToken_new_lit_char(span, sym, FU_TRUE);
+        FuSpan *sp = FuLexer_token_span(l, start);
+        fu_sym_t sym = FuLexer_token_sym(l, start + 1, sp->len - 2);
+        return FuToken_new_lit_char(sp, sym, FU_TRUE);
     } else {
-        FuSpan span = FuLexer_token_span(l, start);
-        fu_sym_t sym = FuLexer_token_sym(l, start, span.len);
-        return FuToken_new_lable(span, sym);
+        FuSpan *sp = FuLexer_token_span(l, start);
+        fu_sym_t sym = FuLexer_token_sym(l, start, sp->len);
+        return FuToken_new_lable(sp, sym);
     }
 }
 
@@ -530,9 +529,9 @@ static FuToken FuLexer_single_quoted_byte(FuLexer *l) {
     size_t start = l->cursor - 1;
     FuLexer_bump(l);
     fu_bool_t terminated = FuLexer_eat_single_quoted_string(l);
-    FuSpan span = FuLexer_token_span(l, start);
-    fu_sym_t sym = FuLexer_token_str_sym(l, span, start + 2, span.len - 3, 0);
-    return FuToken_new_lit_byte(span, sym, terminated);
+    FuSpan *sp = FuLexer_token_span(l, start);
+    fu_sym_t sym = FuLexer_token_str_sym(l, sp, start + 2, sp->len - 3, 0);
+    return FuToken_new_lit_byte(sp, sym, terminated);
 }
 
 /* "xxx" */
@@ -540,9 +539,9 @@ static FuToken FuLexer_double_quoted_string(FuLexer *l) {
     fu_size_t start = l->cursor - 1;
     fu_size_t prefix_ignore;
     fu_bool_t terminated = FuLexer_eat_double_quoted_string(l, &prefix_ignore);
-    FuSpan span = FuLexer_token_span(l, start);
-    fu_sym_t sym = FuLexer_token_str_sym(l, span, start + 1, span.len - 2, prefix_ignore);
-    return FuToken_new_lit_str(TOK_STR, span, sym, 0, FU_TRUE, prefix_ignore, terminated);
+    FuSpan *sp = FuLexer_token_span(l, start);
+    fu_sym_t sym = FuLexer_token_str_sym(l, sp, start + 1, sp->len - 2, prefix_ignore);
+    return FuToken_new_lit_str(TOK_STR, sp, sym, 0, FU_TRUE, prefix_ignore, terminated);
 }
 
 /* #"xxx"# */
@@ -552,9 +551,9 @@ static FuToken FuLexer_hash_double_quoted_string(FuLexer *l) {
     fu_bool_t started;
     fu_size_t prefix_ignore;
     fu_bool_t terminated = FuLexer_eat_raw_double_quoted_string(l, &n_hashes, &started, &prefix_ignore);
-    FuSpan span = FuLexer_token_span(l, start);
-    fu_sym_t sym = FuLexer_token_str_sym(l, span, start + n_hashes + 1, span.len - n_hashes * 2 - 2, prefix_ignore);
-    return FuToken_new_lit_str(TOK_STR, span, sym, n_hashes, started, prefix_ignore, terminated);
+    FuSpan *sp = FuLexer_token_span(l, start);
+    fu_sym_t sym = FuLexer_token_str_sym(l, sp, start + n_hashes + 1, sp->len - n_hashes * 2 - 2, prefix_ignore);
+    return FuToken_new_lit_str(TOK_STR, sp, sym, n_hashes, started, prefix_ignore, terminated);
 }
 
 /* r"xxx" */
@@ -564,9 +563,9 @@ static FuToken FuLexer_raw_double_quoted_string(FuLexer *l) {
     fu_bool_t started;
     fu_size_t prefix_ignore;
     fu_bool_t terminated = FuLexer_eat_raw_double_quoted_string(l, &n_hashes, &started, &prefix_ignore);
-    FuSpan span = FuLexer_token_span(l, start);
-    fu_sym_t sym = FuLexer_token_str_sym(l, span, start + n_hashes + 2, span.len - n_hashes * 2 - 3, prefix_ignore);
-    return FuToken_new_lit_str(TOK_RAW_STR, span, sym, n_hashes, started, prefix_ignore, terminated);
+    FuSpan *sp = FuLexer_token_span(l, start);
+    fu_sym_t sym = FuLexer_token_str_sym(l, sp, start + n_hashes + 2, sp->len - n_hashes * 2 - 3, prefix_ignore);
+    return FuToken_new_lit_str(TOK_RAW_STR, sp, sym, n_hashes, started, prefix_ignore, terminated);
 }
 
 /* b"xxx" */
@@ -575,9 +574,9 @@ static FuToken FuLexer_double_quoted_byte_string(FuLexer *l) {
     FuLexer_bump(l);
     fu_size_t prefix_ignore;
     fu_bool_t terminated = FuLexer_eat_double_quoted_string(l, &prefix_ignore);
-    FuSpan span = FuLexer_token_span(l, start);
-    fu_sym_t sym = FuLexer_token_str_sym(l, span, start + 2, span.len - 3, prefix_ignore);
-    return FuToken_new_lit_str(TOK_BYTE_STR, span, sym, 0, FU_TRUE, prefix_ignore, terminated);
+    FuSpan *sp = FuLexer_token_span(l, start);
+    fu_sym_t sym = FuLexer_token_str_sym(l, sp, start + 2, sp->len - 3, prefix_ignore);
+    return FuToken_new_lit_str(TOK_BYTE_STR, sp, sym, 0, FU_TRUE, prefix_ignore, terminated);
 }
 
 /* b#"xxx"# */
@@ -587,9 +586,9 @@ static FuToken FuLexer_hash_double_quoted_byte_string(FuLexer *l) {
     fu_bool_t started;
     fu_size_t prefix_ignore;
     fu_bool_t terminated = FuLexer_eat_raw_double_quoted_string(l, &n_hashes, &started, &prefix_ignore);
-    FuSpan span = FuLexer_token_span(l, start);
-    fu_sym_t sym = FuLexer_token_str_sym(l, span, start + n_hashes + 2, span.len - n_hashes * 2 - 3, prefix_ignore);
-    return FuToken_new_lit_str(TOK_BYTE_STR, span, sym, n_hashes, started, prefix_ignore, terminated);
+    FuSpan *sp = FuLexer_token_span(l, start);
+    fu_sym_t sym = FuLexer_token_str_sym(l, sp, start + n_hashes + 2, sp->len - n_hashes * 2 - 3, prefix_ignore);
+    return FuToken_new_lit_str(TOK_BYTE_STR, sp, sym, n_hashes, started, prefix_ignore, terminated);
 }
 
 /* br"xxx" */
@@ -600,9 +599,9 @@ static FuToken FuLexer_raw_double_quoted_byte_string(FuLexer *l) {
     fu_bool_t started;
     fu_size_t prefix_ignore;
     fu_bool_t terminated = FuLexer_eat_raw_double_quoted_string(l, &n_hashes, &started, &prefix_ignore);
-    FuSpan span = FuLexer_token_span(l, start);
-    fu_sym_t sym = FuLexer_token_str_sym(l, span, start + n_hashes + 3, span.len - n_hashes * 2 - 4, prefix_ignore);
-    return FuToken_new_lit_str(TOK_BYTE_RAW_STR, span, sym, n_hashes, started, prefix_ignore, terminated);
+    FuSpan *sp = FuLexer_token_span(l, start);
+    fu_sym_t sym = FuLexer_token_str_sym(l, sp, start + n_hashes + 3, sp->len - n_hashes * 2 - 4, prefix_ignore);
+    return FuToken_new_lit_str(TOK_BYTE_RAW_STR, sp, sym, n_hashes, started, prefix_ignore, terminated);
 }
 
 /* f"xxx" */
@@ -611,9 +610,9 @@ static FuToken FuLexer_double_quoted_format_string(FuLexer *l) {
     FuLexer_bump(l);
     fu_size_t prefix_ignore;
     fu_bool_t terminated = FuLexer_eat_double_quoted_string(l, &prefix_ignore);
-    FuSpan span = FuLexer_token_span(l, start);
-    fu_sym_t sym = FuLexer_token_str_sym(l, span, start + 2, span.len - 3, prefix_ignore);
-    return FuToken_new_lit_str(TOK_FORMAT_STR, span, sym, 0, FU_TRUE, prefix_ignore, terminated);
+    FuSpan *sp = FuLexer_token_span(l, start);
+    fu_sym_t sym = FuLexer_token_str_sym(l, sp, start + 2, sp->len - 3, prefix_ignore);
+    return FuToken_new_lit_str(TOK_FORMAT_STR, sp, sym, 0, FU_TRUE, prefix_ignore, terminated);
 }
 
 /* f#"xxx"# */
@@ -623,9 +622,9 @@ static FuToken FuLexer_hash_double_quoted_format_string(FuLexer *l) {
     fu_bool_t started;
     fu_size_t prefix_ignore;
     fu_bool_t terminated = FuLexer_eat_raw_double_quoted_string(l, &n_hashes, &started, &prefix_ignore);
-    FuSpan span = FuLexer_token_span(l, start);
-    fu_sym_t sym = FuLexer_token_str_sym(l, span, start + n_hashes + 2, span.len - n_hashes * 2 - 3, prefix_ignore);
-    return FuToken_new_lit_str(TOK_FORMAT_STR, span, sym, n_hashes, started, prefix_ignore, terminated);
+    FuSpan *sp = FuLexer_token_span(l, start);
+    fu_sym_t sym = FuLexer_token_str_sym(l, sp, start + n_hashes + 2, sp->len - n_hashes * 2 - 3, prefix_ignore);
+    return FuToken_new_lit_str(TOK_FORMAT_STR, sp, sym, n_hashes, started, prefix_ignore, terminated);
 }
 
 /* fr#"xxx"# */
@@ -636,9 +635,9 @@ static FuToken FuLexer_raw_double_quoted_format_string(FuLexer *l) {
     fu_bool_t started;
     fu_size_t prefix_ignore;
     fu_bool_t terminated = FuLexer_eat_raw_double_quoted_string(l, &n_hashes, &started, &prefix_ignore);
-    FuSpan span = FuLexer_token_span(l, start);
-    fu_sym_t sym = FuLexer_token_str_sym(l, span, start + n_hashes + 3, span.len - n_hashes * 2 - 4, prefix_ignore);
-    return FuToken_new_lit_str(TOK_FORMAT_RAW_STR, span, sym, n_hashes, started, prefix_ignore, terminated);
+    FuSpan *sp = FuLexer_token_span(l, start);
+    fu_sym_t sym = FuLexer_token_str_sym(l, sp, start + n_hashes + 3, sp->len - n_hashes * 2 - 4, prefix_ignore);
+    return FuToken_new_lit_str(TOK_FORMAT_RAW_STR, sp, sym, n_hashes, started, prefix_ignore, terminated);
 }
 
 void FuLexer_unget_token(FuLexer *l, FuToken tok) {
@@ -669,8 +668,8 @@ FuToken FuLexer_get_token(FuLexer *l) {
         if (FuLexer_first(l) == '/') {
             return FuLexer_comment(l);
         }
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_SLASH, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_SLASH, sp);
     }
 
     /* raw string literal, raw identifier or identifier */
@@ -740,105 +739,105 @@ FuToken FuLexer_get_token(FuLexer *l) {
     }
 
     if (first_char == ';') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_SEMI, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_SEMI, sp);
     }
     if (first_char == ',') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_COMMA, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_COMMA, sp);
     }
     if (first_char == '.') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_DOT, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_DOT, sp);
     }
     if (first_char == '(') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_OPEN_PAREN, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_OPEN_PAREN, sp);
     }
     if (first_char == ')') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_CLOSE_PAREN, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_CLOSE_PAREN, sp);
     }
     if (first_char == '{') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_OPEN_BRACE, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_OPEN_BRACE, sp);
     }
     if (first_char == '}') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_CLOSE_BRACE, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_CLOSE_BRACE, sp);
     }
     if (first_char == '[') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_OPEN_BRACKET, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_OPEN_BRACKET, sp);
     }
     if (first_char == ']') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_CLOSE_BRACKET, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_CLOSE_BRACKET, sp);
     }
 
     if (first_char == '?') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_QUESTION, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_QUESTION, sp);
     }
     if (first_char == ':') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_COLON, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_COLON, sp);
     }
     if (first_char == '+') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_PLUS, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_PLUS, sp);
     }
     if (first_char == '-') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_MINUS, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_MINUS, sp);
     }
     if (first_char == '*') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_STAR, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_STAR, sp);
     }
     if (first_char == '%') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_PERCENT, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_PERCENT, sp);
     }
     if (first_char == '=') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_EQ, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_EQ, sp);
     }
     if (first_char == '!') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_NOT, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_NOT, sp);
     }
     if (first_char == '<') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_LT, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_LT, sp);
     }
     if (first_char == '>') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_GT, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_GT, sp);
     }
     if (first_char == '&') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_AND, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_AND, sp);
     }
     if (first_char == '|') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_OR, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_OR, sp);
     }
     if (first_char == '^') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_CARET, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_CARET, sp);
     }
     if (first_char == '@') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_AT, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_AT, sp);
     }
     if (first_char == '$') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_DOLLAR, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_DOLLAR, sp);
     }
     if (first_char == '~') {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_TILDE, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_TILDE, sp);
     }
 
     /* string literal or pound(#) */
@@ -849,8 +848,8 @@ FuToken FuLexer_get_token(FuLexer *l) {
             FuLexer_unbump(l);
             return FuLexer_hash_double_quoted_string(l);
         }
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_POUND, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_POUND, sp);
     }
 
     /* label or character literal */
@@ -860,13 +859,13 @@ FuToken FuLexer_get_token(FuLexer *l) {
 
     /* EOF */
     if (first_char == FuChar_EOF) {
-        FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-        return FuToken_new(TOK_EOF, span);
+        FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+        return FuToken_new(TOK_EOF, sp);
     }
 
     /* unknown */
-    FuSpan span = FuLexer_token_span(l, l->cursor - 1);
-    return FuToken_new(TOK_UNKNOWN, span);
+    FuSpan *sp = FuLexer_token_span(l, l->cursor - 1);
+    return FuToken_new(TOK_UNKNOWN, sp);
 }
 
 FuStr *FuLexer_dump(FuLexer *l) {
@@ -874,7 +873,7 @@ FuStr *FuLexer_dump(FuLexer *l) {
     FuToken token = FuLexer_get_token(l);
     while (!FuToken_is_eof(token)) {
         FuStr *token_str = FuToken_display(token);
-        FuStr_append(dump, FuSpan_display(token.span));
+        FuStr_append(dump, FuSpan_display(token.sp));
         FuStr_push_utf8_cstr(dump, ":");
         FuStr_append(dump, token_str);
         FuStr_push_utf8_cstr(dump, "\n");

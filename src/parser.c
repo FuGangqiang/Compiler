@@ -31,7 +31,7 @@ void FuParser_for_file(FuParser *p, char *fpath, fu_size_t len) {
 
 static FuToken FuParser_get_token(FuParser *p) {
     FuToken tok0, tok1, tok2;
-    FuSpan span;
+    FuSpan *sp;
 
     tok0 = FuLexer_get_token(p->lexer);
     if (p->in_tok_tree) {
@@ -45,15 +45,15 @@ static FuToken FuParser_get_token(FuParser *p) {
             tok0 = FuLexer_get_token(p->lexer);
         } while (tok0.kd == TOK_COMMENT);
         FuLexer_unget_token(p->lexer, tok0);
-        return FuToken_new(TOK_NEWLINE, tok0.span);
+        return FuToken_new(TOK_NEWLINE, tok0.sp);
         break;
     }
     case TOK_RAW_IDENT:
-        return FuToken_new_ident(tok0.span, tok0.sym);
+        return FuToken_new_ident(tok0.sp, tok0.sym);
         break;
     case TOK_IDENT: {
         if (tok0.sym < _KW_LAST_UNUSED) {
-            return FuToken_new_keyword(tok0.span, tok0.sym);
+            return FuToken_new_keyword(tok0.sp, tok0.sym);
         } else {
             return tok0;
         }
@@ -64,8 +64,8 @@ static FuToken FuParser_get_token(FuParser *p) {
         tok1 = FuLexer_get_token(p->lexer);
         if (tok1.kd == TOK_EQ) {
             /* `+=` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_PLUS_EQ, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_PLUS_EQ, sp);
         } else {
             /* `+` */
             FuLexer_unget_token(p->lexer, tok1);
@@ -78,12 +78,12 @@ static FuToken FuParser_get_token(FuParser *p) {
         tok1 = FuLexer_get_token(p->lexer);
         if (tok1.kd == TOK_EQ) {
             /* `-=` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_MINUS_EQ, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_MINUS_EQ, sp);
         } else if (tok1.kd == TOK_GT) {
             /* `->` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_RARROW, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_RARROW, sp);
         } else {
             /* `-` */
             FuLexer_unget_token(p->lexer, tok1);
@@ -96,8 +96,8 @@ static FuToken FuParser_get_token(FuParser *p) {
         tok1 = FuLexer_get_token(p->lexer);
         if (tok1.kd == TOK_EQ) {
             /* `*=` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_STAR_EQ, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_STAR_EQ, sp);
         } else {
             /* `*` */
             FuLexer_unget_token(p->lexer, tok1);
@@ -110,8 +110,8 @@ static FuToken FuParser_get_token(FuParser *p) {
         tok1 = FuLexer_get_token(p->lexer);
         if (tok1.kd == TOK_EQ) {
             /* `/=` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_SLASH_EQ, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_SLASH_EQ, sp);
         } else {
             /* `/` */
             FuLexer_unget_token(p->lexer, tok1);
@@ -124,8 +124,8 @@ static FuToken FuParser_get_token(FuParser *p) {
         tok1 = FuLexer_get_token(p->lexer);
         if (tok1.kd == TOK_EQ) {
             /* `%=` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_PERCENT_EQ, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_PERCENT_EQ, sp);
         } else {
             /* `%` */
             FuLexer_unget_token(p->lexer, tok1);
@@ -138,12 +138,12 @@ static FuToken FuParser_get_token(FuParser *p) {
         tok1 = FuLexer_get_token(p->lexer);
         if (tok1.kd == TOK_EQ) {
             /* `&=` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_AND_EQ, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_AND_EQ, sp);
         } else if (tok1.kd == TOK_AND) {
             /* `&&` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_AND_AND, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_AND_AND, sp);
         } else {
             /* `&` */
             FuLexer_unget_token(p->lexer, tok1);
@@ -156,12 +156,12 @@ static FuToken FuParser_get_token(FuParser *p) {
         tok1 = FuLexer_get_token(p->lexer);
         if (tok1.kd == TOK_EQ) {
             /* `|=` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_OR_EQ, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_OR_EQ, sp);
         } else if (tok1.kd == TOK_OR) {
             /* `||` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_OR_OR, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_OR_OR, sp);
         } else {
             /* `|` */
             FuLexer_unget_token(p->lexer, tok1);
@@ -174,8 +174,8 @@ static FuToken FuParser_get_token(FuParser *p) {
         tok1 = FuLexer_get_token(p->lexer);
         if (tok1.kd == TOK_EQ) {
             /* `^=` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_CARET_EQ, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_CARET_EQ, sp);
         } else {
             /* `^` */
             FuLexer_unget_token(p->lexer, tok1);
@@ -188,25 +188,27 @@ static FuToken FuParser_get_token(FuParser *p) {
         tok1 = FuLexer_get_token(p->lexer);
         if (tok1.kd == TOK_LT) {
             /* `<<`, `<<=` */
-            span = FuSpan_join(tok0.span, tok1.span);
+            FuSpan *tmp_sp = FuSpan_unintern_join(tok0.sp, tok1.sp);
             tok2 = FuLexer_get_token(p->lexer);
             if (tok2.kd == TOK_EQ) {
                 /* `<<=` */
-                span = FuSpan_join(span, tok2.span);
-                return FuToken_new(TOK_SHL_EQ, span);
+                sp = FuSpan_join(tmp_sp, tok2.sp);
+                FuSpan_drop(tmp_sp);
+                return FuToken_new(TOK_SHL_EQ, sp);
             } else {
                 /* `<<` */
                 FuLexer_unget_token(p->lexer, tok2);
-                return FuToken_new(TOK_SHL, span);
+                FuCtx_intern_span(p->ctx, tmp_sp);
+                return FuToken_new(TOK_SHL, tmp_sp);
             }
         } else if (tok1.kd == TOK_EQ) {
             /* `<=` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_LE, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_LE, sp);
         } else if (tok1.kd == TOK_MINUS) {
             /* `<-` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_LARROW, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_LARROW, sp);
         } else {
             /* `<` */
             FuLexer_unget_token(p->lexer, tok1);
@@ -219,21 +221,23 @@ static FuToken FuParser_get_token(FuParser *p) {
         tok1 = FuLexer_get_token(p->lexer);
         if (tok1.kd == TOK_GT) {
             /* `>>`, `>>=` */
-            span = FuSpan_join(tok0.span, tok1.span);
+            FuSpan *tmp_sp = FuSpan_unintern_join(tok0.sp, tok1.sp);
             tok2 = FuLexer_get_token(p->lexer);
             if (tok2.kd == TOK_EQ) {
                 /* `>>=` */
-                span = FuSpan_join(span, tok2.span);
-                return FuToken_new(TOK_SHR_EQ, span);
+                sp = FuSpan_join(tmp_sp, tok2.sp);
+                FuSpan_drop(tmp_sp);
+                return FuToken_new(TOK_SHR_EQ, sp);
             } else {
                 /* `>>` */
                 FuLexer_unget_token(p->lexer, tok2);
-                return FuToken_new(TOK_SHR, span);
+                FuCtx_intern_span(p->ctx, tmp_sp);
+                return FuToken_new(TOK_SHR, tmp_sp);
             }
         } else if (tok1.kd == TOK_EQ) {
             /* `>=` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_GE, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_GE, sp);
         } else {
             /* `>` */
             FuLexer_unget_token(p->lexer, tok1);
@@ -246,12 +250,12 @@ static FuToken FuParser_get_token(FuParser *p) {
         tok1 = FuLexer_get_token(p->lexer);
         if (tok1.kd == TOK_EQ) {
             /* `==` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_EE, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_EE, sp);
         } else if (tok1.kd == TOK_GT) {
             /* `=>` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_FAT_ARROW, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_FAT_ARROW, sp);
         } else {
             /* `=` */
             FuLexer_unget_token(p->lexer, tok1);
@@ -264,8 +268,8 @@ static FuToken FuParser_get_token(FuParser *p) {
         tok1 = FuLexer_get_token(p->lexer);
         if (tok1.kd == TOK_EQ) {
             /* `!=` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_NE, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_NE, sp);
         } else {
             /* `!` */
             FuLexer_unget_token(p->lexer, tok1);
@@ -278,20 +282,23 @@ static FuToken FuParser_get_token(FuParser *p) {
         tok1 = FuLexer_get_token(p->lexer);
         if (tok1.kd == TOK_DOT) {
             /* `..`, `...`, `..=` */
-            span = FuSpan_join(tok0.span, tok1.span);
+            FuSpan *tmp_sp = FuSpan_unintern_join(tok0.sp, tok1.sp);
             tok2 = FuLexer_get_token(p->lexer);
             if (tok2.kd == TOK_DOT) {
                 /* `...` */
-                span = FuSpan_join(span, tok2.span);
-                return FuToken_new(TOK_DOT_DOT_DOT, span);
+                sp = FuSpan_join(tmp_sp, tok2.sp);
+                FuSpan_drop(tmp_sp);
+                return FuToken_new(TOK_DOT_DOT_DOT, sp);
             } else if (tok2.kd == TOK_EQ) {
                 /* `..=` */
-                span = FuSpan_join(span, tok2.span);
-                return FuToken_new(TOK_DOT_DOT_EQ, span);
+                sp = FuSpan_join(tmp_sp, tok2.sp);
+                FuSpan_drop(tmp_sp);
+                return FuToken_new(TOK_DOT_DOT_EQ, sp);
             } else {
                 /* `..` */
                 FuLexer_unget_token(p->lexer, tok2);
-                return FuToken_new(TOK_DOT_DOT, span);
+                FuCtx_intern_span(p->ctx, tmp_sp);
+                return FuToken_new(TOK_DOT_DOT, tmp_sp);
             }
         } else {
             /* `.` */
@@ -305,8 +312,8 @@ static FuToken FuParser_get_token(FuParser *p) {
         tok1 = FuLexer_get_token(p->lexer);
         if (tok1.kd == TOK_COLON) {
             /* `::` */
-            span = FuSpan_join(tok0.span, tok1.span);
-            return FuToken_new(TOK_MOD_SEP, span);
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            return FuToken_new(TOK_MOD_SEP, sp);
         } else {
             /* `:` */
             FuLexer_unget_token(p->lexer, tok1);
@@ -345,18 +352,18 @@ static FuToken FuParser_bump(FuParser *p) {
     return cur_tok;
 }
 
-static FuSpan FuParser_current_span(FuParser *p) {
+static FuSpan *FuParser_current_span(FuParser *p) {
     FuToken tok = FuParser_nth_token(p, 0);
-    return tok.span;
+    return tok.sp;
 }
 
 static FuToken FuParser_expect_keyword(FuParser *p, fu_keyword_k kd) {
     FuToken tok = FuParser_nth_token(p, 0);
     if (tok.kd != TOK_KEYWORD) {
-        FATAL(&tok.span, "expect %s, find token: %s", FuKind_keyword_cstr(kd), FuKind_token_cstr(tok.kd));
+        FATAL(tok.sp, "expect %s, find token: %s", FuKind_keyword_cstr(kd), FuKind_token_cstr(tok.kd));
     }
     if (tok.sym != kd) {
-        FATAL(&tok.span, "expect %s, find keyword: %s", FuKind_keyword_cstr(kd), FuKind_keyword_cstr(tok.sym));
+        FATAL(tok.sp, "expect %s, find keyword: %s", FuKind_keyword_cstr(kd), FuKind_keyword_cstr(tok.sym));
     }
     return FuParser_bump(p);
 }
@@ -364,7 +371,7 @@ static FuToken FuParser_expect_keyword(FuParser *p, fu_keyword_k kd) {
 static FuToken FuParser_expect_token(FuParser *p, fu_token_k kd) {
     FuToken tok = FuParser_nth_token(p, 0);
     if (tok.kd != kd) {
-        FATAL(&tok.span, "expect token: %s, find token: %s", FuKind_token_cstr(kd), FuKind_token_cstr(tok.kd));
+        FATAL(tok.sp, "expect token: %s, find token: %s", FuKind_token_cstr(kd), FuKind_token_cstr(tok.kd));
     }
     return FuParser_bump(p);
 }
@@ -388,7 +395,7 @@ static fu_bool_t FuParser_check_2_sep_token(FuParser *p, fu_token_k kind0, fu_to
 static FuToken FuParser_expect_token_fn(FuParser *p, FuCheckTokenFn fn, char *wanted) {
     FuToken tok = FuParser_nth_token(p, 0);
     if (!fn(tok)) {
-        FATAL(&tok.span, "expect %s, find token: %s", wanted, FuKind_token_cstr(tok.kd));
+        FATAL(tok.sp, "expect %s, find token: %s", wanted, FuKind_token_cstr(tok.kd));
     }
     return FuParser_bump(p);
 }
@@ -410,7 +417,7 @@ static fu_bool_t FuParser_check_token_fn(FuParser *p, FuCheckTokenFn fn) {
 }
 
 static void FuParser_eat_whitespace(FuParser *p, fu_bool_t must_has) {
-    FuSpan start = FuParser_current_span(p);
+    FuSpan *start = FuParser_current_span(p);
     fu_bool_t has_whitespace = FU_FALSE;
     while (1) {
         if (!FuParser_check_token(p, TOK_WHITESPACE)) {
@@ -420,7 +427,7 @@ static void FuParser_eat_whitespace(FuParser *p, fu_bool_t must_has) {
         FuParser_bump(p);
     }
     if (must_has && !has_whitespace) {
-        FATAL(&start, "expect whitespace");
+        FATAL(start, "expect whitespace");
     }
 }
 
@@ -441,13 +448,13 @@ static fu_bool_t FuParser_eat_blank(FuParser *p) {
 FuLit *FuToken_to_lit_nil(FuToken tok) {
     assert(tok.kd == TOK_KEYWORD);
     assert(tok.sym == KW_NIL);
-    return FuLit_new(tok.span, LIT_NIL);
+    return FuLit_new(tok.sp, LIT_NIL);
 }
 
 FuLit *FuToken_to_lit_bool(FuToken tok) {
     assert(tok.kd == TOK_KEYWORD);
     assert(tok.sym == KW_TRUE || tok.sym == KW_FALSE);
-    FuLit *lit = FuLit_new(tok.span, LIT_BOOL);
+    FuLit *lit = FuLit_new(tok.sp, LIT_BOOL);
     if (tok.sym == KW_TRUE) {
         lit->_bool.v = 1;
     }
@@ -457,23 +464,23 @@ FuLit *FuToken_to_lit_bool(FuToken tok) {
     return lit;
 }
 
-fu_uint8_t Fu_decode_escape_byte(FuSpan span, FuStr *str, fu_size_t start, fu_size_t *offset, fu_bool_t check_len) {
-    FuSpan err_span;
+fu_uint8_t Fu_decode_escape_byte(FuSpan *sp, FuStr *str, fu_size_t start, fu_size_t *offset, fu_bool_t check_len) {
+    FuSpan *err_sp;
     /* start with backslash `\` */
     assert(FuStr_get_char(str, start) == '\\');
     fu_size_t str_len = FuStr_len(str);
     fu_size_t left_len = str_len - start;
     if (left_len < 2) {
-        err_span = FuSpan_offset(span, *offset);
-        FATAL(&err_span, "invalid byte escape sequences");
+        err_sp = FuSpan_offset(sp, *offset);
+        FATAL(err_sp, "invalid byte escape sequences");
     }
     FuChar flag_char = FuStr_get_char(str, start + 1);
     *offset += 1;
 /* clang-format off */
 #define CHECK_STR_LEN(len) \
     if (check_len && str_len > len) { \
-        err_span = FuSpan_offset(span, *offset+1); \
-        FATAL(&err_span, "invalid extra byte escape sequences"); \
+        err_sp= FuSpan_offset(sp, *offset+1); \
+        FATAL(err_sp, "invalid extra byte escape sequences"); \
     }
     /* clang-format on */
     switch (flag_char) {
@@ -524,21 +531,21 @@ fu_uint8_t Fu_decode_escape_byte(FuSpan span, FuStr *str, fu_size_t start, fu_si
     case 'x':
         /* '\xff' */
         if (left_len < 4) {
-            err_span = FuSpan_offset(span, *offset);
-            FATAL(&err_span, "byte escape sequences must be followed by 2 hex digits");
+            err_sp = FuSpan_offset(sp, *offset);
+            FATAL(err_sp, "byte escape sequences must be followed by 2 hex digits");
         }
         fu_uint8_t v = 0;
         fu_size_t i;
         for (i = 2; i < 4; i++) {
             FuChar bit = FuStr_get_char(str, start + i);
             if (bit == '\n') {
-                err_span = FuSpan_offset(span, *offset);
-                FATAL(&err_span, "byte escape sequences must be followed by 2 hex digits in the same line");
+                err_sp = FuSpan_offset(sp, *offset);
+                FATAL(err_sp, "byte escape sequences must be followed by 2 hex digits in the same line");
             }
             *offset += 1;
             if (!(FuChar_is_lowercase_hexadecimal_digit(bit))) {
-                err_span = FuSpan_offset(span, *offset);
-                FATAL(&err_span, "byte escape sequences must be lowercase hex digit");
+                err_sp = FuSpan_offset(sp, *offset);
+                FATAL(err_sp, "byte escape sequences must be lowercase hex digit");
             }
             v = v * 16 + FuChar_digit_to_uint(bit, 16);
         }
@@ -546,8 +553,8 @@ fu_uint8_t Fu_decode_escape_byte(FuSpan span, FuStr *str, fu_size_t start, fu_si
         return v;
         break;
     default:
-        err_span = FuSpan_offset(span, *offset);
-        FATAL(&err_span, "unknown byte escape sequences");
+        err_sp = FuSpan_offset(sp, *offset);
+        FATAL(err_sp, "unknown byte escape sequences");
     }
 #undef CHECK_STR_LEN
     /* can not be here */
@@ -557,45 +564,45 @@ fu_uint8_t Fu_decode_escape_byte(FuSpan span, FuStr *str, fu_size_t start, fu_si
 FuLit *FuToken_to_lit_byte(FuToken tok) {
     assert(tok.kd == TOK_BYTE);
     if (!tok._byte.terminated) {
-        FATAL(&tok.span, "mismatched char closing delimiter");
+        FATAL(tok.sp, "mismatched char closing delimiter");
     }
 
-    FuLit *lit = FuLit_new(tok.span, LIT_BYTE);
-    FuStr *symbol = FuCtx_get_symbol(tok.span.ctx, tok._byte.sym);
+    FuLit *lit = FuLit_new(tok.sp, LIT_BYTE);
+    FuStr *symbol = FuCtx_get_symbol(tok.sp->ctx, tok._byte.sym);
     fu_size_t len = FuStr_len(symbol);
     if (len == 0) {
-        FATAL(&tok.span, "empty byte");
+        FATAL(tok.sp, "empty byte");
     }
     FuChar first_char = FuStr_get_char(symbol, 0);
     if (first_char != '\\') {
         /* 'a' */
         if (FuStr_len(symbol) != 1) {
-            FATAL(&tok.span, "byte must has one character");
+            FATAL(tok.sp, "byte must has one character");
         }
         if (!FuChar_is_ascii(first_char)) {
-            FATAL(&tok.span, "byte must be ascii");
+            FATAL(tok.sp, "byte must be ascii");
         }
         lit->_byte.v = first_char;
     } else {
         /* escape byte b'\n', b'\xff' */
         fu_size_t offset = 1;
-        lit->_byte.v = Fu_decode_escape_byte(tok.span, symbol, 0, &offset, FU_TRUE);
+        lit->_byte.v = Fu_decode_escape_byte(tok.sp, symbol, 0, &offset, FU_TRUE);
     }
     return lit;
 }
 
 FuLit *FuToken_to_lit_byte_str(FuToken tok) {
-    FuSpan err_span;
+    FuSpan *err_sp;
     assert(tok.kd == TOK_BYTE_STR || tok.kd == TOK_BYTE_RAW_STR);
     if (!tok._str.started) {
-        FATAL(&tok.span, "byte str needed open delimiter");
+        FATAL(tok.sp, "byte str needed open delimiter");
     }
     if (!tok._str.terminated) {
-        FATAL(&tok.span, "mismatched byte str closing delimiter");
+        FATAL(tok.sp, "mismatched byte str closing delimiter");
     }
-    FuLit *lit = FuLit_new(tok.span, LIT_BYTE_STR);
-    FuStr *symbol = FuCtx_get_symbol(tok.span.ctx, tok._str.sym);
-    FuStr *fcontent = FuCtx_get_file(tok.span.ctx, tok.span.fpath);
+    FuLit *lit = FuLit_new(tok.sp, LIT_BYTE_STR);
+    FuStr *symbol = FuCtx_get_symbol(tok.sp->ctx, tok._str.sym);
+    FuStr *fcontent = FuCtx_get_file(tok.sp->ctx, tok.sp->fpath);
 
     FuBytes *bytes = FuBytes_new();
     fu_size_t len = FuStr_len(symbol);
@@ -604,10 +611,10 @@ FuLit *FuToken_to_lit_byte_str(FuToken tok) {
     fu_size_t i = 0;
     fu_size_t offset = FuToken_left_skip_count(tok);
     if (tok._str.prefix_ignore) {
-        FuChar fc = FuStr_get_char(fcontent, tok.span.start + offset);
+        FuChar fc = FuStr_get_char(fcontent, tok.sp->start + offset);
         if (fc != '\n') {
-            err_span = FuSpan_offset(tok.span, offset);
-            FATAL(&err_span, "byte str must started with newline");
+            err_sp = FuSpan_offset(tok.sp, offset);
+            FATAL(err_sp, "byte str must started with newline");
         }
         offset += 1 + tok._str.prefix_ignore;
     }
@@ -616,8 +623,8 @@ FuLit *FuToken_to_lit_byte_str(FuToken tok) {
             fc = FuStr_get_char(symbol, i);
             offset++;
             if (!FuChar_is_ascii(fc)) {
-                err_span = FuSpan_offset(tok.span, offset);
-                FATAL(&err_span, "byte must be ascii");
+                err_sp = FuSpan_offset(tok.sp, offset);
+                FATAL(err_sp, "byte must be ascii");
             }
             FuBytes_push(bytes, fc);
             if (fc == '\n') {
@@ -629,8 +636,8 @@ FuLit *FuToken_to_lit_byte_str(FuToken tok) {
         fc = FuStr_get_char(symbol, i);
         if (fc != '\\') {
             if (!FuChar_is_ascii(fc)) {
-                err_span = FuSpan_offset(tok.span, offset);
-                FATAL(&err_span, "byte must be ascii");
+                err_sp = FuSpan_offset(tok.sp, offset);
+                FATAL(err_sp, "byte must be ascii");
             }
             offset++;
             FuBytes_push(bytes, fc);
@@ -651,7 +658,7 @@ FuLit *FuToken_to_lit_byte_str(FuToken tok) {
             }
         }
         fu_size_t old_offset = offset;
-        fu_uint8_t byte = Fu_decode_escape_byte(tok.span, symbol, i, &offset, FU_FALSE);
+        fu_uint8_t byte = Fu_decode_escape_byte(tok.sp, symbol, i, &offset, FU_FALSE);
         FuBytes_push(bytes, byte);
         i += offset - old_offset - 1;
     }
@@ -659,23 +666,23 @@ FuLit *FuToken_to_lit_byte_str(FuToken tok) {
     return lit;
 }
 
-FuChar Fu_decode_escape_char(FuSpan span, FuStr *str, fu_size_t start, fu_size_t *offset, fu_bool_t check_len) {
-    FuSpan err_span;
+FuChar Fu_decode_escape_char(FuSpan *sp, FuStr *str, fu_size_t start, fu_size_t *offset, fu_bool_t check_len) {
+    FuSpan *err_sp;
     /* start with backslash `\` */
     assert(FuStr_get_char(str, start) == '\\');
     fu_size_t str_len = FuStr_len(str);
     fu_size_t left_len = str_len - start;
     if (left_len < 2) {
-        err_span = FuSpan_offset(span, *offset);
-        FATAL(&err_span, "invalid char escape sequences");
+        err_sp = FuSpan_offset(sp, *offset);
+        FATAL(err_sp, "invalid char escape sequences");
     }
     FuChar flag_char = FuStr_get_char(str, start + 1);
     *offset += 1;
 /* clang-format off */
 #define CHECK_STR_LEN(len) \
     if (check_len && str_len > len) { \
-        err_span = FuSpan_offset(span, *offset + 1); \
-        FATAL(&err_span, "invalid extra char escape sequences"); \
+        err_sp= FuSpan_offset(sp, *offset + 1); \
+        FATAL(err_sp, "invalid extra char escape sequences"); \
     }
     /* clang-format on */
     fu_size_t i;
@@ -727,20 +734,20 @@ FuChar Fu_decode_escape_char(FuSpan span, FuStr *str, fu_size_t start, fu_size_t
     case 'x':
         /* '\xff' */
         if (left_len < 4) {
-            err_span = FuSpan_offset(span, *offset);
-            FATAL(&err_span, "char escape sequences must be followed by 2 hex digits");
+            err_sp = FuSpan_offset(sp, *offset);
+            FATAL(err_sp, "char escape sequences must be followed by 2 hex digits");
         }
         fu_uint8_t xv = 0;
         for (i = 2; i < 4; i++) {
             FuChar bit = FuStr_get_char(str, start + i);
             if (bit == '\n') {
-                err_span = FuSpan_offset(span, *offset);
-                FATAL(&err_span, "char escape sequences must be followed by 2 hex digits in the same line");
+                err_sp = FuSpan_offset(sp, *offset);
+                FATAL(err_sp, "char escape sequences must be followed by 2 hex digits in the same line");
             }
             *offset += 1;
             if (!(FuChar_is_lowercase_hexadecimal_digit(bit))) {
-                err_span = FuSpan_offset(span, *offset);
-                FATAL(&err_span, "char escape sequences must be lowercase hex digit");
+                err_sp = FuSpan_offset(sp, *offset);
+                FATAL(err_sp, "char escape sequences must be lowercase hex digit");
             }
             xv = xv * 16 + FuChar_digit_to_uint(bit, 16);
         }
@@ -750,16 +757,16 @@ FuChar Fu_decode_escape_char(FuSpan span, FuStr *str, fu_size_t start, fu_size_t
     case 'u':
         /* '\u{a.....}' */
         if (left_len > 2 && FuStr_get_char(str, start + 2) == '\n') {
-            err_span = FuSpan_offset(span, *offset);
-            FATAL(&err_span, "char escape sequences must enclosed by braces: `\\u{ff}` in the same line");
+            err_sp = FuSpan_offset(sp, *offset);
+            FATAL(err_sp, "char escape sequences must enclosed by braces: `\\u{ff}` in the same line");
         }
         if (left_len > 2 && FuStr_get_char(str, start + 2) != '{') {
-            err_span = FuSpan_offset(span, *offset);
-            FATAL(&err_span, "char escape sequences must use braces: `\\u{ff}`");
+            err_sp = FuSpan_offset(sp, *offset);
+            FATAL(err_sp, "char escape sequences must use braces: `\\u{ff}`");
         }
         if (left_len < 5) {
-            err_span = FuSpan_offset(span, *offset);
-            FATAL(&err_span, "char escape sequences must has 1-6 hex digits enclosed by braces: `\\u{ff}`");
+            err_sp = FuSpan_offset(sp, *offset);
+            FATAL(err_sp, "char escape sequences must has 1-6 hex digits enclosed by braces: `\\u{ff}`");
         }
         fu_uint32_t uv = 0;
         for (i = 3; i < 9; i++) {
@@ -769,30 +776,30 @@ FuChar Fu_decode_escape_char(FuSpan span, FuStr *str, fu_size_t start, fu_size_t
                 break;
             }
             if (bit == '\n') {
-                err_span = FuSpan_offset(span, *offset);
-                FATAL(&err_span, "char escape sequences must be followed by 2 hex digits in the same line");
+                err_sp = FuSpan_offset(sp, *offset);
+                FATAL(err_sp, "char escape sequences must be followed by 2 hex digits in the same line");
             }
             if (!FuChar_is_lowercase_hexadecimal_digit(bit)) {
-                err_span = FuSpan_offset(span, *offset);
-                FATAL(&err_span, "char escape sequences must be lowercase hex digit");
+                err_sp = FuSpan_offset(sp, *offset);
+                FATAL(err_sp, "char escape sequences must be lowercase hex digit");
             }
             uv = uv * 16 + FuChar_digit_to_uint(bit, 16);
         }
         if (i == 9) {
             FuChar bit = FuStr_get_char(str, i);
             if (bit != '}') {
-                err_span = FuSpan_offset(span, *offset);
-                FATAL(&err_span, "char escape sequences must has 1-6 hex digits enclosed by braces: `\\u{ff}`");
+                err_sp = FuSpan_offset(sp, *offset);
+                FATAL(err_sp, "char escape sequences must has 1-6 hex digits enclosed by braces: `\\u{ff}`");
             }
         }
         if (uv > 0x10FFFF) {
-            err_span = FuSpan_offset(span, *offset);
-            FATAL(&err_span, "invalid codepoint for \\u escape sequence");
+            err_sp = FuSpan_offset(sp, *offset);
+            FATAL(err_sp, "invalid codepoint for \\u escape sequence");
         }
         return uv;
     default:
-        err_span = FuSpan_offset(span, *offset);
-        FATAL(&err_span, "unknown byte escape sequences");
+        err_sp = FuSpan_offset(sp, *offset);
+        FATAL(err_sp, "unknown byte escape sequences");
     }
 #undef CHECK_STR_LEN
     /* can not be here */
@@ -802,43 +809,43 @@ FuChar Fu_decode_escape_char(FuSpan span, FuStr *str, fu_size_t start, fu_size_t
 FuLit *FuToken_to_lit_char(FuToken tok) {
     assert(tok.kd == TOK_CHAR);
     if (!tok._char.terminated) {
-        FATAL(&tok.span, "mismatched char closing delimiter");
+        FATAL(tok.sp, "mismatched char closing delimiter");
     }
 
-    FuLit *lit = FuLit_new(tok.span, LIT_CHAR);
-    FuStr *symbol = FuCtx_get_symbol(tok.span.ctx, tok._char.sym);
+    FuLit *lit = FuLit_new(tok.sp, LIT_CHAR);
+    FuStr *symbol = FuCtx_get_symbol(tok.sp->ctx, tok._char.sym);
     fu_size_t len = FuStr_len(symbol);
     if (len == 0) {
-        FATAL(&tok.span, "empty char");
+        FATAL(tok.sp, "empty char");
     }
     FuChar first_char = FuStr_get_char(symbol, 0);
     if (first_char != '\\') {
         /* 'a' */
         if (FuStr_len(symbol) != 1) {
-            FATAL(&tok.span, "char must has one character");
+            FATAL(tok.sp, "char must has one character");
         }
         lit->_char.v = first_char;
         return lit;
     } else {
         /* escape byte '\n', '\xff', '\u{ff}' */
         fu_size_t offset = 0;
-        lit->_byte.v = Fu_decode_escape_char(tok.span, symbol, 0, &offset, FU_TRUE);
+        lit->_byte.v = Fu_decode_escape_char(tok.sp, symbol, 0, &offset, FU_TRUE);
     }
     return lit;
 }
 
 FuLit *FuToken_to_lit_str(FuToken tok) {
-    FuSpan err_span;
+    FuSpan *err_sp;
     assert(tok.kd == TOK_STR || tok.kd == TOK_RAW_STR);
     if (!tok._str.started) {
-        FATAL(&tok.span, "str needed open delimiter");
+        FATAL(tok.sp, "str needed open delimiter");
     }
     if (!tok._str.terminated) {
-        FATAL(&tok.span, "mismatched str closing delimiter");
+        FATAL(tok.sp, "mismatched str closing delimiter");
     }
-    FuLit *lit = FuLit_new(tok.span, LIT_STR);
-    FuStr *symbol = FuCtx_get_symbol(tok.span.ctx, tok._str.sym);
-    FuStr *fcontent = FuCtx_get_file(tok.span.ctx, tok.span.fpath);
+    FuLit *lit = FuLit_new(tok.sp, LIT_STR);
+    FuStr *symbol = FuCtx_get_symbol(tok.sp->ctx, tok._str.sym);
+    FuStr *fcontent = FuCtx_get_file(tok.sp->ctx, tok.sp->fpath);
 
     FuStr *str = FuStr_new();
     fu_size_t len = FuStr_len(symbol);
@@ -847,10 +854,10 @@ FuLit *FuToken_to_lit_str(FuToken tok) {
     fu_size_t i = 0;
     fu_size_t offset = FuToken_left_skip_count(tok);
     if (tok._str.prefix_ignore) {
-        fc = FuStr_get_char(fcontent, tok.span.start + offset);
+        fc = FuStr_get_char(fcontent, tok.sp->start + offset);
         if (fc != '\n') {
-            err_span = FuSpan_offset(tok.span, offset);
-            FATAL(&err_span, "str must started with newline");
+            err_sp = FuSpan_offset(tok.sp, offset);
+            FATAL(err_sp, "str must started with newline");
         }
         offset += 1 + tok._str.prefix_ignore;
     }
@@ -886,7 +893,7 @@ FuLit *FuToken_to_lit_str(FuToken tok) {
             }
         }
         fu_size_t old_offset = offset;
-        FuChar c = Fu_decode_escape_char(tok.span, symbol, i, &offset, FU_FALSE);
+        FuChar c = Fu_decode_escape_char(tok.sp, symbol, i, &offset, FU_FALSE);
         FuStr_push(str, c);
         i += offset - old_offset - 1;
     }
@@ -894,9 +901,9 @@ FuLit *FuToken_to_lit_str(FuToken tok) {
     return lit;
 }
 
-fu_uint64_t Fu_cstr_to_uint64(FuSpan span, char *cstr, fu_size_t base) {
+fu_uint64_t Fu_cstr_to_uint64(FuSpan *sp, char *cstr, fu_size_t base) {
     if (base < 2 || base > 36) {
-        FATAL(&span, "invalid int base");
+        FATAL(sp, "invalid int base");
     }
     fu_uint64_t v, old_v;
     v = old_v = 0;
@@ -905,12 +912,12 @@ fu_uint64_t Fu_cstr_to_uint64(FuSpan span, char *cstr, fu_size_t base) {
         old_v = v;
         v = v * base;
         if (v / base != old_v) {
-            FATAL(&span, "too big int");
+            FATAL(sp, "too big int");
         }
         old_v = v;
         v += FuChar_digit_to_uint(*p, base);
         if (old_v > v) {
-            FATAL(&span, "too big int");
+            FATAL(sp, "too big int");
         }
         p++;
     }
@@ -953,14 +960,14 @@ fu_err_t Fu_check_int_suffix(FuLit *lit, FuStr *suffix) {
 }
 
 FuLit *FuToken_to_lit_int(FuToken tok) {
-    FuSpan err_span;
+    FuSpan *err_sp;
     assert(tok.kd == TOK_INT);
-    FuLit *lit = FuLit_new(tok.span, LIT_INT);
-    FuStr *symbol = FuCtx_get_symbol(tok.span.ctx, tok._str.sym);
+    FuLit *lit = FuLit_new(tok.sp, LIT_INT);
+    FuStr *symbol = FuCtx_get_symbol(tok.sp->ctx, tok._str.sym);
     fu_size_t len = FuStr_len(symbol);
 
     if (tok._int.empty_int) {
-        FATAL(&tok.span, "empty int");
+        FATAL(tok.sp, "empty int");
     }
 
     /* remove `_` */
@@ -978,8 +985,8 @@ FuLit *FuToken_to_lit_int(FuToken tok) {
         }
         /* clang-format off */
 #define ERR_DIGIT(kind) \
-    err_span = FuSpan_offset(tok.span, i); \
-    FATAL(&err_span, "invalid " kind " digit");
+    err_sp= FuSpan_offset(tok.sp, i); \
+    FATAL(err_sp, "invalid " kind " digit");
         /* clang-format on */
         switch (tok._int.base) {
         case 2:
@@ -1008,30 +1015,30 @@ FuLit *FuToken_to_lit_int(FuToken tok) {
 #undef ERR_DIGIT
 
         if (nbuf > 2047) {
-            FATAL(&tok.span, "too big int");
+            FATAL(tok.sp, "too big int");
         }
         buf[nbuf] = fc;
         nbuf++;
     }
     buf[nbuf] = 0;
-    lit->_int.v = Fu_cstr_to_uint64(tok.span, buf, tok._int.base);
+    lit->_int.v = Fu_cstr_to_uint64(tok.sp, buf, tok._int.base);
     FuStr *suffix = FuStr_from_slice(symbol, tok._int.suffix_start, len);
     if (Fu_check_int_suffix(lit, suffix)) {
-        err_span = FuSpan_offset(tok.span, tok._int.suffix_start);
-        FATAL(&err_span, "invalid int suffix");
+        err_sp = FuSpan_offset(tok.sp, tok._int.suffix_start);
+        FATAL(err_sp, "invalid int suffix");
     }
     FuStr_drop(suffix);
     return lit;
 }
 
 FuLit *FuToken_to_lit_float(FuToken tok) {
-    FuLit *lit = FuLit_new(tok.span, LIT_FLOAT);
+    FuLit *lit = FuLit_new(tok.sp, LIT_FLOAT);
     /* todo */
     return lit;
 }
 
 FuLit *FuToken_to_lit_format_str(FuToken tok) {
-    FuLit *lit = FuLit_new(tok.span, LIT_FORMAT_STR);
+    FuLit *lit = FuLit_new(tok.sp, LIT_FORMAT_STR);
     /* todo */
     return lit;
 }
@@ -1046,7 +1053,7 @@ FuLit *FuParser_parse_lit(FuParser *p) {
         } else if (tok.sym == KW_TRUE || tok.sym == KW_FALSE) {
             lit = FuToken_to_lit_bool(tok);
         } else {
-            FATAL(&tok.span, "expect literal");
+            FATAL(tok.sp, "expect literal");
         }
         break;
     case TOK_BYTE:
@@ -1071,10 +1078,10 @@ FuLit *FuParser_parse_lit(FuParser *p) {
         break;
     case TOK_FORMAT_STR:
     case TOK_FORMAT_RAW_STR:
-        FATAL(&tok.span, "unimplemented: %s", FuKind_token_cstr(tok.kd));
+        FATAL(tok.sp, "unimplemented: %s", FuKind_token_cstr(tok.kd));
         break;
     default:
-        FATAL(&tok.span, "can not be here");
+        FATAL(tok.sp, "can not be here");
     }
     return lit;
 }
@@ -1117,16 +1124,16 @@ FuExpr *FuParser_parse_expr(FuParser *p) {
   这样在宏里面这些关键字可以统一作为 TOK_IDENT 类型
  */
 FuIdent *FuParser_parse_ident(FuParser *p) {
-    FuSpan span = FuParser_current_span(p);
+    FuSpan *sp = FuParser_current_span(p);
     FuToken tok = FuParser_expect_token_fn(p, FuToken_is_ident, "expect ident");
     FuIdent *ident = FuMem_new(FuIdent);
-    ident->span = span;
+    ident->sp = sp;
     ident->name = tok.sym;
     return ident;
 }
 
 FuPathItem *FuParser_parse_path_item(FuParser *p) {
-    FuSpan lo = FuParser_current_span(p);
+    FuSpan *lo = FuParser_current_span(p);
     FuIdent *ident = FuParser_parse_ident(p);
     FuVec *ge_args = NULL;
     /* todo: generic
@@ -1135,7 +1142,7 @@ FuPathItem *FuParser_parse_path_item(FuParser *p) {
     }
     */
     FuPathItem *item = FuMem_new(FuPathItem);
-    item->span = FuSpan_join(lo, FuParser_current_span(p));
+    item->sp = FuSpan_join(lo, FuParser_current_span(p));
     item->ident = ident;
     item->ge_args = ge_args;
     return item;
@@ -1157,7 +1164,7 @@ FuPath *FuParser_parse_path(FuParser *p) {
     }
     FuPathItem *start = FuVec_first_ptr(path->segments);
     FuPathItem *end = FuVec_last_ptr(path->segments);
-    path->span = FuSpan_join(start->span, end->span);
+    path->sp = FuSpan_join(start->sp, end->sp);
     return path;
 }
 
@@ -1181,7 +1188,7 @@ fu_vis_k FuParser_parse_visibility(FuParser *p) {
 }
 
 FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis) {
-    FuSpan lo = FuParser_current_span(p);
+    FuSpan *lo = FuParser_current_span(p);
     FuParser_expect_keyword(p, KW_STATIC);
     FuParser_eat_whitespace(p, FU_TRUE);
     FuIdent *ident = FuParser_parse_ident(p);
@@ -1189,8 +1196,8 @@ FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis) {
     FuParser_expect_token(p, TOK_EQ);
     FuParser_eat_whitespace(p, FU_FALSE);
     FuExpr *expr = FuParser_parse_expr(p);
-    FuSpan span = FuSpan_join(lo, expr->span);
-    FuNode *nd = FuNode_new(p->ctx, span, ND_STATIC);
+    FuSpan *sp = FuSpan_join(lo, expr->sp);
+    FuNode *nd = FuNode_new(p->ctx, sp, ND_STATIC);
     nd->attrs = attrs;
     nd->_static.vis = vis;
     nd->_static.ident = ident;
@@ -1208,7 +1215,7 @@ FuNode *FuParser_parse_mod_item(FuParser *p) {
     if (tok.kd != TOK_KEYWORD) {
         /* todo: attr drop */
         FuVec_drop(attrs);
-        FATAL(&tok.span, "expect item keyword, find tok: %s", FuKind_token_cstr(tok.kd));
+        FATAL(tok.sp, "expect item keyword, find tok: %s", FuKind_token_cstr(tok.kd));
     }
     switch (tok.sym) {
     case KW_STATIC:
@@ -1217,7 +1224,7 @@ FuNode *FuParser_parse_mod_item(FuParser *p) {
     default:
         /* todo: attr drop */
         FuVec_drop(attrs);
-        FATAL(&tok.span, "unimplement item: %s", FuKind_keyword_cstr(tok.sym));
+        FATAL(tok.sp, "unimplement item: %s", FuKind_keyword_cstr(tok.sym));
         break;
     }
     return item;
@@ -1236,13 +1243,13 @@ FuVec *FuParser_parse_mod_items(FuParser *p) {
 
 FuNode *FuParser_parse_pkg(FuParser *p) {
     FuParser_eat_blank(p);
-    FuSpan lo = FuParser_current_span(p);
+    FuSpan *lo = FuParser_current_span(p);
     FuVec *attrs = FuVec_new(sizeof(FuAttr *));
     /* FuParser_parse_inner_attrs(p, attrs); */
     FuVec *items = FuParser_parse_mod_items(p);
-    FuSpan hi = FuParser_current_span(p);
-    FuSpan span = FuSpan_join(lo, hi);
-    FuNode *nd = FuNode_new_pkg(p->ctx, span);
+    FuSpan *hi = FuParser_current_span(p);
+    FuSpan *sp = FuSpan_join(lo, hi);
+    FuNode *nd = FuNode_new_pkg(p->ctx, sp);
     nd->attrs = attrs;
     nd->_pkg.name = KW_DOLLAR_PKG;
     nd->_pkg.items = items;
@@ -1254,7 +1261,7 @@ FuStr *FuParser_dump_tokens(FuParser *p) {
     while (!FuParser_is_eof(p)) {
         FuToken tok = FuParser_nth_token(p, 0);
         FuStr *tok_str = FuToken_display(tok);
-        FuStr_append(dump, FuSpan_display(tok.span));
+        FuStr_append(dump, FuSpan_display(tok.sp));
         FuStr_push_utf8_cstr(dump, ":");
         FuStr_append(dump, tok_str);
         FuStr_push_utf8_cstr(dump, "\n");

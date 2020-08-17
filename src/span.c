@@ -1,33 +1,87 @@
+#include "alloc.h"
 #include "error.h"
 #include "parse.h"
 
-FuSpan FuSpan_new(FuCtx *ctx, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line, fu_size_t column) {
-    FuSpan span;
-    span.ctx = ctx;
-    span.fpath = fpath;
-    span.start = start;
-    span.len = len;
-    span.line = line;
-    span.column = column;
-    span.offset = 0;
-    return span;
+FuSpan *FuSpan_new(FuCtx *ctx, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line, fu_size_t column) {
+    FuSpan *sp = FuMem_new(FuSpan);
+    FuSpan_init(sp, ctx, fpath, start, len, line, column);
+    FuCtx_intern_span(ctx, sp);
+    return sp;
 }
 
-FuSpan FuSpan_offset(FuSpan span, fu_size_t offset) {
-    FuSpan new = span;
-    new.offset = offset;
+void FuSpan_init(FuSpan *sp, FuCtx *ctx, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line,
+                 fu_size_t column) {
+    sp->ctx = ctx;
+    sp->fpath = fpath;
+    sp->start = start;
+    sp->len = len;
+    sp->line = line;
+    sp->column = column;
+    sp->offset = 0;
+}
+
+void FuSpan_drop(FuSpan *sp) {
+    FuMem_free(sp);
+}
+
+FuSpan *FuSpan_clone(FuSpan *sp) {
+    FuSpan *new = FuMem_new(FuSpan);
+    FuSpan_init(new, sp->ctx, sp->fpath, sp->start, sp->len, sp->line, sp->column);
     return new;
 }
 
-FuStr *FuSpan_display(FuSpan span) {
-    fu_size_t line = span.line;
-    fu_size_t column = span.column;
+FuSpan *FuSpan_offset(FuSpan *sp, fu_size_t offset) {
+    FuSpan *new = FuSpan_clone(sp);
+    new->offset = offset;
+    FuCtx_intern_span(new->ctx, new);
+    return new;
+}
 
-    if (span.offset) {
-        FuStr *fcontent = FuCtx_get_file(span.ctx, span.fpath);
+FuSpan *FuSpan_unintern_join(FuSpan *sp1, FuSpan *sp2) {
+    if (sp1->ctx != sp2->ctx) {
+        FATAL(NULL, "span context not match");
+    }
+    if (sp1->fpath != sp2->fpath) {
+        FATAL(NULL, "span fpath not match");
+    }
+    fu_size_t start, line, column;
+    if (sp1->start < sp2->start) {
+        start = sp1->start;
+        line = sp1->line;
+        column = sp1->column;
+    } else {
+        start = sp2->start;
+        line = sp2->line;
+        column = sp2->column;
+    }
+    fu_size_t end, end1, end2;
+    end1 = sp1->start + sp1->len;
+    end2 = sp2->start + sp2->len;
+    if (end1 < end2) {
+        end = end2;
+    } else {
+        end = end1;
+    }
+    FuSpan *new = FuMem_new(FuSpan);
+    FuSpan_init(new, sp1->ctx, sp1->fpath, start, end - start, line, column);
+    return new;
+}
+
+FuSpan *FuSpan_join(FuSpan *sp1, FuSpan *sp2) {
+    FuSpan *new = FuSpan_unintern_join(sp1, sp2);
+    FuCtx_intern_span(new->ctx, new);
+    return new;
+}
+
+FuStr *FuSpan_display(FuSpan *sp) {
+    fu_size_t line = sp->line;
+    fu_size_t column = sp->column;
+
+    if (sp->offset) {
+        FuStr *fcontent = FuCtx_get_file(sp->ctx, sp->fpath);
         fu_size_t i;
-        for (i = 0; i < span.offset; i++) {
-            if (FuStr_get_char(fcontent, span.start + i) == '\n') {
+        for (i = 0; i < sp->offset; i++) {
+            if (FuStr_get_char(fcontent, sp->start + i) == '\n') {
                 line++;
                 column = 0;
             } else {
@@ -36,53 +90,25 @@ FuStr *FuSpan_display(FuSpan span) {
         }
     }
 
-    FuStr *str = FuCtx_get_symbol(span.ctx, span.fpath);
+    FuStr *str = FuCtx_get_symbol(sp->ctx, sp->fpath);
     FuStr *display = FuStr_clone(str);
     FuStr_push_utf8_format(display, ":%u:%u", line, column);
     return display;
 }
 
-FuSpan FuSpan_join(FuSpan span1, FuSpan span2) {
-    if (span1.ctx != span2.ctx) {
-        FATAL(NULL, "span context not match");
-    }
-    if (span1.fpath != span2.fpath) {
-        FATAL(NULL, "span fpath not match");
-    }
-    fu_size_t start, line, column;
-    if (span1.start < span2.start) {
-        start = span1.start;
-        line = span1.line;
-        column = span1.column;
-    } else {
-        start = span2.start;
-        line = span2.line;
-        column = span2.column;
-    }
-    fu_size_t end, end1, end2;
-    end1 = span1.start + span1.len;
-    end2 = span2.start + span2.len;
-    if (end1 < end2) {
-        end = end2;
-    } else {
-        end = end1;
-    }
-    return FuSpan_new(span1.ctx, span1.fpath, start, end - start, line, column);
-}
-
-int FuSpan_print(FILE *out, FuSpan span) {
-    FuStr *str = FuSpan_display(span);
+int FuSpan_print(FILE *out, FuSpan *sp) {
+    FuStr *str = FuSpan_display(sp);
     int count = FuStr_print(out, str);
     FuStr_drop(str);
     return count;
 }
 
-int FuSpan_print_line(FILE *out, FuSpan span) {
-    FuStr *fcontent = FuCtx_get_file(span.ctx, span.fpath);
+int FuSpan_print_line(FILE *out, FuSpan *sp) {
+    FuStr *fcontent = FuCtx_get_file(sp->ctx, sp->fpath);
     fu_size_t len = FuStr_len(fcontent);
 
     fu_size_t start, end;
-    start = end = span.start + span.offset;
+    start = end = sp->start + sp->offset;
 
     /* EOF */
     if (start >= len) {

@@ -14,6 +14,7 @@ FuCtx *FuCtx_new() {
     ctx->symbols = FuSet_with_capacity(1024 * 20, sizeof(FuStr *), (FuEqFn)FuStr_eq, (FuHashFn)FuStr_hash);
     ctx->fmap = FuMap_new(sizeof(fu_sym_t), sizeof(fu_size_t), (FuEqFn)FuId_eq, (FuHashFn)FuId_hash);
     ctx->fcontents = FuVec_new(sizeof(FuStr *));
+    ctx->spans = FuVec_new(sizeof(FuSpan *));
     ctx->nodes = FuVec_new(sizeof(FuNode *));
     ctx->types = FuVec_new(sizeof(FuType *));
     return ctx;
@@ -35,6 +36,7 @@ void FuCtx_init(FuCtx *ctx) {
 void FuCtx_drop(FuCtx *ctx) {
     FuVec_drop_with_ptrs(ctx->types, (FuDropFn)FuType_drop);
     FuVec_drop_with_ptrs(ctx->nodes, (FuDropFn)FuNode_drop);
+    FuVec_drop_with_ptrs(ctx->spans, (FuDropFn)FuSpan_drop);
     FuVec_drop_with_ptrs(ctx->fcontents, (FuDropFn)FuStr_drop);
     FuMap_drop(ctx->fmap);
     FuSet_drop_with_ptrs(ctx->symbols, (FuDropFn)FuStr_drop);
@@ -70,6 +72,10 @@ FuStr *FuCtx_get_file(FuCtx *ctx, fu_sym_t fpath) {
     }
     fu_size_t *idx_p = FuMap_get(ctx->fmap, &fpath);
     return FuVec_get_ptr(ctx->fcontents, *idx_p);
+}
+
+void FuCtx_intern_span(FuCtx *ctx, FuSpan *sp) {
+    FuVec_push_ptr(ctx->spans, sp);
 }
 
 fu_tid_t FuCtx_push_type(FuCtx *ctx, FuType *ty) {

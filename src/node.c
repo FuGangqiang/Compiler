@@ -9,9 +9,9 @@ static void FuStr_push_indent(FuStr *str, fu_size_t n) {
     }
 }
 
-FuIdent *FuIdent_new(FuSpan span, fu_sym_t name) {
+FuIdent *FuIdent_new(FuSpan *sp, fu_sym_t name) {
     FuIdent *ident = FuMem_new(FuIdent);
-    ident->span = span;
+    ident->sp = sp;
     ident->name = name;
     return ident;
 }
@@ -24,7 +24,7 @@ void FuIdent_drop(FuIdent *ident) {
 }
 
 FuStr *FuIdent_display(FuIdent *ident) {
-    FuStr *str = FuCtx_get_symbol(ident->span.ctx, ident->name);
+    FuStr *str = FuCtx_get_symbol(ident->sp->ctx, ident->name);
     return FuStr_clone(str);
 }
 
@@ -68,9 +68,9 @@ FuStr *FuPath_display(FuPath *path) {
     return str;
 }
 
-FuLit *FuLit_new(FuSpan span, fu_lit_k kind) {
+FuLit *FuLit_new(FuSpan *sp, fu_lit_k kind) {
     FuLit *lit = FuMem_new(FuLit);
-    lit->span = span;
+    lit->sp = sp;
     lit->kd = kind;
     return lit;
 }
@@ -148,21 +148,21 @@ FuStr *FuLit_display(FuLit *lit, fu_size_t indent) {
     return str;
 }
 
-FuExpr *FuExpr_new(FuSpan span, fu_expr_k kd) {
+FuExpr *FuExpr_new(FuSpan *sp, fu_expr_k kd) {
     FuExpr *expr = FuMem_new(FuExpr);
-    expr->span = span;
+    expr->sp = sp;
     expr->kd = kd;
     return expr;
 }
 
 FuExpr *FuExpr_new_lit(FuLit *lit) {
-    FuExpr *expr = FuExpr_new(lit->span, EXPR_LIT);
+    FuExpr *expr = FuExpr_new(lit->sp, EXPR_LIT);
     expr->_lit = lit;
     return expr;
 }
 
 FuExpr *FuExpr_new_path(FuAnnoSelf *anno, FuPath *path) {
-    FuExpr *expr = FuExpr_new(path->span, EXPR_PATH);
+    FuExpr *expr = FuExpr_new(path->sp, EXPR_PATH);
     expr->_path.anno = anno;
     expr->_path.path = path;
     return expr;
@@ -181,7 +181,7 @@ void FuExpr_drop(FuExpr *expr) {
         FuPath_drop(expr->_path.path);
         break;
     default:
-        FATAL(&expr->span, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
+        FATAL(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
     }
     FuMem_free(expr);
 }
@@ -206,14 +206,14 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_append(str, FuPath_display(expr->_path.path));
         break;
     default:
-        FATAL(&expr->span, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
+        FATAL(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
     }
     return str;
 }
 
-FuNode *FuNode_new(FuCtx *ctx, FuSpan span, fu_node_k kind) {
+FuNode *FuNode_new(FuCtx *ctx, FuSpan *sp, fu_node_k kind) {
     FuNode *node = FuMem_new(FuNode);
-    node->span = span;
+    node->sp = sp;
     node->kd = kind;
     node->nid = FuVec_len(ctx->nodes);
     FuVec_push_ptr(ctx->nodes, node);
@@ -250,13 +250,13 @@ void FuNode_drop(FuNode *nd) {
 }
 
 FuNode *FuNode_new_expr(FuCtx *ctx, FuExpr *expr) {
-    FuNode *nd = FuNode_new(ctx, expr->span, ND_EXPR);
+    FuNode *nd = FuNode_new(ctx, expr->sp, ND_EXPR);
     nd->_expr.expr = expr;
     return nd;
 }
 
-FuNode *FuNode_new_pkg(FuCtx *ctx, FuSpan span) {
-    FuNode *nd = FuNode_new(ctx, span, ND_PKG);
+FuNode *FuNode_new_pkg(FuCtx *ctx, FuSpan *sp) {
+    FuNode *nd = FuNode_new(ctx, sp, ND_PKG);
     FuScope *builtins = FuScope_new(ctx, NULL, 0);
     FuScope *globals = FuScope_new(ctx, builtins, 0);
     nd->_pkg.builtins = builtins;

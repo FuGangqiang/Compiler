@@ -192,12 +192,18 @@ struct FuSpan {
     fu_size_t offset; /* offset in token */
 };
 
-FuSpan FuSpan_new(FuCtx *ctx, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line, fu_size_t column);
-FuSpan FuSpan_offset(FuSpan span, fu_size_t offset);
-FuStr *FuSpan_display(FuSpan span);
-FuSpan FuSpan_join(FuSpan span1, FuSpan span2);
-int FuSpan_print(FILE *out, FuSpan span);
-int FuSpan_print_line(FILE *out, FuSpan span);
+FuSpan *FuSpan_new(FuCtx *ctx, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line, fu_size_t column);
+void FuSpan_init(FuSpan *sp, FuCtx *ctx, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line,
+                 fu_size_t column);
+void FuSpan_drop(FuSpan *sp);
+
+FuSpan *FuSpan_offset(FuSpan *sp, fu_size_t offset);
+FuSpan *FuSpan_unintern_join(FuSpan *sp1, FuSpan *sp2);
+FuSpan *FuSpan_join(FuSpan *sp1, FuSpan *sp2);
+
+FuStr *FuSpan_display(FuSpan *sp);
+int FuSpan_print(FILE *out, FuSpan *sp);
+int FuSpan_print_line(FILE *out, FuSpan *sp);
 
 /* compiler context */
 struct FuCtx {
@@ -209,6 +215,9 @@ struct FuCtx {
     /* fpath sym -> fcontent no*/
     FuMap *fmap;
     FuVec *fcontents;
+
+    /* ast spans */
+    FuVec *spans;
 
     /* ast nodes */
     FuVec *nodes;
@@ -229,13 +238,16 @@ FuStr *FuCtx_get_symbol(FuCtx *ctx, fu_sym_t sym);
 void FuCtx_intern_file(FuCtx *ctx, fu_sym_t fpath, FuStr *fcontent);
 FuStr *FuCtx_get_file(FuCtx *ctx, fu_sym_t fpath);
 
+/* collects spans */
+void FuCtx_intern_span(FuCtx *ctx, FuSpan *sp);
+
 /* collects types */
 fu_tid_t FuCtx_push_type(FuCtx *ctx, FuType *ty);
 FuType *FuCtx_get_type(FuCtx *ctx, fu_tid_t tid);
 
 struct FuToken {
     fu_token_k kd;
-    FuSpan span;
+    FuSpan *sp;
     union {
         fu_sym_t sym;
         struct {
@@ -269,19 +281,19 @@ struct FuToken {
     };
 };
 
-FuToken FuToken_new(fu_token_k kd, FuSpan span);
-FuToken FuToken_new_doc_comment(FuSpan span, fu_sym_t sym);
-FuToken FuToken_new_keyword(FuSpan span, fu_sym_t sym);
-FuToken FuToken_new_ident(FuSpan span, fu_sym_t sym);
-FuToken FuToken_new_raw_ident(FuSpan span, fu_sym_t sym);
-FuToken FuToken_new_lable(FuSpan span, fu_sym_t sym);
+FuToken FuToken_new(fu_token_k kd, FuSpan *sp);
+FuToken FuToken_new_doc_comment(FuSpan *sp, fu_sym_t sym);
+FuToken FuToken_new_keyword(FuSpan *sp, fu_sym_t sym);
+FuToken FuToken_new_ident(FuSpan *sp, fu_sym_t sym);
+FuToken FuToken_new_raw_ident(FuSpan *sp, fu_sym_t sym);
+FuToken FuToken_new_lable(FuSpan *sp, fu_sym_t sym);
 
-FuToken FuToken_new_lit_int(FuSpan span, fu_sym_t sym, fu_size_t base, fu_bool_t empty_int, fu_size_t suffix_start);
-FuToken FuToken_new_lit_float(FuSpan span, fu_sym_t sym, fu_size_t base, fu_bool_t empty_exponent,
+FuToken FuToken_new_lit_int(FuSpan *sp, fu_sym_t sym, fu_size_t base, fu_bool_t empty_int, fu_size_t suffix_start);
+FuToken FuToken_new_lit_float(FuSpan *sp, fu_sym_t sym, fu_size_t base, fu_bool_t empty_exponent,
                               fu_size_t suffix_start);
-FuToken FuToken_new_lit_char(FuSpan span, fu_sym_t sym, fu_bool_t terminated);
-FuToken FuToken_new_lit_byte(FuSpan span, fu_sym_t sym, fu_bool_t terminated);
-FuToken FuToken_new_lit_str(fu_token_k kd, FuSpan span, fu_sym_t sym, fu_size_t n_hashes, fu_bool_t started,
+FuToken FuToken_new_lit_char(FuSpan *sp, fu_sym_t sym, fu_bool_t terminated);
+FuToken FuToken_new_lit_byte(FuSpan *sp, fu_sym_t sym, fu_bool_t terminated);
+FuToken FuToken_new_lit_str(fu_token_k kd, FuSpan *sp, fu_sym_t sym, fu_size_t n_hashes, fu_bool_t started,
                             fu_size_t prefix_ignore, fu_bool_t terminated);
 
 fu_bool_t FuToken_is_eof(FuToken tok);
@@ -450,13 +462,13 @@ void FuType_drop(FuType *ty);
 void FuType_init_pkg_builtins(FuCtx *ctx, FuNode *nd);
 
 struct FuTokTree {
-    FuSpan span;
+    FuSpan *sp;
     fu_bool_t is_group;
     union {
         FuToken _token;
         struct {
-            FuSpan open_span;
-            FuSpan close_span;
+            FuSpan *open_sp;
+            FuSpan *close_sp;
             FuChar delimiter;
             /* FuTokTree */
             FuVec *tokens;
@@ -465,15 +477,15 @@ struct FuTokTree {
 };
 
 struct FuIdent {
-    FuSpan span;
+    FuSpan *sp;
     fu_sym_t name;
 };
 
-FuIdent *FuIdent_new(FuSpan span, fu_sym_t sym);
+FuIdent *FuIdent_new(FuSpan *sp, fu_sym_t sym);
 void FuIdent_drop(FuIdent *ident);
 
 struct FuLabel {
-    FuSpan span;
+    FuSpan *sp;
     fu_sym_t name;
 };
 
@@ -490,7 +502,7 @@ struct FuAttr {
 };
 
 struct FuUse {
-    FuSpan span;
+    FuSpan *sp;
     FuStr *prefix;
     fu_use_k kd;
     union {
@@ -502,7 +514,7 @@ struct FuUse {
 
 /* `std`, `Vec#<T>` */
 struct FuPathItem {
-    FuSpan span;
+    FuSpan *sp;
     FuIdent *ident;
     /* FuGeArg */
     FuVec *ge_args;
@@ -513,7 +525,7 @@ FuStr *FuPathItem_display(FuPathItem *item);
 
 /* `std::vec::Vec#<T>` */
 struct FuPath {
-    FuSpan span;
+    FuSpan *sp;
     /* FuPathItem */
     FuVec *segments;
 };
@@ -537,7 +549,7 @@ FuStr *FuPath_display(FuPath *path);
  * ```
  */
 struct FuAnnoSelf {
-    FuSpan span;
+    FuSpan *sp;
     FuType *ty;
     fu_size_t idx;
 };
@@ -549,7 +561,7 @@ struct FuMacroCall {
 };
 
 struct FuGeParam {
-    FuSpan span;
+    FuSpan *sp;
     fu_ge_param_k kd;
     FuIdent *ident;
     union {
@@ -563,7 +575,7 @@ struct FuGeParam {
 };
 
 struct FuGeBound {
-    FuSpan span;
+    FuSpan *sp;
     FuType *ty;
     /* FuType */
     FuVec *interfaces;
@@ -577,7 +589,7 @@ struct FuGeneric {
 };
 
 struct FuGeArg {
-    FuSpan span;
+    FuSpan *sp;
     fu_ge_arg_k kd;
     union {
         FuType *_type;
@@ -590,7 +602,7 @@ struct FuGeArg {
 };
 
 struct FuLit {
-    FuSpan span;
+    FuSpan *sp;
     fu_lit_k kd;
     union {
         struct {
@@ -623,12 +635,12 @@ struct FuLit {
     };
 };
 
-FuLit *FuLit_new(FuSpan span, fu_lit_k kind);
+FuLit *FuLit_new(FuSpan *sp, fu_lit_k kind);
 void FuLit_drop(FuLit *lit);
 FuStr *FuLit_display(FuLit *lit, fu_size_t indent);
 
 struct FuExpr {
-    FuSpan span;
+    FuSpan *sp;
     fu_expr_k kd;
     fu_bool_t is_const;
     union {
@@ -775,7 +787,7 @@ struct FuExpr {
     };
 };
 
-FuExpr *FuExpr_new(FuSpan span, fu_expr_k kd);
+FuExpr *FuExpr_new(FuSpan *sp, fu_expr_k kd);
 FuExpr *FuExpr_new_lit(FuLit *lit);
 FuExpr *FuExpr_new_path(FuAnnoSelf *anno, FuPath *path);
 
@@ -783,7 +795,7 @@ void FuExpr_drop(FuExpr *expr);
 FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent);
 
 struct FuPat {
-    FuSpan span;
+    FuSpan *sp;
     fu_pat_k kd;
     union {
         FuLit *_lit;
@@ -849,7 +861,7 @@ struct FuPat {
  *     - field_init
  */
 struct FuNode {
-    FuSpan span;
+    FuSpan *sp;
     fu_node_k kd;
     /* FuAttr */
     FuVec *attrs;
@@ -928,7 +940,7 @@ struct FuNode {
             FuIdent *ident;
             FuScope *scope;
             /* inner file span` */
-            FuSpan inner_span;
+            FuSpan *inner_sp;
             /* flase for `mod name;` */
             fu_bool_t is_inline;
             /* FuNode */
@@ -974,11 +986,11 @@ struct FuNode {
     };
 };
 
-FuNode *FuNode_new(FuCtx *ctx, FuSpan span, fu_node_k kind);
+FuNode *FuNode_new(FuCtx *ctx, FuSpan *sp, fu_node_k kind);
 void FuNode_drop(FuNode *nd);
 
 FuNode *FuNode_new_expr(FuCtx *ctx, FuExpr *expr);
-FuNode *FuNode_new_pkg(FuCtx *ctx, FuSpan span);
+FuNode *FuNode_new_pkg(FuCtx *ctx, FuSpan *sp);
 
 FuStr *FuNode_display(FuNode *nd, fu_size_t indent);
 

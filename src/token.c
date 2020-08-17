@@ -3,47 +3,47 @@
 #include "error.h"
 #include "parse.h"
 
-FuToken FuToken_new(fu_token_k kd, FuSpan span) {
+FuToken FuToken_new(fu_token_k kd, FuSpan *sp) {
     assert(kd < TOK_DOC_COMMENT);
     FuToken token;
     token.kd = kd;
-    token.span = span;
+    token.sp = sp;
     return token;
 }
 
-static FuToken FuToken_new_sym(fu_token_k kd, FuSpan span, fu_sym_t sym) {
+static FuToken FuToken_new_sym(fu_token_k kd, FuSpan *sp, fu_sym_t sym) {
     assert(kd >= TOK_DOC_COMMENT && kd < TOK_BYTE);
     FuToken token;
     token.kd = kd;
-    token.span = span;
+    token.sp = sp;
     token.sym = sym;
     return token;
 }
 
-FuToken FuToken_new_doc_comment(FuSpan span, fu_sym_t sym) {
-    return FuToken_new_sym(TOK_DOC_COMMENT, span, sym);
+FuToken FuToken_new_doc_comment(FuSpan *sp, fu_sym_t sym) {
+    return FuToken_new_sym(TOK_DOC_COMMENT, sp, sym);
 }
 
-FuToken FuToken_new_keyword(FuSpan span, fu_sym_t sym) {
-    return FuToken_new_sym(TOK_KEYWORD, span, sym);
+FuToken FuToken_new_keyword(FuSpan *sp, fu_sym_t sym) {
+    return FuToken_new_sym(TOK_KEYWORD, sp, sym);
 }
 
-FuToken FuToken_new_ident(FuSpan span, fu_sym_t sym) {
-    return FuToken_new_sym(TOK_IDENT, span, sym);
+FuToken FuToken_new_ident(FuSpan *sp, fu_sym_t sym) {
+    return FuToken_new_sym(TOK_IDENT, sp, sym);
 }
 
-FuToken FuToken_new_raw_ident(FuSpan span, fu_sym_t sym) {
-    return FuToken_new_sym(TOK_RAW_IDENT, span, sym);
+FuToken FuToken_new_raw_ident(FuSpan *sp, fu_sym_t sym) {
+    return FuToken_new_sym(TOK_RAW_IDENT, sp, sym);
 }
 
-FuToken FuToken_new_lable(FuSpan span, fu_sym_t sym) {
-    return FuToken_new_sym(TOK_LABEL, span, sym);
+FuToken FuToken_new_lable(FuSpan *sp, fu_sym_t sym) {
+    return FuToken_new_sym(TOK_LABEL, sp, sym);
 }
 
-FuToken FuToken_new_lit_int(FuSpan span, fu_sym_t sym, fu_size_t base, fu_bool_t empty_int, fu_size_t suffix_start) {
+FuToken FuToken_new_lit_int(FuSpan *sp, fu_sym_t sym, fu_size_t base, fu_bool_t empty_int, fu_size_t suffix_start) {
     FuToken token;
     token.kd = TOK_INT;
-    token.span = span;
+    token.sp = sp;
     token._int.sym = sym;
     token._int.base = base;
     token._int.empty_int = empty_int;
@@ -51,11 +51,11 @@ FuToken FuToken_new_lit_int(FuSpan span, fu_sym_t sym, fu_size_t base, fu_bool_t
     return token;
 }
 
-FuToken FuToken_new_lit_float(FuSpan span, fu_sym_t sym, fu_size_t base, fu_bool_t empty_exponent,
+FuToken FuToken_new_lit_float(FuSpan *sp, fu_sym_t sym, fu_size_t base, fu_bool_t empty_exponent,
                               fu_size_t suffix_start) {
     FuToken token;
     token.kd = TOK_FLOAT;
-    token.span = span;
+    token.sp = sp;
     token._float.sym = sym;
     token._float.base = base;
     token._float.empty_exponent = empty_exponent;
@@ -63,30 +63,30 @@ FuToken FuToken_new_lit_float(FuSpan span, fu_sym_t sym, fu_size_t base, fu_bool
     return token;
 }
 
-FuToken FuToken_new_lit_char(FuSpan span, fu_sym_t sym, fu_bool_t terminated) {
+FuToken FuToken_new_lit_char(FuSpan *sp, fu_sym_t sym, fu_bool_t terminated) {
     FuToken token;
     token.kd = TOK_CHAR;
-    token.span = span;
+    token.sp = sp;
     token._char.sym = sym;
     token._char.terminated = terminated;
     return token;
 }
 
-FuToken FuToken_new_lit_byte(FuSpan span, fu_sym_t sym, fu_bool_t terminated) {
+FuToken FuToken_new_lit_byte(FuSpan *sp, fu_sym_t sym, fu_bool_t terminated) {
     FuToken token;
     token.kd = TOK_BYTE;
-    token.span = span;
+    token.sp = sp;
     token._byte.sym = sym;
     token._byte.terminated = terminated;
     return token;
 }
 
-FuToken FuToken_new_lit_str(fu_token_k kd, FuSpan span, fu_sym_t sym, fu_size_t n_hashes, fu_bool_t started,
+FuToken FuToken_new_lit_str(fu_token_k kd, FuSpan *sp, fu_sym_t sym, fu_size_t n_hashes, fu_bool_t started,
                             fu_size_t prefix_ignore, fu_bool_t terminated) {
     assert(TOK_STR <= kd && kd <= TOK_FORMAT_RAW_STR);
     FuToken token;
     token.kd = kd;
-    token.span = span;
+    token.sp = sp;
     token._str.sym = sym;
     token._str.n_hashes = n_hashes;
     token._str.started = started;
@@ -206,7 +206,7 @@ fu_bool_t FuToken_is_lit(FuToken tok) {
 
 fu_bool_t FuToken_is_outer_doc_comment(FuToken tok) {
     assert(tok.kd == TOK_DOC_COMMENT);
-    FuStr *symbol = FuCtx_get_symbol(tok.span.ctx, tok.sym);
+    FuStr *symbol = FuCtx_get_symbol(tok.sp->ctx, tok.sym);
     if (FuStr_get_char(symbol, 0) == '/') {
         return FU_TRUE;
     }
@@ -271,7 +271,7 @@ fu_size_t FuToken_left_skip_count(FuToken tok) {
     case TOK_INT:
     case TOK_FLOAT:
     default:
-        FATAL(&tok.span, "can not be here");
+        FATAL(tok.sp, "can not be here");
     }
     return count;
 }
@@ -284,7 +284,7 @@ FuStr *FuToken_display(FuToken tok) {
         return str;
     }
     FuStr_push_utf8_cstr(str, ":");
-    FuStr *symbol = FuStr_clone(FuCtx_get_symbol(tok.span.ctx, tok.sym));
+    FuStr *symbol = FuStr_clone(FuCtx_get_symbol(tok.sp->ctx, tok.sym));
     FuStr_append(str, symbol);
     return str;
 }

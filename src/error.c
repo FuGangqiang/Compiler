@@ -1,10 +1,10 @@
 #include "error.h"
 
-void warning_format(FuSpan *span, const char *format, ...) {
+void warning_format(FuSpan *sp, const char *format, ...) {
     va_list ap;
 
-    if (span) {
-        FuSpan_print(stderr, *span);
+    if (sp) {
+        FuSpan_print(stderr, sp);
         fprintf(stderr, ": ");
     }
 
@@ -14,18 +14,18 @@ void warning_format(FuSpan *span, const char *format, ...) {
     fprintf(stderr, "\n");
     va_end(ap);
 
-    if (span) {
-        FuSpan_print_line(stderr, *span);
+    if (sp) {
+        FuSpan_print_line(stderr, sp);
     }
 
     return;
 }
 
-void error_format(FuSpan *span, const char *format, ...) {
+void error_format(FuSpan *sp, const char *format, ...) {
     va_list ap;
 
-    if (span) {
-        FuSpan_print(stderr, *span);
+    if (sp) {
+        FuSpan_print(stderr, sp);
         fprintf(stderr, ": ");
     }
 
@@ -35,18 +35,18 @@ void error_format(FuSpan *span, const char *format, ...) {
     fprintf(stderr, "\n");
     va_end(ap);
 
-    if (span) {
-        FuSpan_print_line(stderr, *span);
+    if (sp) {
+        FuSpan_print_line(stderr, sp);
     }
 
     return;
 }
 
-void fatal_format(FuSpan *span, const char *format, ...) {
+void fatal_format(FuSpan *sp, const char *format, ...) {
     va_list ap;
 
-    if (span) {
-        FuSpan_print(stderr, *span);
+    if (sp) {
+        FuSpan_print(stderr, sp);
         fprintf(stderr, ": ");
     }
 
@@ -56,8 +56,8 @@ void fatal_format(FuSpan *span, const char *format, ...) {
     fprintf(stderr, "\n");
     va_end(ap);
 
-    if (span) {
-        FuSpan_print_line(stderr, *span);
+    if (sp) {
+        FuSpan_print_line(stderr, sp);
     }
 
     exit(1);
