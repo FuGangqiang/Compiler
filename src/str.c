@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "alloc.h"
-#include "error.h"
+#include "log.h"
 #include "str.h"
 
 FuStr *FuStr_new() {
@@ -107,7 +107,7 @@ void FuStr_push(FuStr *str, FuChar c) {
     str->len++;
 }
 
-void FuStr_push_utf8(FuStr *str, char *s, fu_size_t len) {
+void FuStr_push_utf8(FuStr *str, char *s, int len) {
     FuStr_reserve(str, len);
 
     FuChar fc;
@@ -145,14 +145,20 @@ void FuStr_push_utf8_cstr(FuStr *str, char *s) {
 }
 
 void FuStr_push_utf8_format(FuStr *str, const char *format, ...) {
-    char buf[4096];
     va_list ap;
-
     va_start(ap, format);
-    int count = vsprintf(buf, format, ap);
+    FuStr_push_utf8_format_v(str, format, ap);
     va_end(ap);
+}
 
-    FuStr_push_utf8(str, buf, count);
+void FuStr_push_utf8_format_v(FuStr *str, const char *format, va_list params) {
+    char buf[4096];
+    int count = vsprintf(buf, format, params);
+    if (count >= 4096) {
+        count = 4095;
+    }
+    buf[count] = '\0';
+    FuStr_push_utf8_cstr(str, buf);
 }
 
 void FuStr_append(FuStr *str, FuStr *other) {
@@ -252,7 +258,7 @@ fu_bool_t FuStr_eq_cstr(FuStr *str, char *cstr) {
 void FuStr_read_file(FuStr *str, char *fpath, fu_size_t len) {
     FILE *f = fopen(fpath, "r");
     if (!f) {
-        FATAL(NULL, "can not open file: %s", fpath);
+        FATAL1(NULL, "can not open file: %s", fpath);
     }
     fseek(f, 0, SEEK_END);
     long fsize = ftell(f);

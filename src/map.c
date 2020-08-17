@@ -1,7 +1,7 @@
 #include <string.h>
 
 #include "alloc.h"
-#include "error.h"
+#include "log.h"
 #include "map.h"
 
 FuMap *FuMap_new(fu_size_t key_size, fu_size_t value_size, FuEqFn key_eq_fn, FuHashFn key_hash_fn) {

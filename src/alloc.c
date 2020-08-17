@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "alloc.h"
-#include "error.h"
+#include "log.h"
 
 FuMemHeap *CURRENT_HEAP;
 static FuMemHeap *HEAP_FREE_LIST;

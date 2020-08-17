@@ -1,5 +1,22 @@
 #include "parse.h"
 
+char *FuKind_log_cstr(fu_log_k kd) {
+    switch (kd) {
+/* clang-format off */
+#define LOG(kd, doc) \
+    case kd: \
+        return doc; \
+        break;
+/* clang-format on */
+#include "log.def"
+#undef LOG
+    default:
+        /* can not be here */
+        return "";
+        break;
+    }
+}
+
 char *FuKind_arm_cstr(fu_arm_k kd) {
     switch (kd) {
 /* clang-format off */

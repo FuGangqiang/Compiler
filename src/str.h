@@ -45,9 +45,10 @@ fu_size_t FuStr_hash(FuStr **str);
 fu_bool_t FuStr_eq_cstr(FuStr *str, char *cstr);
 
 void FuStr_push(FuStr *str, FuChar c);
-void FuStr_push_utf8(FuStr *str, char *s, fu_size_t len);
+void FuStr_push_utf8(FuStr *str, char *s, int len);
 void FuStr_push_utf8_cstr(FuStr *str, char *s);
 void FuStr_push_utf8_format(FuStr *str, const char *format, ...);
+void FuStr_push_utf8_format_v(FuStr *str, const char *format, va_list params);
 
 void FuStr_append(FuStr *str, FuStr *other);
 

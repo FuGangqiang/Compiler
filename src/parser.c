@@ -2,7 +2,7 @@
 #include <stdarg.h>
 
 #include "alloc.h"
-#include "error.h"
+#include "log.h"
 #include "parse.h"
 
 FuParser *FuParser_new(FuCtx *ctx) {
@@ -360,10 +360,10 @@ static FuSpan *FuParser_current_span(FuParser *p) {
 static FuToken FuParser_expect_keyword(FuParser *p, fu_keyword_k kd) {
     FuToken tok = FuParser_nth_token(p, 0);
     if (tok.kd != TOK_KEYWORD) {
-        FATAL(tok.sp, "expect %s, find token: %s", FuKind_keyword_cstr(kd), FuKind_token_cstr(tok.kd));
+        FATAL2(tok.sp, "expect %s, find token: %s", FuKind_keyword_cstr(kd), FuKind_token_cstr(tok.kd));
     }
     if (tok.sym != kd) {
-        FATAL(tok.sp, "expect %s, find keyword: %s", FuKind_keyword_cstr(kd), FuKind_keyword_cstr(tok.sym));
+        FATAL2(tok.sp, "expect %s, find keyword: %s", FuKind_keyword_cstr(kd), FuKind_keyword_cstr(tok.sym));
     }
     return FuParser_bump(p);
 }
@@ -371,7 +371,7 @@ static FuToken FuParser_expect_keyword(FuParser *p, fu_keyword_k kd) {
 static FuToken FuParser_expect_token(FuParser *p, fu_token_k kd) {
     FuToken tok = FuParser_nth_token(p, 0);
     if (tok.kd != kd) {
-        FATAL(tok.sp, "expect token: %s, find token: %s", FuKind_token_cstr(kd), FuKind_token_cstr(tok.kd));
+        FATAL2(tok.sp, "expect token: %s, find token: %s", FuKind_token_cstr(kd), FuKind_token_cstr(tok.kd));
     }
     return FuParser_bump(p);
 }
@@ -395,7 +395,7 @@ static fu_bool_t FuParser_check_2_sep_token(FuParser *p, fu_token_k kind0, fu_to
 static FuToken FuParser_expect_token_fn(FuParser *p, FuCheckTokenFn fn, char *wanted) {
     FuToken tok = FuParser_nth_token(p, 0);
     if (!fn(tok)) {
-        FATAL(tok.sp, "expect %s, find token: %s", wanted, FuKind_token_cstr(tok.kd));
+        FATAL2(tok.sp, "expect %s, find token: %s", wanted, FuKind_token_cstr(tok.kd));
     }
     return FuParser_bump(p);
 }
@@ -1078,7 +1078,7 @@ FuLit *FuParser_parse_lit(FuParser *p) {
         break;
     case TOK_FORMAT_STR:
     case TOK_FORMAT_RAW_STR:
-        FATAL(tok.sp, "unimplemented: %s", FuKind_token_cstr(tok.kd));
+        FATAL1(tok.sp, "unimplemented: %s", FuKind_token_cstr(tok.kd));
         break;
     default:
         FATAL(tok.sp, "can not be here");
@@ -1114,7 +1114,7 @@ FuExpr *FuParser_parse_expr(FuParser *p) {
         break;
     }
     default:
-        FATAL(NULL, "unimplemented: %s", FuKind_token_cstr(tok.kd));
+        FATAL1(NULL, "unimplemented: %s", FuKind_token_cstr(tok.kd));
     }
     return expr;
 }
@@ -1215,7 +1215,7 @@ FuNode *FuParser_parse_mod_item(FuParser *p) {
     if (tok.kd != TOK_KEYWORD) {
         /* todo: attr drop */
         FuVec_drop(attrs);
-        FATAL(tok.sp, "expect item keyword, find tok: %s", FuKind_token_cstr(tok.kd));
+        FATAL1(tok.sp, "expect item keyword, find tok: %s", FuKind_token_cstr(tok.kd));
     }
     switch (tok.sym) {
     case KW_STATIC:
@@ -1224,7 +1224,7 @@ FuNode *FuParser_parse_mod_item(FuParser *p) {
     default:
         /* todo: attr drop */
         FuVec_drop(attrs);
-        FATAL(tok.sp, "unimplement item: %s", FuKind_keyword_cstr(tok.sym));
+        FATAL1(tok.sp, "unimplement item: %s", FuKind_keyword_cstr(tok.sym));
         break;
     }
     return item;

@@ -1,5 +1,5 @@
 #include "alloc.h"
-#include "error.h"
+#include "log.h"
 #include "parse.h"
 
 FuSpan *FuSpan_new(FuCtx *ctx, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line, fu_size_t column) {
@@ -96,14 +96,7 @@ FuStr *FuSpan_display(FuSpan *sp) {
     return display;
 }
 
-int FuSpan_print(FILE *out, FuSpan *sp) {
-    FuStr *str = FuSpan_display(sp);
-    int count = FuStr_print(out, str);
-    FuStr_drop(str);
-    return count;
-}
-
-int FuSpan_print_line(FILE *out, FuSpan *sp) {
+FuStr *FuSpan_line(FuSpan *sp) {
     FuStr *fcontent = FuCtx_get_file(sp->ctx, sp->fpath);
     fu_size_t len = FuStr_len(fcontent);
 
@@ -132,10 +125,5 @@ int FuSpan_print_line(FILE *out, FuSpan *sp) {
         }
         end++;
     }
-    FuStr *str = FuStr_from_slice(fcontent, start, end - start);
-    fprintf(out, "\n");
-    int count = FuStr_print(out, str);
-    fprintf(out, "\n");
-    FuStr_drop(str);
-    return count;
+    return FuStr_from_slice(fcontent, start, end - start);
 }

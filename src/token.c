@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include "error.h"
+#include "log.h"
 #include "parse.h"
 
 FuToken FuToken_new(fu_token_k kd, FuSpan *sp) {
@@ -233,7 +233,7 @@ fu_bool_t FuToken_is_expr_start(FuToken tok) {
         return FU_TRUE;
         break;
     default:
-        FATAL(NULL, "unimplemented: %d", FuKind_token_cstr(tok.kd));
+        FATAL1(NULL, "unimplemented: %d", FuKind_token_cstr(tok.kd));
     }
     return 0;
 }

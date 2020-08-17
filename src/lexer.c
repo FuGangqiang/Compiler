@@ -1,5 +1,5 @@
 #include "alloc.h"
-#include "error.h"
+#include "log.h"
 #include "parse.h"
 
 FuLexer *FuLexer_new(FuCtx *ctx) {

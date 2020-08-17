@@ -1,4 +1,5 @@
 #include "alloc.h"
+#include "log.h"
 #include "parse.h"
 
 fu_bool_t FuId_eq(fu_id_t *id1, fu_id_t *id2) {

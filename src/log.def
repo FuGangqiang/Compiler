@@ -1,0 +1,9 @@
+#ifndef LOG
+#error "You must define LOG macro before include this file"
+#endif
+
+LOG(LOG_DEBUG, "DEBUG")
+LOG(LOG_INFO, "INFO")
+LOG(LOG_WARN, "WARN")
+LOG(LOG_ERROR, "ERROR")
+LOG(LOG_FATAL, "FATAL")

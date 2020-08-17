@@ -1,7 +1,7 @@
 #include <string.h>
 
 #include "alloc.h"
-#include "error.h"
+#include "log.h"
 #include "set.h"
 
 FuSet *FuSet_new(fu_size_t key_size, FuEqFn key_eq_fn, FuHashFn key_hash_fn) {

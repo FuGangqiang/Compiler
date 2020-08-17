@@ -21,6 +21,7 @@ typedef enum fu_ge_arg_k fu_ge_arg_k;
 typedef enum fu_ge_param_k fu_ge_param_k;
 typedef enum fu_keyword_k fu_keyword_k;
 typedef enum fu_lit_k fu_lit_k;
+typedef enum fu_log_k fu_log_k;
 typedef enum fu_node_k fu_node_k;
 typedef enum fu_op_k fu_op_k;
 typedef enum fu_pat_k fu_pat_k;
@@ -30,6 +31,7 @@ typedef enum fu_use_k fu_use_k;
 typedef enum fu_variant_k fu_variant_k;
 typedef enum fu_vis_k fu_vis_k;
 
+typedef struct FuLog FuLog;
 typedef struct FuSpan FuSpan;
 typedef struct FuCtx FuCtx;
 typedef struct FuToken FuToken;
@@ -60,6 +62,13 @@ typedef struct FuUse FuUse;
 
 fu_bool_t FuId_eq(fu_id_t *id1, fu_id_t *id2);
 fu_size_t FuId_hash(fu_id_t *id);
+
+enum fu_log_k {
+#define LOG(kd, _doc) kd,
+#include "log.def"
+#undef LOG
+    _LOG_LAST_UNUSED
+};
 
 enum fu_arm_k {
 #define ARM(kd, _doc) kd,
@@ -173,6 +182,7 @@ char *FuKind_ge_arg_cstr(fu_ge_arg_k kd);
 char *FuKind_ge_param_cstr(fu_ge_param_k kd);
 char *FuKind_keyword_cstr(fu_keyword_k kd);
 char *FuKind_lit_cstr(fu_lit_k kd);
+char *FuKind_log_cstr(fu_log_k kd);
 char *FuKind_node_cstr(fu_node_k kd);
 char *FuKind_op_cstr(fu_op_k kd);
 char *FuKind_pat_cstr(fu_pat_k kd);
@@ -202,8 +212,7 @@ FuSpan *FuSpan_unintern_join(FuSpan *sp1, FuSpan *sp2);
 FuSpan *FuSpan_join(FuSpan *sp1, FuSpan *sp2);
 
 FuStr *FuSpan_display(FuSpan *sp);
-int FuSpan_print(FILE *out, FuSpan *sp);
-int FuSpan_print_line(FILE *out, FuSpan *sp);
+FuStr *FuSpan_line(FuSpan *sp);
 
 /* compiler context */
 struct FuCtx {
@@ -238,10 +247,10 @@ FuStr *FuCtx_get_symbol(FuCtx *ctx, fu_sym_t sym);
 void FuCtx_intern_file(FuCtx *ctx, fu_sym_t fpath, FuStr *fcontent);
 FuStr *FuCtx_get_file(FuCtx *ctx, fu_sym_t fpath);
 
-/* collects spans */
+/* context spans */
 void FuCtx_intern_span(FuCtx *ctx, FuSpan *sp);
 
-/* collects types */
+/* context types */
 fu_tid_t FuCtx_push_type(FuCtx *ctx, FuType *ty);
 FuType *FuCtx_get_type(FuCtx *ctx, fu_tid_t tid);
 

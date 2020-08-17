@@ -5,7 +5,7 @@
 
 #include "alloc.h"
 #include "bytes.h"
-#include "error.h"
+#include "log.h"
 
 FuBytes *FuBytes_new() {
     FuBytes *bytes = (FuBytes *)FuMem_malloc(sizeof(FuBytes));
@@ -221,7 +221,7 @@ void FuBytes_append(FuBytes *bytes, FuBytes *other) {
 void FuBytes_read_file(FuBytes *bytes, char *fname, fu_size_t len) {
     FILE *f = fopen(fname, "r");
     if (!f) {
-        FATAL(NULL, "can not open file: %s", fname);
+        FATAL1(NULL, "can not open file: %s", fname);
     }
     fseek(f, 0, SEEK_END);
     long fsize = ftell(f);

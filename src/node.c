@@ -1,5 +1,5 @@
 #include "alloc.h"
-#include "error.h"
+#include "log.h"
 #include "parse.h"
 
 static void FuStr_push_indent(FuStr *str, fu_size_t n) {
@@ -181,7 +181,7 @@ void FuExpr_drop(FuExpr *expr) {
         FuPath_drop(expr->_path.path);
         break;
     default:
-        FATAL(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
+        FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
     }
     FuMem_free(expr);
 }
@@ -206,7 +206,7 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_append(str, FuPath_display(expr->_path.path));
         break;
     default:
-        FATAL(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
+        FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
     }
     return str;
 }
@@ -240,7 +240,7 @@ void FuNode_drop(FuNode *nd) {
         FuVec_drop(nd->_pkg.items);
         break;
     default:
-        FATAL(NULL, "unimplemented: %s", FuKind_node_cstr(nd->kd));
+        FATAL1(NULL, "unimplemented: %s", FuKind_node_cstr(nd->kd));
     }
     if (nd->attrs) {
         /* todo: attr drop */
@@ -302,7 +302,7 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         FuStr_append(str, FuNode_display_items(nd->_pkg.items, indent + 1));
         break;
     default:
-        FATAL(NULL, "unimplemented: %s", FuKind_node_cstr(nd->kd));
+        FATAL1(NULL, "unimplemented: %s", FuKind_node_cstr(nd->kd));
         break;
     }
     return str;

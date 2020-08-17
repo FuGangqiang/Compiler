@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "alloc.h"
-#include "error.h"
+#include "log.h"
 #include "vec.h"
 
 FuVec *FuVec_new(fu_size_t item_size) {

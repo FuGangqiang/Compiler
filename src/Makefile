@@ -27,18 +27,18 @@ bitset.o: bitset.c bitset.h def.h alloc.o
 kind.o: kind.c parse.h keyword.def token.def symbol.def node.def node_arm.def node_expr.def node_ge_arg.def \
     node_ge_param.def node_lit.def node_op.def node_pat.def node_use.def node_variant.def node_vis.def
 context.o: context.c parse.h str.o vec.o map.o set.o keyword.def symbol.def node.o
-span.o: span.c parse.h str.o error.o context.o
-error.o: error.c error.h parse.h span.o
-token.o: token.c parse.h kind.o span.o error.o
-lexer.o: lexer.c parse.h token.o str.o char.o hash.o set.o span.o error.o
+span.o: span.c parse.h str.o log.o context.o
+log.o: log.c log.h parse.h span.o
+token.o: token.c parse.h kind.o span.o log.o
+lexer.o: lexer.c parse.h token.o str.o char.o hash.o set.o span.o log.o
 node.o: node.c parse.h alloc.o kind.o
-parser.o: parser.c parse.h node.o alloc.o error.o
+parser.o: parser.c parse.h node.o alloc.o log.o
 type.o: type.c parse.h
 scope.o: scope.c parse.h
 
 # dep objs
 
-DEP_OBJS=char.o bytes.o str.o hash.o span.o context.o vec.o map.o set.o error.o alloc.o kind.o \
+DEP_OBJS=char.o bytes.o str.o hash.o span.o context.o vec.o map.o set.o log.o alloc.o kind.o \
 	node.o type.o scope.o token.o parser.o lexer.o
 
 # tools
