@@ -1,7 +1,7 @@
 #include "error.h"
 #include "parse.h"
 
-FuSpan FuSpan_new(FuContext *ctx, FuSymbol fpath, fu_size_t start, fu_size_t len, fu_size_t line, fu_size_t column) {
+FuSpan FuSpan_new(FuCtx *ctx, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line, fu_size_t column) {
     FuSpan span;
     span.ctx = ctx;
     span.fpath = fpath;
@@ -24,7 +24,7 @@ FuStr *FuSpan_display(FuSpan span) {
     fu_size_t column = span.column;
 
     if (span.offset) {
-        FuStr *fcontent = FuContext_get_file(span.ctx, span.fpath);
+        FuStr *fcontent = FuCtx_get_file(span.ctx, span.fpath);
         fu_size_t i;
         for (i = 0; i < span.offset; i++) {
             if (FuStr_get_char(fcontent, span.start + i) == '\n') {
@@ -36,7 +36,7 @@ FuStr *FuSpan_display(FuSpan span) {
         }
     }
 
-    FuStr *str = FuContext_get_symbol(span.ctx, span.fpath);
+    FuStr *str = FuCtx_get_symbol(span.ctx, span.fpath);
     FuStr *display = FuStr_clone(str);
     FuStr_push_utf8_format(display, ":%u:%u", line, column);
     return display;
@@ -78,7 +78,7 @@ int FuSpan_print(FILE *out, FuSpan span) {
 }
 
 int FuSpan_print_line(FILE *out, FuSpan span) {
-    FuStr *fcontent = FuContext_get_file(span.ctx, span.fpath);
+    FuStr *fcontent = FuCtx_get_file(span.ctx, span.fpath);
     fu_size_t len = FuStr_len(fcontent);
 
     fu_size_t start, end;

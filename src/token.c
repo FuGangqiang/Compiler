@@ -11,7 +11,7 @@ FuToken FuToken_new(fu_token_k kd, FuSpan span) {
     return token;
 }
 
-static FuToken FuToken_new_sym(fu_token_k kd, FuSpan span, FuSymbol sym) {
+static FuToken FuToken_new_sym(fu_token_k kd, FuSpan span, fu_sym_t sym) {
     assert(kd >= TOK_DOC_COMMENT && kd < TOK_BYTE);
     FuToken token;
     token.kd = kd;
@@ -20,27 +20,27 @@ static FuToken FuToken_new_sym(fu_token_k kd, FuSpan span, FuSymbol sym) {
     return token;
 }
 
-FuToken FuToken_new_doc_comment(FuSpan span, FuSymbol sym) {
+FuToken FuToken_new_doc_comment(FuSpan span, fu_sym_t sym) {
     return FuToken_new_sym(TOK_DOC_COMMENT, span, sym);
 }
 
-FuToken FuToken_new_keyword(FuSpan span, FuSymbol sym) {
+FuToken FuToken_new_keyword(FuSpan span, fu_sym_t sym) {
     return FuToken_new_sym(TOK_KEYWORD, span, sym);
 }
 
-FuToken FuToken_new_ident(FuSpan span, FuSymbol sym) {
+FuToken FuToken_new_ident(FuSpan span, fu_sym_t sym) {
     return FuToken_new_sym(TOK_IDENT, span, sym);
 }
 
-FuToken FuToken_new_raw_ident(FuSpan span, FuSymbol sym) {
+FuToken FuToken_new_raw_ident(FuSpan span, fu_sym_t sym) {
     return FuToken_new_sym(TOK_RAW_IDENT, span, sym);
 }
 
-FuToken FuToken_new_lable(FuSpan span, FuSymbol sym) {
+FuToken FuToken_new_lable(FuSpan span, fu_sym_t sym) {
     return FuToken_new_sym(TOK_LABEL, span, sym);
 }
 
-FuToken FuToken_new_lit_int(FuSpan span, FuSymbol sym, fu_size_t base, fu_bool_t empty_int, fu_size_t suffix_start) {
+FuToken FuToken_new_lit_int(FuSpan span, fu_sym_t sym, fu_size_t base, fu_bool_t empty_int, fu_size_t suffix_start) {
     FuToken token;
     token.kd = TOK_INT;
     token.span = span;
@@ -51,7 +51,7 @@ FuToken FuToken_new_lit_int(FuSpan span, FuSymbol sym, fu_size_t base, fu_bool_t
     return token;
 }
 
-FuToken FuToken_new_lit_float(FuSpan span, FuSymbol sym, fu_size_t base, fu_bool_t empty_exponent,
+FuToken FuToken_new_lit_float(FuSpan span, fu_sym_t sym, fu_size_t base, fu_bool_t empty_exponent,
                               fu_size_t suffix_start) {
     FuToken token;
     token.kd = TOK_FLOAT;
@@ -63,7 +63,7 @@ FuToken FuToken_new_lit_float(FuSpan span, FuSymbol sym, fu_size_t base, fu_bool
     return token;
 }
 
-FuToken FuToken_new_lit_char(FuSpan span, FuSymbol sym, fu_bool_t terminated) {
+FuToken FuToken_new_lit_char(FuSpan span, fu_sym_t sym, fu_bool_t terminated) {
     FuToken token;
     token.kd = TOK_CHAR;
     token.span = span;
@@ -72,7 +72,7 @@ FuToken FuToken_new_lit_char(FuSpan span, FuSymbol sym, fu_bool_t terminated) {
     return token;
 }
 
-FuToken FuToken_new_lit_byte(FuSpan span, FuSymbol sym, fu_bool_t terminated) {
+FuToken FuToken_new_lit_byte(FuSpan span, fu_sym_t sym, fu_bool_t terminated) {
     FuToken token;
     token.kd = TOK_BYTE;
     token.span = span;
@@ -81,7 +81,7 @@ FuToken FuToken_new_lit_byte(FuSpan span, FuSymbol sym, fu_bool_t terminated) {
     return token;
 }
 
-FuToken FuToken_new_lit_str(fu_token_k kd, FuSpan span, FuSymbol sym, fu_size_t n_hashes, fu_bool_t started,
+FuToken FuToken_new_lit_str(fu_token_k kd, FuSpan span, fu_sym_t sym, fu_size_t n_hashes, fu_bool_t started,
                             fu_size_t prefix_ignore, fu_bool_t terminated) {
     assert(TOK_STR <= kd && kd <= TOK_FORMAT_RAW_STR);
     FuToken token;
@@ -206,7 +206,7 @@ fu_bool_t FuToken_is_lit(FuToken tok) {
 
 fu_bool_t FuToken_is_outer_doc_comment(FuToken tok) {
     assert(tok.kd == TOK_DOC_COMMENT);
-    FuStr *symbol = FuContext_get_symbol(tok.span.ctx, tok.sym);
+    FuStr *symbol = FuCtx_get_symbol(tok.span.ctx, tok.sym);
     if (FuStr_get_char(symbol, 0) == '/') {
         return FU_TRUE;
     }
@@ -284,7 +284,7 @@ FuStr *FuToken_display(FuToken tok) {
         return str;
     }
     FuStr_push_utf8_cstr(str, ":");
-    FuStr *symbol = FuStr_clone(FuContext_get_symbol(tok.span.ctx, tok.sym));
+    FuStr *symbol = FuStr_clone(FuCtx_get_symbol(tok.span.ctx, tok.sym));
     FuStr_append(str, symbol);
     return str;
 }

@@ -5,7 +5,7 @@
 #include "error.h"
 #include "parse.h"
 
-FuParser *FuParser_new(FuContext *ctx) {
+FuParser *FuParser_new(FuCtx *ctx) {
     FuParser *p = FuMem_new(FuParser);
     p->ctx = ctx;
     p->tok_buf = FuVec_new(sizeof(FuToken));
@@ -561,7 +561,7 @@ FuLit *FuToken_to_lit_byte(FuToken tok) {
     }
 
     FuLit *lit = FuLit_new(tok.span, LIT_BYTE);
-    FuStr *symbol = FuContext_get_symbol(tok.span.ctx, tok._byte.sym);
+    FuStr *symbol = FuCtx_get_symbol(tok.span.ctx, tok._byte.sym);
     fu_size_t len = FuStr_len(symbol);
     if (len == 0) {
         FATAL(&tok.span, "empty byte");
@@ -594,8 +594,8 @@ FuLit *FuToken_to_lit_byte_str(FuToken tok) {
         FATAL(&tok.span, "mismatched byte str closing delimiter");
     }
     FuLit *lit = FuLit_new(tok.span, LIT_BYTE_STR);
-    FuStr *symbol = FuContext_get_symbol(tok.span.ctx, tok._str.sym);
-    FuStr *fcontent = FuContext_get_file(tok.span.ctx, tok.span.fpath);
+    FuStr *symbol = FuCtx_get_symbol(tok.span.ctx, tok._str.sym);
+    FuStr *fcontent = FuCtx_get_file(tok.span.ctx, tok.span.fpath);
 
     FuBytes *bytes = FuBytes_new();
     fu_size_t len = FuStr_len(symbol);
@@ -806,7 +806,7 @@ FuLit *FuToken_to_lit_char(FuToken tok) {
     }
 
     FuLit *lit = FuLit_new(tok.span, LIT_CHAR);
-    FuStr *symbol = FuContext_get_symbol(tok.span.ctx, tok._char.sym);
+    FuStr *symbol = FuCtx_get_symbol(tok.span.ctx, tok._char.sym);
     fu_size_t len = FuStr_len(symbol);
     if (len == 0) {
         FATAL(&tok.span, "empty char");
@@ -837,8 +837,8 @@ FuLit *FuToken_to_lit_str(FuToken tok) {
         FATAL(&tok.span, "mismatched str closing delimiter");
     }
     FuLit *lit = FuLit_new(tok.span, LIT_STR);
-    FuStr *symbol = FuContext_get_symbol(tok.span.ctx, tok._str.sym);
-    FuStr *fcontent = FuContext_get_file(tok.span.ctx, tok.span.fpath);
+    FuStr *symbol = FuCtx_get_symbol(tok.span.ctx, tok._str.sym);
+    FuStr *fcontent = FuCtx_get_file(tok.span.ctx, tok.span.fpath);
 
     FuStr *str = FuStr_new();
     fu_size_t len = FuStr_len(symbol);
@@ -956,7 +956,7 @@ FuLit *FuToken_to_lit_int(FuToken tok) {
     FuSpan err_span;
     assert(tok.kd == TOK_INT);
     FuLit *lit = FuLit_new(tok.span, LIT_INT);
-    FuStr *symbol = FuContext_get_symbol(tok.span.ctx, tok._str.sym);
+    FuStr *symbol = FuCtx_get_symbol(tok.span.ctx, tok._str.sym);
     fu_size_t len = FuStr_len(symbol);
 
     if (tok._int.empty_int) {

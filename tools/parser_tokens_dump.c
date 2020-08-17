@@ -9,8 +9,8 @@ int main(int argc, char **argv) {
         printf("usage: CMD fpath");
         exit(1);
     }
-    FuContext *ctx = FuContext_new();
-    FuContext_init(ctx);
+    FuCtx *ctx = FuCtx_new();
+    FuCtx_init(ctx);
     FuParser *p = FuParser_new(ctx);
     FuParser_for_file(p, argv[1], strlen(argv[1]));
     FuStr *dump = FuParser_dump_tokens(p);
@@ -18,6 +18,6 @@ int main(int argc, char **argv) {
 
     FuStr_drop(dump);
     FuParser_drop(p);
-    FuContext_drop(ctx);
+    FuCtx_drop(ctx);
     return 0;
 }

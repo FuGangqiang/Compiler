@@ -3,18 +3,18 @@
 #include "alloc.h"
 #include "parse.h"
 
-FuSymbol FuKind_type_sym(FuContext *ctx, fu_type_k kd) {
+fu_sym_t FuKind_type_sym(FuCtx *ctx, fu_type_k kd) {
     char *cstr = FuKind_type_cstr(kd);
     FuStr *str = FuStr_from_utf8_cstr(cstr);
-    FuSymbol sym = FuContext_intern_symbol(ctx, str);
+    fu_sym_t sym = FuCtx_intern_symbol(ctx, str);
     return sym;
 }
 
-FuType *FuType_new(FuContext *ctx, fu_type_k kd, fu_vis_k vis) {
+FuType *FuType_new(FuCtx *ctx, fu_type_k kd, fu_vis_k vis) {
     FuType *ty = FuMem_new(FuType);
     ty->kd = kd;
     ty->vis = vis;
-    ty->tid = FuContext_push_type(ctx, ty);
+    ty->tid = FuCtx_push_type(ctx, ty);
     return ty;
 }
 
@@ -22,7 +22,7 @@ void FuType_drop(FuType *ty) {
     FuMem_free(ty);
 }
 
-FuType *FuType_new_name(FuScope *scp, FuSymbol name) {
+FuType *FuType_new_name(FuScope *scp, fu_sym_t name) {
     FuType *ty;
     ty = FuScope_get_type(scp, name);
     if (ty) {
@@ -33,10 +33,10 @@ FuType *FuType_new_name(FuScope *scp, FuSymbol name) {
     return ty;
 }
 
-void FuType_init_pkg_builtins(FuContext *ctx, FuNode *nd) {
+void FuType_init_pkg_builtins(FuCtx *ctx, FuNode *nd) {
     assert(nd->kd == ND_PKG);
 
-    FuSymbol sym;
+    fu_sym_t sym;
     fu_tid_t tid;
 
     /* create init tids */

@@ -9,10 +9,10 @@
 #include "str.h"
 #include "vec.h"
 
-typedef fu_size_t fu_nid_t;
-typedef fu_size_t fu_tid_t;
-
-typedef fu_size_t FuSymbol;
+typedef fu_size_t fu_id_t;
+typedef fu_id_t fu_nid_t; /* node id */
+typedef fu_id_t fu_tid_t; /* type id */
+typedef fu_id_t fu_sym_t; /* symbol id */
 
 typedef enum fu_arm_k fu_arm_k;
 typedef enum fu_attr_k fu_attr_k;
@@ -31,7 +31,7 @@ typedef enum fu_variant_k fu_variant_k;
 typedef enum fu_vis_k fu_vis_k;
 
 typedef struct FuSpan FuSpan;
-typedef struct FuContext FuContext;
+typedef struct FuCtx FuCtx;
 typedef struct FuToken FuToken;
 typedef struct FuLexer FuLexer;
 typedef struct FuScope FuScope;
@@ -58,8 +58,8 @@ typedef struct FuPkg FuPkg;
 typedef struct FuTokTree FuTokTree;
 typedef struct FuUse FuUse;
 
-fu_bool_t FuSymbol_eq(FuSymbol *sym1, FuSymbol *sym2);
-fu_size_t FuSymbol_hash(FuSymbol *sym);
+fu_bool_t FuId_eq(fu_id_t *id1, fu_id_t *id2);
+fu_size_t FuId_hash(fu_id_t *id);
 
 enum fu_arm_k {
 #define ARM(kd, _doc) kd,
@@ -183,8 +183,8 @@ char *FuKind_variant_cstr(fu_variant_k kd);
 char *FuKind_vis_cstr(fu_vis_k kd);
 
 struct FuSpan {
-    FuContext *ctx;
-    FuSymbol fpath;
+    FuCtx *ctx;
+    fu_sym_t fpath;
     fu_size_t start;
     fu_size_t len;
     fu_size_t line;
@@ -192,14 +192,15 @@ struct FuSpan {
     fu_size_t offset; /* offset in token */
 };
 
-FuSpan FuSpan_new(FuContext *ctx, FuSymbol fpath, fu_size_t start, fu_size_t len, fu_size_t line, fu_size_t column);
+FuSpan FuSpan_new(FuCtx *ctx, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line, fu_size_t column);
 FuSpan FuSpan_offset(FuSpan span, fu_size_t offset);
 FuStr *FuSpan_display(FuSpan span);
 FuSpan FuSpan_join(FuSpan span1, FuSpan span2);
 int FuSpan_print(FILE *out, FuSpan span);
 int FuSpan_print_line(FILE *out, FuSpan span);
 
-struct FuContext {
+/* compiler context */
+struct FuCtx {
     /* intern symbols */
     /* FuStr* */
     FuSet *symbols;
@@ -216,49 +217,49 @@ struct FuContext {
     FuVec *types;
 };
 
-FuContext *FuContext_new();
-void FuContext_init(FuContext *ctx);
-void FuContext_drop(FuContext *ctx);
+FuCtx *FuCtx_new();
+void FuCtx_init(FuCtx *ctx);
+void FuCtx_drop(FuCtx *ctx);
 
 /* intern symbol */
-FuSymbol FuContext_intern_symbol(FuContext *ctx, FuStr *symbol);
-FuStr *FuContext_get_symbol(FuContext *ctx, FuSymbol sym);
+fu_sym_t FuCtx_intern_symbol(FuCtx *ctx, FuStr *symbol);
+FuStr *FuCtx_get_symbol(FuCtx *ctx, fu_sym_t sym);
 
 /* intern file content */
-void FuContext_intern_file(FuContext *ctx, FuSymbol fpath, FuStr *fcontent);
-FuStr *FuContext_get_file(FuContext *ctx, FuSymbol fpath);
+void FuCtx_intern_file(FuCtx *ctx, fu_sym_t fpath, FuStr *fcontent);
+FuStr *FuCtx_get_file(FuCtx *ctx, fu_sym_t fpath);
 
 /* collects types */
-fu_tid_t FuContext_push_type(FuContext *ctx, FuType *ty);
-FuType *FuContext_get_type(FuContext *ctx, fu_tid_t tid);
+fu_tid_t FuCtx_push_type(FuCtx *ctx, FuType *ty);
+FuType *FuCtx_get_type(FuCtx *ctx, fu_tid_t tid);
 
 struct FuToken {
     fu_token_k kd;
     FuSpan span;
     union {
-        FuSymbol sym;
+        fu_sym_t sym;
         struct {
-            FuSymbol sym;
+            fu_sym_t sym;
             fu_bool_t terminated;
         } _byte;
         struct {
-            FuSymbol sym;
+            fu_sym_t sym;
             fu_bool_t terminated;
         } _char;
         struct {
-            FuSymbol sym;
+            fu_sym_t sym;
             fu_size_t base;
             fu_bool_t empty_int;
             fu_size_t suffix_start;
         } _int;
         struct {
-            FuSymbol sym;
+            fu_sym_t sym;
             fu_size_t base;
             fu_bool_t empty_exponent;
             fu_size_t suffix_start;
         } _float;
         struct {
-            FuSymbol sym;
+            fu_sym_t sym;
             fu_size_t n_hashes;
             /* 是否有第一个引号, todo: 查看是否需要这个属性 */
             fu_bool_t started;
@@ -269,18 +270,18 @@ struct FuToken {
 };
 
 FuToken FuToken_new(fu_token_k kd, FuSpan span);
-FuToken FuToken_new_doc_comment(FuSpan span, FuSymbol sym);
-FuToken FuToken_new_keyword(FuSpan span, FuSymbol sym);
-FuToken FuToken_new_ident(FuSpan span, FuSymbol sym);
-FuToken FuToken_new_raw_ident(FuSpan span, FuSymbol sym);
-FuToken FuToken_new_lable(FuSpan span, FuSymbol sym);
+FuToken FuToken_new_doc_comment(FuSpan span, fu_sym_t sym);
+FuToken FuToken_new_keyword(FuSpan span, fu_sym_t sym);
+FuToken FuToken_new_ident(FuSpan span, fu_sym_t sym);
+FuToken FuToken_new_raw_ident(FuSpan span, fu_sym_t sym);
+FuToken FuToken_new_lable(FuSpan span, fu_sym_t sym);
 
-FuToken FuToken_new_lit_int(FuSpan span, FuSymbol sym, fu_size_t base, fu_bool_t empty_int, fu_size_t suffix_start);
-FuToken FuToken_new_lit_float(FuSpan span, FuSymbol sym, fu_size_t base, fu_bool_t empty_exponent,
+FuToken FuToken_new_lit_int(FuSpan span, fu_sym_t sym, fu_size_t base, fu_bool_t empty_int, fu_size_t suffix_start);
+FuToken FuToken_new_lit_float(FuSpan span, fu_sym_t sym, fu_size_t base, fu_bool_t empty_exponent,
                               fu_size_t suffix_start);
-FuToken FuToken_new_lit_char(FuSpan span, FuSymbol sym, fu_bool_t terminated);
-FuToken FuToken_new_lit_byte(FuSpan span, FuSymbol sym, fu_bool_t terminated);
-FuToken FuToken_new_lit_str(fu_token_k kd, FuSpan span, FuSymbol sym, fu_size_t n_hashes, fu_bool_t started,
+FuToken FuToken_new_lit_char(FuSpan span, fu_sym_t sym, fu_bool_t terminated);
+FuToken FuToken_new_lit_byte(FuSpan span, fu_sym_t sym, fu_bool_t terminated);
+FuToken FuToken_new_lit_str(fu_token_k kd, FuSpan span, fu_sym_t sym, fu_size_t n_hashes, fu_bool_t started,
                             fu_size_t prefix_ignore, fu_bool_t terminated);
 
 fu_bool_t FuToken_is_eof(FuToken tok);
@@ -301,8 +302,8 @@ fu_size_t FuToken_left_skip_count(FuToken tok);
 FuStr *FuToken_display(FuToken tok);
 
 struct FuLexer {
-    FuContext *ctx;
-    FuSymbol fpath;
+    FuCtx *ctx;
+    fu_sym_t fpath;
     /* interned fcontent */
     FuStr *chars;
     fu_size_t tok_line;
@@ -314,7 +315,7 @@ struct FuLexer {
     FuVec *tok_buf;
 };
 
-FuLexer *FuLexer_new(FuContext *ctx);
+FuLexer *FuLexer_new(FuCtx *ctx);
 void FuLexer_drop(FuLexer *l);
 
 void FuLexer_for_file(FuLexer *l, char *fname, fu_size_t len);
@@ -327,9 +328,9 @@ FuStr *FuLexer_display_token(FuLexer *l, FuToken token);
 FuStr *FuLexer_dump(FuLexer *l);
 
 struct FuScope {
-    FuContext *ctx;
+    FuCtx *ctx;
     FuScope *super;
-    FuSymbol name;
+    fu_sym_t name;
 
     fu_bool_t is_fn;
     FuMap *closure_syms;
@@ -341,15 +342,15 @@ struct FuScope {
     FuMap *extensions;
 };
 
-FuScope *FuScope_new(FuContext *ctx, FuScope *super, FuSymbol name);
+FuScope *FuScope_new(FuCtx *ctx, FuScope *super, fu_sym_t name);
 void FuScope_drop(FuScope *scp);
 
-FuType *FuScope_get_type(FuScope *scp, FuSymbol name);
+FuType *FuScope_get_type(FuScope *scp, fu_sym_t name);
 
 typedef fu_bool_t (*FuCheckTokenFn)(FuToken tok);
 
 struct FuParser {
-    FuContext *ctx;
+    FuCtx *ctx;
     FuLexer *lexer;
     /* FuToken */
     FuVec *tok_buf;
@@ -359,7 +360,7 @@ struct FuParser {
     FuVec *unclosed_delims;
 };
 
-FuParser *FuParser_new(FuContext *ctx);
+FuParser *FuParser_new(FuCtx *ctx);
 void FuParser_drop(FuParser *p);
 
 void FuParser_for_file(FuParser *p, char *fpath, fu_size_t len);
@@ -443,10 +444,10 @@ struct FuType {
     };
 };
 
-FuType *FuType_new(FuContext *ctx, fu_type_k kd, fu_vis_k vis);
+FuType *FuType_new(FuCtx *ctx, fu_type_k kd, fu_vis_k vis);
 void FuType_drop(FuType *ty);
 
-void FuType_init_pkg_builtins(FuContext *ctx, FuNode *nd);
+void FuType_init_pkg_builtins(FuCtx *ctx, FuNode *nd);
 
 struct FuTokTree {
     FuSpan span;
@@ -465,15 +466,15 @@ struct FuTokTree {
 
 struct FuIdent {
     FuSpan span;
-    FuSymbol name;
+    fu_sym_t name;
 };
 
-FuIdent *FuIdent_new(FuSpan span, FuSymbol sym);
+FuIdent *FuIdent_new(FuSpan span, fu_sym_t sym);
 void FuIdent_drop(FuIdent *ident);
 
 struct FuLabel {
     FuSpan span;
-    FuSymbol name;
+    fu_sym_t name;
 };
 
 struct FuAttr {
@@ -934,7 +935,7 @@ struct FuNode {
             FuVec *items;
         } _mod;
         struct {
-            FuSymbol name;
+            fu_sym_t name;
             /* FuNode */
             FuVec *items;
 
@@ -973,11 +974,11 @@ struct FuNode {
     };
 };
 
-FuNode *FuNode_new(FuContext *ctx, FuSpan span, fu_node_k kind);
+FuNode *FuNode_new(FuCtx *ctx, FuSpan span, fu_node_k kind);
 void FuNode_drop(FuNode *nd);
 
-FuNode *FuNode_new_expr(FuContext *ctx, FuExpr *expr);
-FuNode *FuNode_new_pkg(FuContext *ctx, FuSpan span);
+FuNode *FuNode_new_expr(FuCtx *ctx, FuExpr *expr);
+FuNode *FuNode_new_pkg(FuCtx *ctx, FuSpan span);
 
 FuStr *FuNode_display(FuNode *nd, fu_size_t indent);
 

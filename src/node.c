@@ -9,7 +9,7 @@ static void FuStr_push_indent(FuStr *str, fu_size_t n) {
     }
 }
 
-FuIdent *FuIdent_new(FuSpan span, FuSymbol name) {
+FuIdent *FuIdent_new(FuSpan span, fu_sym_t name) {
     FuIdent *ident = FuMem_new(FuIdent);
     ident->span = span;
     ident->name = name;
@@ -24,7 +24,7 @@ void FuIdent_drop(FuIdent *ident) {
 }
 
 FuStr *FuIdent_display(FuIdent *ident) {
-    FuStr *str = FuContext_get_symbol(ident->span.ctx, ident->name);
+    FuStr *str = FuCtx_get_symbol(ident->span.ctx, ident->name);
     return FuStr_clone(str);
 }
 
@@ -211,7 +211,7 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
     return str;
 }
 
-FuNode *FuNode_new(FuContext *ctx, FuSpan span, fu_node_k kind) {
+FuNode *FuNode_new(FuCtx *ctx, FuSpan span, fu_node_k kind) {
     FuNode *node = FuMem_new(FuNode);
     node->span = span;
     node->kd = kind;
@@ -249,13 +249,13 @@ void FuNode_drop(FuNode *nd) {
     FuMem_free(nd);
 }
 
-FuNode *FuNode_new_expr(FuContext *ctx, FuExpr *expr) {
+FuNode *FuNode_new_expr(FuCtx *ctx, FuExpr *expr) {
     FuNode *nd = FuNode_new(ctx, expr->span, ND_EXPR);
     nd->_expr.expr = expr;
     return nd;
 }
 
-FuNode *FuNode_new_pkg(FuContext *ctx, FuSpan span) {
+FuNode *FuNode_new_pkg(FuCtx *ctx, FuSpan span) {
     FuNode *nd = FuNode_new(ctx, span, ND_PKG);
     FuScope *builtins = FuScope_new(ctx, NULL, 0);
     FuScope *globals = FuScope_new(ctx, builtins, 0);
