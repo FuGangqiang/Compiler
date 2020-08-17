@@ -445,6 +445,19 @@ static fu_bool_t FuParser_eat_blank(FuParser *p) {
     return has_newline;
 }
 
+static void FuParser_eat_semi_blank(FuParser *p) {
+    FuParser_eat_whitespace(p, FU_FALSE);
+    if (FuParser_check_token(p, TOK_SEMI)) {
+        FuParser_bump(p);
+        FuParser_eat_blank(p);
+    } else {
+        FuSpan *sp = FuParser_current_span(p);
+        if (!FuParser_eat_blank(p)) {
+            ERROR(sp, "expect semiclone or newline");
+        }
+    }
+}
+
 FuLit *FuToken_to_lit_nil(FuToken tok) {
     assert(tok.kd == TOK_KEYWORD);
     assert(tok.sym == KW_NIL);
@@ -1104,6 +1117,9 @@ FuExpr *FuParser_parse_expr(FuParser *p) {
         if (FuToken_is_lit(tok)) {
             FuLit *lit = FuParser_parse_lit(p);
             expr = FuExpr_new_lit(lit);
+        } else {
+            /* todo */
+            expr = NULL;
         }
         break;
     }
@@ -1115,6 +1131,8 @@ FuExpr *FuParser_parse_expr(FuParser *p) {
     }
     default:
         FATAL1(NULL, "unimplemented: %s", FuKind_token_cstr(tok.kd));
+        expr = NULL;
+        break;
     }
     return expr;
 }
@@ -1173,12 +1191,13 @@ fu_vis_k FuParser_parse_visibility(FuParser *p) {
     if (tok.kd != TOK_KEYWORD) {
         return VIS_PRI;
     }
-    FuParser_bump(p);
     switch (tok.sym) {
     case KW_PUB:
+        FuParser_bump(p);
         return VIS_PUB;
         break;
     case KW_PKG:
+        FuParser_bump(p);
         return VIS_PKG;
         break;
     default:
@@ -1205,6 +1224,24 @@ FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis) {
     return nd;
 }
 
+FuNode *FuParser_parse_item_const(FuParser *p, FuVec *attrs, fu_vis_k vis) {
+    FuSpan *lo = FuParser_current_span(p);
+    FuParser_expect_keyword(p, KW_CONST);
+    FuParser_eat_whitespace(p, FU_TRUE);
+    FuIdent *ident = FuParser_parse_ident(p);
+    FuParser_eat_whitespace(p, FU_FALSE);
+    FuParser_expect_token(p, TOK_EQ);
+    FuParser_eat_whitespace(p, FU_FALSE);
+    FuExpr *expr = FuParser_parse_expr(p);
+    FuSpan *sp = FuSpan_join(lo, expr->sp);
+    FuNode *nd = FuNode_new(p->ctx, sp, ND_CONST);
+    nd->attrs = attrs;
+    nd->_const.vis = vis;
+    nd->_const.ident = ident;
+    nd->_const.init_expr = expr;
+    return nd;
+}
+
 FuNode *FuParser_parse_mod_item(FuParser *p) {
     /* todo: parse attrs */
     FuVec *attrs = FuVec_new(sizeof(FuAttr *));
@@ -1221,10 +1258,12 @@ FuNode *FuParser_parse_mod_item(FuParser *p) {
     case KW_STATIC:
         item = FuParser_parse_item_static(p, attrs, vis);
         break;
+    case KW_CONST:
+        item = FuParser_parse_item_const(p, attrs, vis);
+        break;
     default:
-        /* todo: attr drop */
-        FuVec_drop(attrs);
         FATAL1(tok.sp, "unimplement item: %s", FuKind_keyword_cstr(tok.sym));
+        item = NULL;
         break;
     }
     return item;
@@ -1236,7 +1275,7 @@ FuVec *FuParser_parse_mod_items(FuParser *p) {
     while (!FuParser_is_eof(p)) {
         FuNode *item = FuParser_parse_mod_item(p);
         FuVec_push_ptr(items, item);
-        FuParser_eat_blank(p);
+        FuParser_eat_semi_blank(p);
     }
     return items;
 }

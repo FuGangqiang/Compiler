@@ -393,6 +393,7 @@ FuPath *FuParser_parse_path(FuParser *p);
 FuExpr *FuParser_parse_expr(FuParser *p);
 
 FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis);
+FuNode *FuParser_parse_item_const(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_mod_item(FuParser *p);
 FuVec *FuParser_parse_mod_items(FuParser *p);
 

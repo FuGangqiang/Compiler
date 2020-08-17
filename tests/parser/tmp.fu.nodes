@@ -1,4 +1,4 @@
-nid: 1
+nid: 2
 kd: ND_PKG
 items:
   nid: 0
@@ -9,3 +9,11 @@ items:
     lit:
       kd: LIT_INT
       size: 0, is_signed: 0, v: 1
+  nid: 1
+  kd: ND_CONST
+  ident:PI
+  init_expr:
+    kd: EXPR_LIT
+    lit:
+      kd: LIT_INT
+      size: 0, is_signed: 0, v: 3

@@ -142,7 +142,7 @@ FuStr *FuLit_display(FuLit *lit, fu_size_t indent) {
         FuStr_push_utf8_cstr(str, "\n");
         break;
     default:
-        FATAL(NULL, "unimplemented");
+        FATAL1(lit->sp, "unimplemented, lit: %s\n", FuKind_lit_cstr(lit->kd));
         break;
     }
     return str;
@@ -232,6 +232,10 @@ void FuNode_drop(FuNode *nd) {
         FuExpr_drop(nd->_static.init_expr);
         FuIdent_drop(nd->_static.ident);
         break;
+    case ND_CONST:
+        FuExpr_drop(nd->_const.init_expr);
+        FuIdent_drop(nd->_const.ident);
+        break;
     case ND_PKG:
         FuScope_drop(nd->_pkg.globals);
         FuScope_drop(nd->_pkg.builtins);
@@ -296,6 +300,14 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "init_expr:\n");
         FuStr_append(str, FuExpr_display(nd->_static.init_expr, indent + 1));
+        break;
+    case ND_CONST:
+        FuStr_push_utf8_cstr(str, "ident:");
+        FuStr_append(str, FuIdent_display(nd->_const.ident));
+        FuStr_push_utf8_cstr(str, "\n");
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "init_expr:\n");
+        FuStr_append(str, FuExpr_display(nd->_const.init_expr, indent + 1));
         break;
     case ND_PKG:
         FuStr_push_utf8_cstr(str, "items:\n");
