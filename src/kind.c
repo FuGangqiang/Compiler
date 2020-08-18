@@ -139,7 +139,7 @@ char *FuKind_node_cstr(fu_node_k kd) {
 char *FuKind_op_cstr(fu_op_k kd) {
     switch (kd) {
 /* clang-format off */
-#define OP(kd, _doc) \
+#define OP(kd, _prec, _assoc, _ty, _doc) \
     case kd: \
         return #kd; \
         break;

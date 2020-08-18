@@ -14,6 +14,9 @@ typedef fu_id_t fu_nid_t; /* node id */
 typedef fu_id_t fu_tid_t; /* type id */
 typedef fu_id_t fu_sym_t; /* symbol id */
 
+typedef enum fu_op_assoc_k fu_op_assoc_k;
+typedef enum fu_op_ty_k fu_op_ty_k;
+
 typedef enum fu_arm_k fu_arm_k;
 typedef enum fu_attr_k fu_attr_k;
 typedef enum fu_expr_k fu_expr_k;
@@ -62,6 +65,22 @@ typedef struct FuUse FuUse;
 
 fu_bool_t FuId_eq(fu_id_t *id1, fu_id_t *id2);
 fu_size_t FuId_hash(fu_id_t *id);
+
+/* operator associativity */
+enum fu_op_assoc_k {
+    OP_PP, /* require parentheses */
+    OP_LR, /* left to right */
+    OP_RL, /* right to left */
+};
+
+/* operator type */
+enum fu_op_ty_k {
+    /* `..`, `..=` */
+    OP_ALLFIX,
+    OP_PREFIX,
+    OP_INFIX,
+    OP_SUFFIX,
+};
 
 enum fu_log_k {
 #define LOG(kd, _doc) kd,
@@ -127,7 +146,7 @@ enum fu_node_k {
 };
 
 enum fu_op_k {
-#define OP(kd, _doc) kd,
+#define OP(kd, _prec, _assoc, _ty, _doc) kd,
 #include "node_op.def"
 #undef OP
     _OP_LAST_UNUSED

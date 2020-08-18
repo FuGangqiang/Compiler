@@ -2,32 +2,80 @@
 #error "You must define OP macro before include this file"
 #endif
 
-/* unary */
-OP(OP_UNA_DEREF, "*")
-/* logical inversion, bitwise not */
-OP(OP_UNA_NOT, "!")
-OP(OP_UNA_NEG, "-")
+/* OP(kind, precedence, associativity, type, doc) */
 
-/* binary */
-OP(OP_BIN_ADD, "+")
-OP(OP_BIN_SUB, "-")
-OP(OP_BIN_MUL, "*")
-OP(OP_BIN_DIV, "/")
-OP(OP_BIN_REM, "%")
-OP(OP_BIN_AND, "&&")
-OP(OP_BIN_OR, "||")
-OP(OP_BIN_BIT_AND, "&")
-OP(OP_BIN_BIT_OR, "|")
-OP(OP_BIN_BIT_XOR, "^")
-OP(OP_BIN_SHL, "<<")
-OP(OP_BIN_SHR, ">>")
-OP(OP_BIN_EQ, "==")
-OP(OP_BIN_NE, "!=")
-OP(OP_BIN_LT, "<")
-OP(OP_BIN_LE, "<=")
-OP(OP_BIN_GT, ">")
-OP(OP_BIN_GE, ">=")
+/*
+ * - group (): highest precedence 
+ * - paths::
+ * - macro!
+ */
+
+ /*
+ * - expr.macro!
+ */
+OP(OP_FIELD,   150, OP_LR, OP_INFIX, ".")   /* field and method call */
+OP(OP_CALL,    150, OP_LR, OP_INFIX, "(")
+OP(OP_INDEX,   150, OP_LR, OP_INFIX, "[")
+OP(OP_STRUCT,  150, OP_LR, OP_INFIX, "{")
+
+OP(OP_CATCH,   140, OP_PP, OP_SUFFIX, "?")
+
+OP(OP_DEREF,   130, OP_PP, OP_PREFIX, "*")
+OP(OP_NOT,     130, OP_PP, OP_PREFIX, "!")   /* logical inversion, bitwise not */
+OP(OP_NEG,     130, OP_PP, OP_PREFIX, "-")
+OP(OP_ADDRESS, 130, OP_PP, OP_PREFIX, "&")
+
+OP(OP_CAST,      120, OP_LR, OP_INFIX, "as")
+
+OP(OP_MUL,     110, OP_LR, OP_INFIX, "*")
+OP(OP_DIV,     110, OP_LR, OP_INFIX, "/")
+OP(OP_REM,     110, OP_LR, OP_INFIX, "%")
+
+OP(OP_ADD,     100, OP_LR, OP_INFIX, "+")
+OP(OP_SUB,     100, OP_LR, OP_INFIX, "-")
+
+OP(OP_SHL,     90, OP_LR, OP_INFIX, "<<")
+OP(OP_SHR,     90, OP_LR, OP_INFIX, ">>")
+
+OP(OP_BIT_AND, 80, OP_LR, OP_INFIX, "&")
+
+OP(OP_BIT_XOR, 70, OP_LR, OP_INFIX, "^")
+
+OP(OP_BIT_OR,  60, OP_LR, OP_INFIX, "|")
+
+OP(OP_EQ,      50, OP_PP, OP_INFIX, "==")
+OP(OP_NE,      50, OP_PP, OP_INFIX, "!=")
+OP(OP_LT,      50, OP_PP, OP_INFIX, "<")
+OP(OP_LE,      50, OP_PP, OP_INFIX, "<=")
+OP(OP_GT,      50, OP_PP, OP_INFIX, ">")
+OP(OP_GE,      50, OP_PP, OP_INFIX, ">=")
+
+OP(OP_AND,     40, OP_LR, OP_INFIX, "&&")
+
+OP(OP_OR,      30, OP_LR, OP_INFIX, "||")
+
 /* `m..n` */
-OP(OP_BIN_RANGE, "..")
+OP(OP_RANGE,          20, OP_PP, OP_ALLFIX, "..")
 /* `m..=n` */
-OP(OP_BIN_RANGE_EQ, "..=")
+OP(OP_RANGE_EQ,       20, OP_PP, OP_ALLFIX, "..=")
+
+OP(OP_ASSIGN,         10, OP_RL, OP_INFIX, "=")
+OP(OP_ADD_ASSIGN,     10, OP_RL, OP_INFIX, "+=")
+OP(OP_SUB_ASSIGN,     10, OP_RL, OP_INFIX, "-=")
+OP(OP_MUL_ASSIGN,     10, OP_RL, OP_INFIX, "*=")
+OP(OP_DIV_ASSIGN,     10, OP_RL, OP_INFIX, "/=")
+OP(OP_REM_ASSIGN,     10, OP_RL, OP_INFIX, "%=")
+OP(OP_BIT_AND_ASSIGN, 10, OP_RL, OP_INFIX, "&=")
+OP(OP_BIT_OR_ASSIGN,  10, OP_RL, OP_INFIX, "|=")
+OP(OP_BIT_XOR_ASSIGN, 10, OP_RL, OP_INFIX, "^=")
+OP(OP_SHL_ASSIGN,     10, OP_RL, OP_INFIX, "<<=")
+OP(OP_SHR_ASSIGN,     10, OP_RL, OP_INFIX, ">>=")
+
+/*
+ * - return
+ * - break
+ * - continue
+ * - yield
+ * - await
+ * - throw
+ */
