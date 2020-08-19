@@ -1,12 +1,12 @@
 //! The Point Example Pkg
 
-use std::ops::IAdd
+use std::ops::IAdd;
 
 /// Point type
 #[derive(IDebug, ICopy, ICmp)]
 #<T>
 pub struct Point {
-    x: T
+    x: T,
     y: T
 }
 
@@ -45,11 +45,11 @@ extention Point#<T> {
 
 #<T: IAdd<Output=T>>
 extention Point#<T>: IAdd {
-    type Output = Self
+    type Output = Self;
 
     pub add(self, other: Self) -> Self {
         Self {
-            x: self.x() + other.y()
+            x: self.x() + other.y(),
             y: self.x() + other.y()
         }
     }
@@ -59,8 +59,8 @@ extention Point#<T>: IAdd {
 mod tests {
     #[test]
     fn point_add() {
-        let p1 = Point::new(1, 0)
-        let p2 = Point::new(2, 3)
-        assert_eq!(p1 + p2, Point{.x=3, .y=3})
+        let p1 = Point::new(1, 0);
+        let p2 = Point::new(2, 3);
+        assert_eq!(p1 + p2, Point{.x=3, .y=3});
     }
 }

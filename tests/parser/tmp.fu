@@ -1,2 +1,2 @@
-pub static abc = 1
-const PI = 3
+pub static abc = 1;
+const PI = 3;
