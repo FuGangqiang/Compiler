@@ -295,6 +295,7 @@ FuToken FuToken_new_doc_comment(FuSpan *sp, fu_sym_t sym);
 FuToken FuToken_new_keyword(FuSpan *sp, fu_sym_t sym);
 FuToken FuToken_new_ident(FuSpan *sp, fu_sym_t sym);
 FuToken FuToken_new_raw_ident(FuSpan *sp, fu_sym_t sym);
+FuToken FuToken_new_macro(FuSpan *sp, fu_sym_t sym);
 FuToken FuToken_new_lable(FuSpan *sp, fu_sym_t sym);
 
 FuToken FuToken_new_lit_int(FuSpan *sp, fu_sym_t sym, fu_size_t base, fu_bool_t empty_int, fu_size_t suffix_start);

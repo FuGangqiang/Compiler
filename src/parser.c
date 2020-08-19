@@ -50,15 +50,35 @@ static FuToken FuParser_get_token(FuParser *p) {
         return FuParser_get_token(p);
         break;
     }
-    case TOK_RAW_IDENT:
+    case TOK_RAW_IDENT: {
+        tok1 = FuLexer_get_token(p->lexer);
+        if (tok1.kd == TOK_NOT) {
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            FuStr *name = FuStr_clone(FuCtx_get_symbol(p->ctx, tok0.sym));
+            FuStr_push(name, '!');
+            fu_sym_t sym = FuCtx_intern_symbol(p->ctx, name);
+            return FuToken_new_macro(sp, sym);
+        } else {
+            FuLexer_unget_token(p->lexer, tok1);
+        }
         return FuToken_new_ident(tok0.sp, tok0.sym);
         break;
+    }
     case TOK_IDENT: {
         if (tok0.sym < _KW_LAST_UNUSED) {
             return FuToken_new_keyword(tok0.sp, tok0.sym);
-        } else {
-            return tok0;
         }
+        tok1 = FuLexer_get_token(p->lexer);
+        if (tok1.kd == TOK_NOT) {
+            sp = FuSpan_join(tok0.sp, tok1.sp);
+            FuStr *name = FuStr_clone(FuCtx_get_symbol(p->ctx, tok0.sym));
+            FuStr_push(name, '!');
+            fu_sym_t sym = FuCtx_intern_symbol(p->ctx, name);
+            return FuToken_new_macro(sp, sym);
+        } else {
+            FuLexer_unget_token(p->lexer, tok1);
+        }
+        return tok0;
         break;
     }
     case TOK_PLUS: {

@@ -36,6 +36,10 @@ FuToken FuToken_new_raw_ident(FuSpan *sp, fu_sym_t sym) {
     return FuToken_new_sym(TOK_RAW_IDENT, sp, sym);
 }
 
+FuToken FuToken_new_macro(FuSpan *sp, fu_sym_t sym) {
+    return FuToken_new_sym(TOK_MACRO, sp, sym);
+}
+
 FuToken FuToken_new_lable(FuSpan *sp, fu_sym_t sym) {
     return FuToken_new_sym(TOK_LABEL, sp, sym);
 }

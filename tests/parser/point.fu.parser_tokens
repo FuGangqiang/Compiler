@@ -266,8 +266,7 @@ parser/point.fu:63:30:TOK_COMMA
 parser/point.fu:63:32:TOK_INT:3
 parser/point.fu:63:33:TOK_CLOSE_PAREN
 parser/point.fu:63:34:TOK_SEMI
-parser/point.fu:64:9:TOK_IDENT:assert_eq
-parser/point.fu:64:18:TOK_NOT
+parser/point.fu:64:9:TOK_MACRO:assert_eq!
 parser/point.fu:64:19:TOK_OPEN_PAREN
 parser/point.fu:64:20:TOK_IDENT:p1
 parser/point.fu:64:23:TOK_PLUS

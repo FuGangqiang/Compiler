@@ -68,6 +68,8 @@ TOKEN(TOK_KEYWORD, "keyword")
 TOKEN(TOK_IDENT, "ident")
 /* r#abc */
 TOKEN(TOK_RAW_IDENT, "raw ident")
+/* macro! */
+TOKEN(TOK_MACRO, "macro name")
 /* 'abc */
 TOKEN(TOK_LABEL, "label")
 
