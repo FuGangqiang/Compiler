@@ -9,6 +9,8 @@
 #include "str.h"
 #include "vec.h"
 
+#define DUMP_INDENT_WIDTH 2
+
 typedef fu_size_t fu_id_t;
 typedef fu_id_t fu_nid_t; /* node id */
 typedef fu_id_t fu_tid_t; /* type id */
@@ -698,7 +700,6 @@ struct FuExpr {
         struct {
             /* FuNode._field_init */
             FuVec *fields;
-            FuExpr *base_expr;
         } _tuple;
         struct {
             FuPath *path;

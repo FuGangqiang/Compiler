@@ -1156,12 +1156,52 @@ FuExpr *FuParser_parse_suffix_expr(FuParser *p, FuExpr *left, fu_op_k op) {
     return NULL;
 }
 
+static FuExpr *FuParser_parse_group_or_tuple_expr(FuParser *p) {
+    FuToken open_tok = FuParser_expect_token(p, TOK_OPEN_PAREN);
+    FuExpr *expr = FuParser_parse_expr(p, 0);
+    FuToken tok = FuParser_bump(p);
+    if (!expr) {
+        FATAL(open_tok.sp, "expression can not be null");
+    }
+
+    /* group expression */
+    if (tok.kd == TOK_CLOSE_PAREN) {
+        return expr;
+    }
+
+    /* tuple expression */
+    if (tok.kd == TOK_COMMA) {
+        FuVec *fields = FuVec_new(sizeof(FuExpr *));
+        FuVec_push_ptr(fields, expr);
+        while (tok.kd == TOK_COMMA) {
+            expr = FuParser_parse_expr(p, 0);
+            if (!expr) {
+                FATAL(tok.sp, "expression can not be null");
+            }
+            FuVec_push_ptr(fields, expr);
+            tok = FuParser_bump(p);
+        }
+        if (tok.kd != TOK_CLOSE_PAREN) {
+            FATAL1(tok.sp, "expect `)`, find token: ", FuKind_token_cstr(tok.kd));
+        }
+        FuSpan *sp = FuSpan_join(open_tok.sp, tok.sp);
+        FuExpr *tuple_expr = FuExpr_new(sp, EXPR_TUPLE);
+        tuple_expr->_tuple.fields = fields;
+        return tuple_expr;
+    }
+    FATAL1(tok.sp, "expect ), but found tok: %s", FuKind_token_cstr(tok.kd));
+    return NULL;
+}
+
 FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec) {
     FuExpr *prefix_expr = NULL;
 
     /* parse prefix expr */
     FuToken tok = FuParser_nth_token(p, 0);
     switch (tok.kd) {
+    case TOK_OPEN_PAREN:
+        prefix_expr = FuParser_parse_group_or_tuple_expr(p);
+        break;
     case TOK_BYTE:
     case TOK_CHAR:
     case TOK_INT:

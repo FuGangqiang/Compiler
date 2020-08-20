@@ -1,4 +1,4 @@
-nid: 1
+nid: 2
 kd: ND_PKG
 items:
   nid: 0
@@ -6,25 +6,45 @@ items:
   ident:abc
   init_expr:
     kd: EXPR_BINARY
-    op: OP_ADD
+    op: OP_DIV
     lexpr:
-      kd: EXPR_LIT
-      lit:
-        kd: LIT_INT
-        size: 0, is_signed: 0, v: 1
-    rexpr:
       kd: EXPR_BINARY
       op: OP_MUL
       lexpr:
-        kd: EXPR_UNARY
-        op: OP_NEG
-        expr:
+        kd: EXPR_LIT
+        lit:
+          kd: LIT_INT
+          size: 0, is_signed: 0, v: 1
+      rexpr:
+        kd: EXPR_BINARY
+        op: OP_ADD
+        lexpr:
           kd: EXPR_LIT
           lit:
             kd: LIT_INT
             size: 0, is_signed: 0, v: 2
-      rexpr:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 3
+        rexpr:
+          kd: EXPR_LIT
+          lit:
+            kd: LIT_INT
+            size: 0, is_signed: 0, v: 3
+    rexpr:
+      kd: EXPR_LIT
+      lit:
+        kd: LIT_INT
+        size: 0, is_signed: 0, v: 4
+  nid: 1
+  kd: ND_CONST
+  ident:point
+  init_expr:
+    kd: EXPR_TUPLE
+    len: 2
+    items:
+      kd: EXPR_LIT
+      lit:
+        kd: LIT_INT
+        size: 0, is_signed: 0, v: 1
+      kd: EXPR_LIT
+      lit:
+        kd: LIT_INT
+        size: 0, is_signed: 0, v: 2

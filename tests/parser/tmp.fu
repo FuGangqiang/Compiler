@@ -1,1 +1,2 @@
-static abc = 1 + -2 * 3;
+static abc = 1 * (2 + 3) / 4;
+const point = (1, 2);

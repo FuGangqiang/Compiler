@@ -4,7 +4,7 @@
 
 static void FuStr_push_indent(FuStr *str, fu_size_t n) {
     fu_size_t i;
-    for (i = 0; i < n * 2; i++) {
+    for (i = 0; i < n * DUMP_INDENT_WIDTH; i++) {
         FuStr_push(str, ' ');
     }
 }
@@ -180,6 +180,9 @@ void FuExpr_drop(FuExpr *expr) {
         /* todo: expr->_path.anno */
         FuPath_drop(expr->_path.path);
         break;
+    case EXPR_TUPLE:
+        FuVec_drop_with_ptrs(expr->_tuple.fields, (FuDropFn)FuExpr_drop);
+        break;
     case EXPR_UNARY:
         FuExpr_drop(expr->_unary.expr);
         break;
@@ -216,6 +219,18 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         /* todo: expr->_path.anno */
         FuStr_append(str, FuPath_display(expr->_path.path));
         break;
+    case EXPR_TUPLE: {
+        fu_size_t len = FuVec_len(expr->_tuple.fields);
+        FuStr_push_utf8_format(str, "len: %d\n", len);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "items:\n");
+        fu_size_t i;
+        for (i = 0; i < len; i++) {
+            FuExpr *item = FuVec_get_ptr(expr->_tuple.fields, i);
+            FuStr_append(str, FuExpr_display(item, indent + 1));
+        }
+        break;
+    }
     case EXPR_UNARY:
         FuStr_push_utf8_format(str, "op: %s\n", FuKind_op_cstr(expr->_binary.op));
         FuStr_push_indent(str, indent);
