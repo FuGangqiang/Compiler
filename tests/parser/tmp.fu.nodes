@@ -1,19 +1,30 @@
-nid: 2
+nid: 1
 kd: ND_PKG
 items:
   nid: 0
   kd: ND_STATIC
   ident:abc
   init_expr:
-    kd: EXPR_LIT
-    lit:
-      kd: LIT_INT
-      size: 0, is_signed: 0, v: 1
-  nid: 1
-  kd: ND_CONST
-  ident:PI
-  init_expr:
-    kd: EXPR_LIT
-    lit:
-      kd: LIT_INT
-      size: 0, is_signed: 0, v: 3
+    kd: EXPR_BINARY
+    op: OP_ADD
+    lexpr:
+      kd: EXPR_LIT
+      lit:
+        kd: LIT_INT
+        size: 0, is_signed: 0, v: 1
+    rexpr:
+      kd: EXPR_BINARY
+      op: OP_MUL
+      lexpr:
+        kd: EXPR_UNARY
+        op: OP_NEG
+        expr:
+          kd: EXPR_LIT
+          lit:
+            kd: LIT_INT
+            size: 0, is_signed: 0, v: 2
+      rexpr:
+        kd: EXPR_LIT
+        lit:
+          kd: LIT_INT
+          size: 0, is_signed: 0, v: 3

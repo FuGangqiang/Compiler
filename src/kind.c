@@ -1,3 +1,4 @@
+#include "log.h"
 #include "parse.h"
 
 char *FuKind_log_cstr(fu_log_k kd) {
@@ -149,6 +150,23 @@ char *FuKind_op_cstr(fu_op_k kd) {
     default:
         /* can not be here */
         return "";
+        break;
+    }
+}
+
+fu_op_prec_t FuOp_precedence(fu_op_k kd) {
+    switch (kd) {
+/* clang-format off */
+#define OP(kd, prec, _assoc, _ty, _doc) \
+    case kd: \
+        return prec; \
+        break;
+/* clang-format on */
+#include "node_op.def"
+#undef OP
+    default:
+        FATAL(NULL, "can not be here");
+        return 0;
         break;
     }
 }

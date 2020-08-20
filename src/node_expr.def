@@ -86,5 +86,6 @@ EXPR(EXPR_MATCH, "expr match")
  * }
  */
 EXPR(EXPR_TRY, "expr try")
+EXPR(EXPR_CATCH, "expr ?")
 /* `foo!(xxx)`, `foo![xxx]`, `foo!{xxx}` */
 EXPR(EXPR_MACRO_CALL, "expr macro call")

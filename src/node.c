@@ -180,6 +180,13 @@ void FuExpr_drop(FuExpr *expr) {
         /* todo: expr->_path.anno */
         FuPath_drop(expr->_path.path);
         break;
+    case EXPR_UNARY:
+        FuExpr_drop(expr->_unary.expr);
+        break;
+    case EXPR_BINARY:
+        FuExpr_drop(expr->_binary.lexpr);
+        FuExpr_drop(expr->_binary.rexpr);
+        break;
     default:
         FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
     }
@@ -188,6 +195,10 @@ void FuExpr_drop(FuExpr *expr) {
 
 FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
     FuStr *str = FuStr_new();
+    if (!expr) {
+        return str;
+    }
+
     FuStr_push_indent(str, indent);
     FuStr_push_utf8_format(str, "kd: %s\n", FuKind_expr_cstr(expr->kd));
     if (expr->kd != EXPR_ERR) {
@@ -204,6 +215,21 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_push_utf8_cstr(str, "path: ");
         /* todo: expr->_path.anno */
         FuStr_append(str, FuPath_display(expr->_path.path));
+        break;
+    case EXPR_UNARY:
+        FuStr_push_utf8_format(str, "op: %s\n", FuKind_op_cstr(expr->_binary.op));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "expr:\n");
+        FuStr_append(str, FuExpr_display(expr->_unary.expr, indent + 1));
+        break;
+    case EXPR_BINARY:
+        FuStr_push_utf8_format(str, "op: %s\n", FuKind_op_cstr(expr->_binary.op));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "lexpr:\n");
+        FuStr_append(str, FuExpr_display(expr->_binary.lexpr, indent + 1));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "rexpr:\n");
+        FuStr_append(str, FuExpr_display(expr->_binary.rexpr, indent + 1));
         break;
     default:
         FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));

@@ -44,17 +44,17 @@ typedef struct FuParser FuParser;
 
 typedef struct FuType FuType;
 typedef struct FuNode FuNode;
+typedef struct FuExpr FuExpr;
+typedef struct FuLit FuLit;
 
 typedef struct FuAnnoSelf FuAnnoSelf;
 typedef struct FuAttr FuAttr;
-typedef struct FuExpr FuExpr;
 typedef struct FuGeArg FuGeArg;
 typedef struct FuGeBound FuGeBound;
 typedef struct FuGeneric FuGeneric;
 typedef struct FuGeParam FuGeParam;
 typedef struct FuIdent FuIdent;
 typedef struct FuLabel FuLabel;
-typedef struct FuLit FuLit;
 typedef struct FuMacroCall FuMacroCall;
 typedef struct FuPat FuPat;
 typedef struct FuPath FuPath;
@@ -65,6 +65,9 @@ typedef struct FuUse FuUse;
 
 fu_bool_t FuId_eq(fu_id_t *id1, fu_id_t *id2);
 fu_size_t FuId_hash(fu_id_t *id);
+
+/* operator precedence */
+typedef fu_size_t fu_op_prec_t;
 
 /* operator associativity */
 enum fu_op_assoc_k {
@@ -81,6 +84,16 @@ enum fu_op_ty_k {
     OP_INFIX,
     OP_SUFFIX,
 };
+
+/* must defined before fu_token_k */
+enum fu_op_k {
+#define OP(kd, _prec, _assoc, _ty, _doc) kd,
+#include "node_op.def"
+#undef OP
+    _OP_LAST_UNUSED
+};
+
+fu_op_prec_t FuOp_precedence(fu_op_k kd);
 
 enum fu_log_k {
 #define LOG(kd, _doc) kd,
@@ -143,13 +156,6 @@ enum fu_node_k {
 #include "node.def"
 #undef NODE
     _ND_LAST_UNUSED
-};
-
-enum fu_op_k {
-#define OP(kd, _prec, _assoc, _ty, _doc) kd,
-#include "node_op.def"
-#undef OP
-    _OP_LAST_UNUSED
 };
 
 enum fu_pat_k {
@@ -338,6 +344,10 @@ fu_bool_t FuToken_is_outer_doc_comment(FuToken tok);
 fu_bool_t FuToken_is_blank(FuToken tok);
 fu_bool_t FuToken_is_expr_start(FuToken tok);
 
+fu_bool_t FuToken_to_prefix_op(FuToken tok, fu_op_k *op);
+fu_bool_t FuToken_to_infix_op(FuToken tok, fu_op_k *op);
+fu_bool_t FuToken_to_suffix_op(FuToken tok, fu_op_k *op);
+
 fu_size_t FuToken_left_skip_count(FuToken tok);
 
 FuStr *FuToken_display(FuToken tok);
@@ -410,7 +420,7 @@ FuLit *FuParser_parse_lit(FuParser *p);
 FuIdent *FuParser_parse_ident(FuParser *p);
 FuPathItem *FuParser_parse_path_item(FuParser *p);
 FuPath *FuParser_parse_path(FuParser *p);
-FuExpr *FuParser_parse_expr(FuParser *p);
+FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec);
 
 FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_const(FuParser *p, FuVec *attrs, fu_vis_k vis);
@@ -728,19 +738,29 @@ struct FuExpr {
         } _method_call;
         struct {
             fu_op_k op;
+            FuSpan *op_sp;
             FuExpr *expr;
         } _unary;
         struct {
             fu_op_k op;
+            FuSpan *op_sp;
             FuExpr *lexpr;
             FuExpr *rexpr;
         } _binary;
+        /* suffix ? expr */
         struct {
+            fu_op_k op;
+            FuSpan *op_sp;
+            FuExpr *expr;
+        } _catch;
+        struct {
+            FuSpan *op_sp;
             FuExpr *lexpr;
             FuExpr *rexpr;
         } _assign;
         struct {
             fu_op_k op;
+            FuSpan *op_sp;
             FuExpr *lexpr;
             FuExpr *rexpr;
         } _assign_op;

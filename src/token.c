@@ -231,16 +231,87 @@ fu_bool_t FuToken_is_blank(FuToken tok) {
     return FU_FALSE;
 }
 
-fu_bool_t FuToken_is_expr_start(FuToken tok) {
-    switch (tok.kd) {
-    case TOK_IDENT:
-        return FU_TRUE;
-        break;
-    default:
-        FATAL1(NULL, "unimplemented: %d", FuKind_token_cstr(tok.kd));
+/* clang-format off */
+#define BIND(tok_kind, op_kind) \
+    case tok_kind: {            \
+        if (op) {               \
+            *op = op_kind;      \
+            return FU_TRUE;     \
+        }                       \
+        break;                  \
     }
-    return 0;
+/* clang-format on */
+
+fu_bool_t FuToken_to_prefix_op(FuToken tok, fu_op_k *op) {
+    switch (tok.kd) {
+        BIND(TOK_STAR, OP_DEREF)
+        BIND(TOK_NOT, OP_NOT)
+        BIND(TOK_MINUS, OP_NEG)
+        BIND(TOK_AND, OP_ADDRESS)
+        BIND(TOK_DOT_DOT, OP_RANGE)
+        BIND(TOK_DOT_DOT_EQ, OP_RANGE_EQ)
+    default:
+        break;
+    }
+    return FU_FALSE;
 }
+
+fu_bool_t FuToken_to_infix_op(FuToken tok, fu_op_k *op) {
+    switch (tok.kd) {
+    case TOK_KEYWORD: {
+        if (tok.sym == KW_AS) {
+            *op = OP_CAST;
+            return FU_TRUE;
+        }
+        break;
+    }
+        BIND(TOK_PLUS, OP_ADD)
+        BIND(TOK_MINUS, OP_SUB)
+        BIND(TOK_STAR, OP_MUL)
+        BIND(TOK_SLASH, OP_DIV)
+        BIND(TOK_PERCENT, OP_REM)
+        BIND(TOK_AND, OP_BIT_AND)
+        BIND(TOK_OR, OP_BIT_OR)
+        BIND(TOK_CARET, OP_BIT_XOR)
+        BIND(TOK_SHL, OP_SHL)
+        BIND(TOK_SHR, OP_SHR)
+        BIND(TOK_EQ, OP_ASSIGN)
+        BIND(TOK_PLUS_EQ, OP_ADD_ASSIGN)
+        BIND(TOK_MINUS_EQ, OP_SUB_ASSIGN)
+        BIND(TOK_STAR_EQ, OP_MUL_ASSIGN)
+        BIND(TOK_SLASH_EQ, OP_DIV_ASSIGN)
+        BIND(TOK_PERCENT_EQ, OP_REM_ASSIGN)
+        BIND(TOK_AND_EQ, OP_BIT_AND_ASSIGN)
+        BIND(TOK_OR_EQ, OP_BIT_OR_ASSIGN)
+        BIND(TOK_CARET_EQ, OP_BIT_XOR_ASSIGN)
+        BIND(TOK_SHL_EQ, OP_SHL_ASSIGN)
+        BIND(TOK_SHR_EQ, OP_SHR_ASSIGN)
+        BIND(TOK_LT, OP_LT)
+        BIND(TOK_LE, OP_LE)
+        BIND(TOK_GT, OP_GT)
+        BIND(TOK_GE, OP_GE)
+        BIND(TOK_EE, OP_EQ)
+        BIND(TOK_NE, OP_NE)
+        BIND(TOK_AND_AND, OP_AND)
+        BIND(TOK_OR_OR, OP_OR)
+        BIND(TOK_DOT_DOT, OP_RANGE)
+        BIND(TOK_DOT_DOT_EQ, OP_RANGE_EQ)
+    default:
+        break;
+    }
+    return FU_FALSE;
+}
+
+fu_bool_t FuToken_to_suffix_op(FuToken tok, fu_op_k *op) {
+    switch (tok.kd) {
+        BIND(TOK_QUESTION, OP_CATCH)
+    default:
+        break;
+    }
+    return FU_FALSE;
+}
+
+#undef BIND
 
 /* token 真正内容从哪里开始 */
 fu_size_t FuToken_left_skip_count(FuToken tok) {
