@@ -55,7 +55,7 @@ EXPR(EXPR_YIELD, "expr yield")
 EXPR(EXPR_THROW, "expr throw")
 /* `return` */
 EXPR(EXPR_RETURN, "expr return")
-/* `future.await` */
+/* `await future` */
 EXPR(EXPR_AWAIT, "expr await")
 /* `{ block }` */
 EXPR(EXPR_BLOCK, "expr block")

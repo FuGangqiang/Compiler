@@ -1,50 +1,90 @@
-nid: 2
+nid: 11
 kd: ND_PKG
 items:
   nid: 0
   kd: ND_STATIC
-  ident:abc
+  ident:a
   init_expr:
-    kd: EXPR_BINARY
-    op: OP_DIV
-    lexpr:
-      kd: EXPR_BINARY
-      op: OP_MUL
-      lexpr:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 1
-      rexpr:
-        kd: EXPR_BINARY
-        op: OP_ADD
-        lexpr:
-          kd: EXPR_LIT
-          lit:
-            kd: LIT_INT
-            size: 0, is_signed: 0, v: 2
-        rexpr:
-          kd: EXPR_LIT
-          lit:
-            kd: LIT_INT
-            size: 0, is_signed: 0, v: 3
-    rexpr:
-      kd: EXPR_LIT
-      lit:
-        kd: LIT_INT
-        size: 0, is_signed: 0, v: 4
+    kd: EXPR_RETURN
   nid: 1
-  kd: ND_CONST
-  ident:point
+  kd: ND_STATIC
+  ident:a
   init_expr:
-    kd: EXPR_TUPLE
-    len: 2
-    items:
+    kd: EXPR_RETURN
+    expr:
       kd: EXPR_LIT
       lit:
-        kd: LIT_INT
-        size: 0, is_signed: 0, v: 1
+        kd: LIT_BYTE
+        v: 99
+  nid: 2
+  kd: ND_STATIC
+  ident:a
+  init_expr:
+    kd: EXPR_BREAK
+  nid: 3
+  kd: ND_STATIC
+  ident:a
+  init_expr:
+    kd: EXPR_BREAK
+    expr:
       kd: EXPR_LIT
       lit:
-        kd: LIT_INT
-        size: 0, is_signed: 0, v: 2
+        kd: LIT_BOOL
+        v: 1
+  nid: 4
+  kd: ND_STATIC
+  ident:a
+  init_expr:
+    kd: EXPR_BREAK
+    label: 'loop
+    expr:
+      kd: EXPR_LIT
+      lit:
+        kd: LIT_BOOL
+        v: 0
+  nid: 5
+  kd: ND_STATIC
+  ident:a
+  init_expr:
+    kd: EXPR_CONTINUE
+  nid: 6
+  kd: ND_STATIC
+  ident:a
+  init_expr:
+    kd: EXPR_CONTINUE
+    label: 'loop
+  nid: 7
+  kd: ND_STATIC
+  ident:a
+  init_expr:
+    kd: EXPR_YIELD
+    expr:
+      kd: EXPR_LIT
+      lit:
+        kd: LIT_CHAR
+        v: 20013
+  nid: 8
+  kd: ND_STATIC
+  ident:a
+  init_expr:
+    kd: EXPR_AWAIT
+    expr:
+      kd: EXPR_LIT
+      lit:
+        kd: LIT_STR
+        len: 5, v: hello
+  nid: 9
+  kd: ND_STATIC
+  ident:a
+  init_expr:
+    kd: EXPR_THROW
+  nid: 10
+  kd: ND_STATIC
+  ident:a
+  init_expr:
+    kd: EXPR_THROW
+    expr:
+      kd: EXPR_LIT
+      lit:
+        kd: LIT_NIL
+        v: nil

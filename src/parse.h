@@ -525,11 +525,16 @@ struct FuIdent {
 
 FuIdent *FuIdent_new(FuSpan *sp, fu_sym_t sym);
 void FuIdent_drop(FuIdent *ident);
+FuStr *FuIdent_display(FuIdent *ident);
 
 struct FuLabel {
     FuSpan *sp;
     fu_sym_t name;
 };
+
+FuLabel *FuLabel_new(FuSpan *sp, fu_sym_t name);
+void FuLabel_drop(FuLabel *label);
+FuStr *FuLabel_display(FuLabel *label);
 
 struct FuAttr {
     fu_attr_k kd;

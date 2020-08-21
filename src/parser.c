@@ -1099,6 +1099,7 @@ FuExpr *FuParser_parse_infix_expr(FuParser *p, FuExpr *left, fu_op_k op, fu_op_p
     FuToken op_tok = FuParser_bump(p);
     switch (op) {
     case OP_FIELD:
+        /* todo: field, fn call, method call, macro */
     case OP_CALL:
     case OP_INDEX:
     case OP_STRUCT:
@@ -1193,6 +1194,111 @@ static FuExpr *FuParser_parse_group_or_tuple_expr(FuParser *p) {
     return NULL;
 }
 
+static FuLabel *FuParser_parse_label(FuParser *p) {
+    FuToken tok = FuParser_nth_token(p, 0);
+    if (tok.kd != TOK_LABEL) {
+        return NULL;
+    }
+    FuParser_bump(p);
+    return FuLabel_new(tok.sp, tok.sym);
+}
+
+static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
+    FuToken tok = FuParser_bump(p);
+    assert(tok.kd == TOK_KEYWORD);
+    FuSpan *sp;
+    FuExpr *keyword_expr;
+    switch (tok.sym) {
+    case KW_RETURN: {
+        FuExpr *expr = FuParser_parse_expr(p, 0);
+        if (expr) {
+            sp = FuSpan_join(tok.sp, expr->sp);
+        } else {
+            sp = tok.sp;
+        }
+        keyword_expr = FuExpr_new(sp, EXPR_RETURN);
+        keyword_expr->_return.expr = expr;
+        return keyword_expr;
+        break;
+    }
+    case KW_BREAK: {
+        FuLabel *label = FuParser_parse_label(p);
+        FuExpr *expr = FuParser_parse_expr(p, 0);
+        if (expr) {
+            sp = FuSpan_join(tok.sp, expr->sp);
+        } else if (label) {
+            sp = FuSpan_join(tok.sp, label->sp);
+        } else {
+            sp = tok.sp;
+        }
+        keyword_expr = FuExpr_new(sp, EXPR_BREAK);
+        keyword_expr->_break.label = label;
+        keyword_expr->_break.expr = expr;
+        return keyword_expr;
+        break;
+    }
+    case KW_CONTINUE: {
+        FuLabel *label = FuParser_parse_label(p);
+        if (label) {
+            sp = FuSpan_join(tok.sp, label->sp);
+        } else {
+            sp = tok.sp;
+        }
+        keyword_expr = FuExpr_new(sp, EXPR_CONTINUE);
+        keyword_expr->_continue.label = label;
+        return keyword_expr;
+        break;
+    }
+    case KW_YIELD: {
+        FuExpr *expr = FuParser_parse_expr(p, 0);
+        if (!expr) {
+            FATAL(tok.sp, "expect expression");
+        }
+        sp = FuSpan_join(tok.sp, expr->sp);
+        keyword_expr = FuExpr_new(sp, EXPR_YIELD);
+        keyword_expr->_yield.expr = expr;
+        return keyword_expr;
+        break;
+    }
+    case KW_AWAIT: {
+        FuExpr *expr = FuParser_parse_expr(p, 0);
+        if (!expr) {
+            FATAL(tok.sp, "expect expression");
+        }
+        sp = FuSpan_join(tok.sp, expr->sp);
+        keyword_expr = FuExpr_new(sp, EXPR_AWAIT);
+        keyword_expr->_await.expr = expr;
+        return keyword_expr;
+        break;
+    }
+    case KW_THROW: {
+        FuExpr *expr = FuParser_parse_expr(p, 0);
+        if (expr) {
+            sp = FuSpan_join(tok.sp, FuParser_current_span(p));
+        } else {
+            sp = tok.sp;
+        }
+        keyword_expr = FuExpr_new(sp, EXPR_THROW);
+        keyword_expr->_throw.expr = expr;
+        return keyword_expr;
+        break;
+    } break;
+    case KW_IF:
+    case KW_MATCH:
+    case KW_WHILE:
+    case KW_DO:
+    case KW_FOR:
+    case KW_LOOP:
+    case KW_TRY:
+    case KW_LET:
+        FATAL1(tok.sp, "unimplemented expr %s", FuKind_token_cstr(tok.kd));
+        break;
+    default:
+        break;
+    }
+    return NULL;
+}
+
 FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec) {
     FuExpr *prefix_expr = NULL;
 
@@ -1221,8 +1327,8 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec) {
             FuLit *lit = FuParser_parse_lit(p);
             prefix_expr = FuExpr_new_lit(lit);
         } else {
-            /* todo: other keyword start expr */
-            FATAL1(tok.sp, "expect expression, found keyword: %s", FuKind_keyword_cstr(tok.sym));
+            /* other keyword */
+            prefix_expr = FuParser_parse_keyword_expr(p);
         }
         break;
     }
@@ -1236,6 +1342,9 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec) {
         prefix_expr = FuExpr_new_path(NULL, path);
         break;
     }
+    case TOK_OR:
+        FATAL(tok.sp, "unimplemented closure expr");
+        break;
     case TOK_MACRO: {
         FATAL(tok.sp, "unimplemented macro expr");
         /*
