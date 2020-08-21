@@ -87,6 +87,77 @@ FuStr *FuPath_display(FuPath *path) {
     return str;
 }
 
+FuFieldInit *FuFieldInit_new(FuSpan *sp, fu_field_k kd, FuVec *attrs) {
+    FuFieldInit *init = FuMem_new(FuFieldInit);
+    init->kd = kd;
+    init->sp = sp;
+    init->attrs = attrs;
+    return init;
+}
+
+void FuFieldInit_drop(FuFieldInit *init) {
+    if (!init) {
+        return;
+    }
+    switch (init->kd) {
+    case FLD_EXPR:
+        FuExpr_drop(init->_expr);
+        break;
+    case FLD_NAME:
+        FuExpr_drop(init->_name.init);
+        FuIdent_drop(init->_name.ident);
+        break;
+    case FLD_REPEAT:
+        FuExpr_drop(init->_repeat);
+        break;
+    case FLD_BASE:
+        FuExpr_drop(init->_base);
+        break;
+    default:
+        FATAL(NULL, "can not be here");
+        break;
+    }
+    /* todo: drop attrs */
+    FuVec_drop(init->attrs);
+    FuMem_free(init);
+}
+
+FuStr *FuFieldInit_display(FuFieldInit *init, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "kd: %s\n", FuKind_field_cstr(init->kd));
+    switch (init->kd) {
+    case FLD_EXPR:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "expr:\n");
+        FuStr_append(str, FuExpr_display(init->_expr, indent + 1));
+        break;
+    case FLD_NAME:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "name: ");
+        FuStr_append(str, FuIdent_display(init->_name.ident));
+        FuStr_push_utf8_cstr(str, "\n");
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "init:\n");
+        FuStr_append(str, FuExpr_display(init->_name.init, indent + 1));
+        break;
+    case FLD_REPEAT:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "repeat:\n");
+        FuStr_append(str, FuExpr_display(init->_repeat, indent + 1));
+        break;
+    case FLD_BASE:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "base:\n");
+        FuStr_append(str, FuExpr_display(init->_base, indent + 1));
+        break;
+    default:
+        FATAL(NULL, "can not be here");
+        break;
+    }
+    return str;
+}
+
 FuLit *FuLit_new(FuSpan *sp, fu_lit_k kind) {
     FuLit *lit = FuMem_new(FuLit);
     lit->sp = sp;
@@ -236,6 +307,10 @@ void FuExpr_drop(FuExpr *expr) {
         FuExpr_drop(expr->_index.obj);
         FuExpr_drop(expr->_index.idx);
         break;
+    case EXPR_STRUCT:
+        FuExpr_drop(expr->_struct.base);
+        FuVec_drop_with_ptrs(expr->_struct.field_inits, (FuDropFn)FuFieldInit_drop);
+        break;
     default:
         FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
     }
@@ -366,6 +441,24 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_push_utf8_cstr(str, "idx:\n");
         FuStr_append(str, FuExpr_display(expr->_index.idx, indent + 1));
         break;
+    case EXPR_STRUCT: {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "base:\n");
+        FuStr_append(str, FuExpr_display(expr->_struct.base, indent + 1));
+        fu_size_t len = FuVec_len(expr->_struct.field_inits);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "field inits len: %d\n", len);
+        if (len > 0) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "field inits:\n");
+            fu_size_t i;
+            for (i = 0; i < len; i++) {
+                FuFieldInit *item = FuVec_get_ptr(expr->_struct.field_inits, i);
+                FuStr_append(str, FuFieldInit_display(item, indent + 1));
+            }
+        }
+        break;
+    }
     default:
         FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
     }

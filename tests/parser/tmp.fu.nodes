@@ -1,39 +1,47 @@
-nid: 1
+nid: 2
 kd: ND_PKG
 items:
   nid: 0
   kd: ND_STATIC
-  ident:a
+  ident:pa
   init_expr:
-    kd: EXPR_BINARY
-    op: OP_ADD
-    lexpr:
-      kd: EXPR_BINARY
-      op: OP_ADD
-      lexpr:
+    kd: EXPR_STRUCT
+    base:
+      kd: EXPR_PATH
+      path: Point
+    field inits len: 2
+    field inits:
+      kd: FLD_EXPR
+      expr:
+        kd: EXPR_PATH
+        path: x
+      kd: FLD_REPEAT
+      repeat:
         kd: EXPR_LIT
         lit:
           kd: LIT_INT
-          size: 0, is_signed: 0, v: 1
-      rexpr:
-        kd: EXPR_INDEX
-        obj:
-          kd: EXPR_INDEX
-          obj:
-            kd: EXPR_PATH
-            path: xs
-          idx:
-            kd: EXPR_LIT
-            lit:
-              kd: LIT_INT
-              size: 0, is_signed: 0, v: 2
-        idx:
-          kd: EXPR_LIT
-          lit:
-            kd: LIT_INT
-            size: 0, is_signed: 0, v: 3
-    rexpr:
-      kd: EXPR_LIT
-      lit:
-        kd: LIT_INT
-        size: 0, is_signed: 0, v: 4
+          size: 0, is_signed: 0, v: 0
+  nid: 1
+  kd: ND_STATIC
+  ident:pb
+  init_expr:
+    kd: EXPR_STRUCT
+    base:
+      kd: EXPR_PATH
+      path: Point
+    field inits len: 3
+    field inits:
+      kd: FLD_NAME
+      name: x
+      init:
+        kd: EXPR_PATH
+        path: x
+      kd: FLD_NAME
+      name: y
+      init:
+        kd: EXPR_PATH
+        path: y
+      kd: FLD_BASE
+      base:
+        kd: EXPR_PATH
+        path: pa

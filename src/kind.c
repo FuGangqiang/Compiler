@@ -69,6 +69,23 @@ char *FuKind_expr_cstr(fu_expr_k kd) {
     }
 }
 
+char *FuKind_field_cstr(fu_field_k kd) {
+    switch (kd) {
+/* clang-format off */
+#define FIELD(kd, _doc) \
+    case kd:            \
+        return #kd;     \
+        break;
+/* clang-format on */
+#include "node_field.def"
+#undef FIELD
+    default:
+        /* can not be here */
+        return "";
+        break;
+    }
+}
+
 char *FuKind_ge_arg_cstr(fu_ge_arg_k kd) {
     switch (kd) {
 /* clang-format off */

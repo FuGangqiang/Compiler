@@ -22,6 +22,7 @@ typedef enum fu_op_ty_k fu_op_ty_k;
 typedef enum fu_arm_k fu_arm_k;
 typedef enum fu_attr_k fu_attr_k;
 typedef enum fu_expr_k fu_expr_k;
+typedef enum fu_field_k fu_field_k;
 typedef enum fu_ge_arg_k fu_ge_arg_k;
 typedef enum fu_ge_param_k fu_ge_param_k;
 typedef enum fu_keyword_k fu_keyword_k;
@@ -51,6 +52,7 @@ typedef struct FuLit FuLit;
 
 typedef struct FuAnnoSelf FuAnnoSelf;
 typedef struct FuAttr FuAttr;
+typedef struct FuFieldInit FuFieldInit;
 typedef struct FuGeArg FuGeArg;
 typedef struct FuGeBound FuGeBound;
 typedef struct FuGeneric FuGeneric;
@@ -123,6 +125,13 @@ enum fu_expr_k {
 #include "node_expr.def"
 #undef EXPR
     _EXPR_LAST_UNUSED
+};
+
+enum fu_field_k {
+#define FIELD(kd, _doc) kd,
+#include "node_field.def"
+#undef FIELD
+    _FLD_ARG_LAST_UNUSED
 };
 
 enum fu_ge_arg_k {
@@ -205,6 +214,7 @@ enum fu_vis_k {
 char *FuKind_arm_cstr(fu_arm_k kd);
 char *FuKind_attr_cstr(fu_attr_k kd);
 char *FuKind_expr_cstr(fu_expr_k kd);
+char *FuKind_field_cstr(fu_field_k kd);
 char *FuKind_ge_arg_cstr(fu_ge_arg_k kd);
 char *FuKind_ge_param_cstr(fu_ge_param_k kd);
 char *FuKind_keyword_cstr(fu_keyword_k kd);
@@ -613,6 +623,26 @@ struct FuAnnoSelf {
     fu_size_t idx;
 };
 
+struct FuFieldInit {
+    fu_field_k kd;
+    FuSpan *sp;
+    FuVec *attrs;
+    FuType *ty;
+    union {
+        FuExpr *_expr;
+        struct {
+            FuIdent *ident;
+            FuExpr *init;
+        } _name;
+        FuExpr *_repeat;
+        FuExpr *_base;
+    };
+};
+
+FuFieldInit *FuFieldInit_new(FuSpan *sp, fu_field_k kd, FuVec *attrs);
+void FuFieldInit_drop(FuFieldInit *init);
+FuStr *FuFieldInit_display(FuFieldInit *init, fu_size_t indent);
+
 struct FuMacroCall {
     fu_bool_t is_method;
     FuNode *path;
@@ -719,10 +749,9 @@ struct FuExpr {
             FuVec *fields;
         } _tuple;
         struct {
-            FuPath *path;
-            /* FuNode._field_init */
-            FuVec *fields;
-            FuExpr *base_expr;
+            FuExpr *base;
+            /* FuFieldInit */
+            FuVec *field_inits;
         } _struct;
         struct {
             fu_bool_t is_inclusive;
@@ -925,9 +954,6 @@ struct FuPat {
  *     - field_def
  *     - variant
  *     - pat
- * - 有类型的结构，便于以后对类型统一分析
- *     - 顶层 expr
- *     - field_init
  */
 struct FuNode {
     FuSpan *sp;
@@ -1047,11 +1073,6 @@ struct FuNode {
             /* `name: int` */
             FuVec *fields;
         } _variant;
-        struct {
-            FuIdent *ident;
-            FuNode *_init_expr;
-            FuType *ty;
-        } _field_init;
     };
 };
 

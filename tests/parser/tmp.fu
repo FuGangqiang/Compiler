@@ -1,1 +1,3 @@
-static a = 1 + xs[2][3] + 4;
+static pa = Point{x, 0...};
+static pb = Point{.x=x, .y=y, ...pa};
+
