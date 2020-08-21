@@ -42,8 +42,8 @@ void FuType_init_pkg_builtins(FuCtx *ctx, FuNode *nd) {
     /* create init tids */
     if (!FuVec_len(ctx->types)) {
         /* clang-format off */
-#define TYPE(kd, name) \
-        if(kd <= TY_ERR) { \
+#define TYPE(kd, name)                        \
+        if(kd <= TY_ERR) {                    \
             FuType_new(ctx, kd, VIS_BUILTIN); \
         }
         #include "type.def"
@@ -53,10 +53,10 @@ void FuType_init_pkg_builtins(FuCtx *ctx, FuNode *nd) {
 
     /* insert builtins */
     /* clang-format off */
-#define TYPE(kd, name) \
-        if(kd <= TY_VA_LIST) { \
-            tid = kd; \
-            sym = FuKind_type_sym(ctx, kd); \
+#define TYPE(kd, name)                                             \
+        if(kd <= TY_VA_LIST) {                                     \
+            tid = kd;                                              \
+            sym = FuKind_type_sym(ctx, kd);                        \
             FuMap_set(nd->_pkg.builtins->types, &sym, &tid, NULL); \
         }
         #include "type.def"

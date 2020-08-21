@@ -5,8 +5,8 @@ char *FuKind_log_cstr(fu_log_k kd) {
     switch (kd) {
 /* clang-format off */
 #define LOG(kd, doc) \
-    case kd: \
-        return doc; \
+    case kd:         \
+        return doc;  \
         break;
 /* clang-format on */
 #include "log.def"
@@ -22,8 +22,8 @@ char *FuKind_arm_cstr(fu_arm_k kd) {
     switch (kd) {
 /* clang-format off */
 #define ARM(kd, _doc) \
-    case kd: \
-        return #kd; \
+    case kd:          \
+        return #kd;   \
         break;
 /* clang-format on */
 #include "node_arm.def"
@@ -39,8 +39,8 @@ char *FuKind_attr_cstr(fu_attr_k kd) {
     switch (kd) {
 /* clang-format off */
 #define ATTR(kd, _doc) \
-    case kd: \
-        return #kd; \
+    case kd:           \
+        return #kd;    \
         break;
 /* clang-format on */
 #include "node_attr.def"
@@ -56,8 +56,8 @@ char *FuKind_expr_cstr(fu_expr_k kd) {
     switch (kd) {
 /* clang-format off */
 #define EXPR(kd, _doc) \
-    case kd: \
-        return #kd; \
+    case kd:           \
+        return #kd;    \
         break;
 /* clang-format on */
 #include "node_expr.def"
@@ -73,8 +73,8 @@ char *FuKind_ge_arg_cstr(fu_ge_arg_k kd) {
     switch (kd) {
 /* clang-format off */
 #define GE_ARG(kd, _doc) \
-    case kd: \
-        return #kd; \
+    case kd:             \
+        return #kd;      \
         break;
 /* clang-format on */
 #include "node_ge_arg.def"
@@ -90,8 +90,8 @@ char *FuKind_ge_param_cstr(fu_ge_param_k kd) {
     switch (kd) {
 /* clang-format off */
 #define GE_PARAM(kd, _doc) \
-    case kd: \
-        return #kd; \
+    case kd:               \
+        return #kd;        \
         break;
 /* clang-format on */
 #include "node_ge_param.def"
@@ -107,8 +107,8 @@ char *FuKind_lit_cstr(fu_lit_k kd) {
     switch (kd) {
 /* clang-format off */
 #define LIT(kd, _doc) \
-    case kd: \
-        return #kd; \
+    case kd:          \
+        return #kd;   \
         break;
 /* clang-format on */
 #include "node_lit.def"
@@ -124,8 +124,8 @@ char *FuKind_node_cstr(fu_node_k kd) {
     switch (kd) {
 /* clang-format off */
 #define NODE(kd, _doc) \
-    case kd: \
-        return #kd; \
+    case kd:           \
+        return #kd;    \
         break;
 /* clang-format on */
 #include "node.def"
@@ -141,8 +141,8 @@ char *FuKind_op_cstr(fu_op_k kd) {
     switch (kd) {
 /* clang-format off */
 #define OP(kd, _prec, _assoc, _ty, _doc) \
-    case kd: \
-        return #kd; \
+    case kd:                             \
+        return #kd;                      \
         break;
 /* clang-format on */
 #include "node_op.def"
@@ -158,8 +158,8 @@ fu_op_prec_t FuOp_precedence(fu_op_k kd) {
     switch (kd) {
 /* clang-format off */
 #define OP(kd, prec, _assoc, _ty, _doc) \
-    case kd: \
-        return prec; \
+    case kd:                            \
+        return prec;                    \
         break;
 /* clang-format on */
 #include "node_op.def"
@@ -175,8 +175,8 @@ char *FuKind_pat_cstr(fu_pat_k kd) {
     switch (kd) {
 /* clang-format off */
 #define PAT(kd, _doc) \
-    case kd: \
-        return #kd; \
+    case kd:          \
+        return #kd;   \
         break;
 /* clang-format on */
 #include "node_pat.def"
@@ -192,8 +192,8 @@ char *FuKind_token_cstr(fu_token_k kd) {
     switch (kd) {
 /* clang-format off */
 #define TOKEN(kd, _doc) \
-    case kd: \
-        return #kd; \
+    case kd:            \
+        return #kd;     \
         break;
 /* clang-format on */
 #include "token.def"
@@ -209,8 +209,8 @@ char *FuKind_keyword_cstr(fu_keyword_k kd) {
     switch (kd) {
 /* clang-format off */
 #define TYPE(kd, _doc) \
-    case kd: \
-        return #kd; \
+    case kd:           \
+        return #kd;    \
         break;
 /* clang-format on */
 #include "type.def"
@@ -226,8 +226,8 @@ char *FuKind_use_cstr(fu_use_k kd) {
     switch (kd) {
 /* clang-format off */
 #define USE(kd, _doc) \
-    case kd: \
-        return #kd; \
+    case kd:          \
+        return #kd;   \
         break;
 /* clang-format on */
 #include "node_use.def"
@@ -243,8 +243,8 @@ char *FuKind_variant_cstr(fu_variant_k kd) {
     switch (kd) {
 /* clang-format off */
 #define VARIANT(kd, _doc) \
-    case kd: \
-        return #kd; \
+    case kd:              \
+        return #kd;       \
         break;
 /* clang-format on */
 #include "node_variant.def"
@@ -260,8 +260,8 @@ char *FuKind_vis_cstr(fu_vis_k kd) {
     switch (kd) {
 /* clang-format off */
 #define VIS(kd, _doc) \
-    case kd: \
-        return #kd; \
+    case kd:          \
+        return #kd;   \
         break;
 /* clang-format on */
 #include "node_vis.def"
@@ -277,8 +277,8 @@ char *FuKind_type_cstr(fu_type_k kd) {
     switch (kd) {
 /* clang-format off */
 #define TYPE(kd, _doc) \
-    case kd: \
-        return #kd; \
+    case kd:           \
+        return #kd;    \
         break;
 /* clang-format on */
 #include "type.def"

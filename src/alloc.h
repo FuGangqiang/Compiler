@@ -31,12 +31,12 @@ union FuMemHeapHeader {
 };
 
 /* clang-format off */
-#define WITH_MEM_HEAP(heap) \
-{ \
+#define WITH_MEM_HEAP(heap)                 \
+{                                           \
     FuMemHeap *__heap_bak__ = CURRENT_HEAP; \
-    CURRENT_HEAP = heap; \
+    CURRENT_HEAP = heap;                    \
 
-#define END_WITH \
+#define END_WITH                 \
     CURRENT_HEAP = __heap_bak__; \
 }
 /* clang-format on */

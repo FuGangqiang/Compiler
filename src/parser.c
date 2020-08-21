@@ -457,9 +457,9 @@ static fu_uint8_t Fu_decode_escape_byte(FuSpan *sp, FuStr *str, fu_size_t start,
     FuChar flag_char = FuStr_get_char(str, start + 1);
     *offset += 1;
 /* clang-format off */
-#define CHECK_STR_LEN(len) \
-    if (check_len && str_len > len) { \
-        err_sp= FuSpan_offset(sp, *offset+1); \
+#define CHECK_STR_LEN(len)                                    \
+    if (check_len && str_len > len) {                         \
+        err_sp= FuSpan_offset(sp, *offset+1);                 \
         FATAL(err_sp, "invalid extra byte escape sequences"); \
     }
     /* clang-format on */
@@ -659,9 +659,9 @@ static FuChar Fu_decode_escape_char(FuSpan *sp, FuStr *str, fu_size_t start, fu_
     FuChar flag_char = FuStr_get_char(str, start + 1);
     *offset += 1;
 /* clang-format off */
-#define CHECK_STR_LEN(len) \
-    if (check_len && str_len > len) { \
-        err_sp= FuSpan_offset(sp, *offset + 1); \
+#define CHECK_STR_LEN(len)                                    \
+    if (check_len && str_len > len) {                         \
+        err_sp= FuSpan_offset(sp, *offset + 1);               \
         FATAL(err_sp, "invalid extra char escape sequences"); \
     }
     /* clang-format on */
@@ -964,8 +964,8 @@ FuLit *FuToken_to_lit_int(FuToken tok) {
             continue;
         }
         /* clang-format off */
-#define ERR_DIGIT(kind) \
-    err_sp= FuSpan_offset(tok.sp, i); \
+#define ERR_DIGIT(kind)                      \
+    err_sp= FuSpan_offset(tok.sp, i);        \
     FATAL(err_sp, "invalid " kind " digit");
         /* clang-format on */
         switch (tok._int.base) {
