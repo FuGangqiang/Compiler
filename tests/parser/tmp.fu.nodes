@@ -1,26 +1,39 @@
-nid: 2
+nid: 1
 kd: ND_PKG
 items:
   nid: 0
   kd: ND_STATIC
   ident:a
   init_expr:
-    kd: EXPR_CALL
-    fn:
-      kd: EXPR_PATH
-      path: sum
-    args len: 0
-  nid: 1
-  kd: ND_STATIC
-  ident:a
-  init_expr:
-    kd: EXPR_CALL
-    fn:
-      kd: EXPR_PATH
-      path: sum
-    args len: 2
-    args:
-      kd: EXPR_PATH
-      path: x
-      kd: EXPR_PATH
-      path: y
+    kd: EXPR_BINARY
+    op: OP_ADD
+    lexpr:
+      kd: EXPR_BINARY
+      op: OP_ADD
+      lexpr:
+        kd: EXPR_LIT
+        lit:
+          kd: LIT_INT
+          size: 0, is_signed: 0, v: 1
+      rexpr:
+        kd: EXPR_INDEX
+        obj:
+          kd: EXPR_INDEX
+          obj:
+            kd: EXPR_PATH
+            path: xs
+          idx:
+            kd: EXPR_LIT
+            lit:
+              kd: LIT_INT
+              size: 0, is_signed: 0, v: 2
+        idx:
+          kd: EXPR_LIT
+          lit:
+            kd: LIT_INT
+            size: 0, is_signed: 0, v: 3
+    rexpr:
+      kd: EXPR_LIT
+      lit:
+        kd: LIT_INT
+        size: 0, is_signed: 0, v: 4

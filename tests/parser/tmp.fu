@@ -1,2 +1,1 @@
-static a = sum();
-static a = sum(x, y);
+static a = 1 + xs[2][3] + 4;

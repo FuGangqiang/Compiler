@@ -710,7 +710,7 @@ struct FuExpr {
         } _path;
         struct {
             /* FuNode._field_init */
-            FuVec *fields;
+            FuVec *field_inits;
             FuExpr *base_expr;
             fu_size_t size;
         } _array;
@@ -734,8 +734,8 @@ struct FuExpr {
             FuIdent *ident;
         } _field;
         struct {
-            FuExpr *obj_expr;
-            FuExpr *idx_expr;
+            FuExpr *obj;
+            FuExpr *idx;
         } _index;
         struct {
             FuExpr *expr;

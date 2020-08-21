@@ -1096,6 +1096,21 @@ static FuExpr *FuParser_parse_call_expr(FuParser *p, FuExpr *left) {
     return expr;
 }
 
+static FuExpr *FuParser_parse_index_expr(FuParser *p, FuExpr *left) {
+    FuToken tok;
+    FuExpr *idx = FuParser_parse_expr(p, 0);
+    if (!idx) {
+        tok = FuParser_nth_token(p, 0);
+        FATAL1(tok.sp, "expect expression, find token: %s", FuKind_token_cstr(tok.kd));
+    }
+    tok = FuParser_expect_token(p, TOK_CLOSE_BRACKET);
+    FuSpan *sp = FuSpan_join(left->sp, tok.sp);
+    FuExpr *expr = FuExpr_new(sp, EXPR_INDEX);
+    expr->_index.obj = left;
+    expr->_index.idx = idx;
+    return expr;
+}
+
 static FuExpr *FuParser_parse_prefix_expr(FuParser *p, fu_op_k op, fu_op_prec_t prec) {
     FuToken op_tok = FuParser_bump(p);
     FuExpr *right = FuParser_parse_expr(p, prec);
@@ -1135,6 +1150,8 @@ static FuExpr *FuParser_parse_infix_expr(FuParser *p, FuExpr *left, fu_op_k op, 
         return FuParser_parse_call_expr(p, left);
         break;
     case OP_INDEX:
+        return FuParser_parse_index_expr(p, left);
+        break;
     case OP_STRUCT:
     case OP_CAST:
     case OP_ASSIGN:

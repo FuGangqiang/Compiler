@@ -232,6 +232,10 @@ void FuExpr_drop(FuExpr *expr) {
         FuExpr_drop(expr->_call.base);
         FuVec_drop_with_ptrs(expr->_call.args, (FuDropFn)FuExpr_drop);
         break;
+    case EXPR_INDEX:
+        FuExpr_drop(expr->_index.obj);
+        FuExpr_drop(expr->_index.idx);
+        break;
     default:
         FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
     }
@@ -354,6 +358,14 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         }
         break;
     }
+    case EXPR_INDEX:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "obj:\n");
+        FuStr_append(str, FuExpr_display(expr->_index.obj, indent + 1));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "idx:\n");
+        FuStr_append(str, FuExpr_display(expr->_index.idx, indent + 1));
+        break;
     default:
         FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
     }
