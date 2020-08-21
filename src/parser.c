@@ -443,7 +443,8 @@ FuLit *FuToken_to_lit_bool(FuToken tok) {
     return lit;
 }
 
-fu_uint8_t Fu_decode_escape_byte(FuSpan *sp, FuStr *str, fu_size_t start, fu_size_t *offset, fu_bool_t check_len) {
+static fu_uint8_t Fu_decode_escape_byte(FuSpan *sp, FuStr *str, fu_size_t start, fu_size_t *offset,
+                                        fu_bool_t check_len) {
     FuSpan *err_sp;
     /* start with backslash `\` */
     assert(FuStr_get_char(str, start) == '\\');
@@ -645,7 +646,7 @@ FuLit *FuToken_to_lit_byte_str(FuToken tok) {
     return lit;
 }
 
-FuChar Fu_decode_escape_char(FuSpan *sp, FuStr *str, fu_size_t start, fu_size_t *offset, fu_bool_t check_len) {
+static FuChar Fu_decode_escape_char(FuSpan *sp, FuStr *str, fu_size_t start, fu_size_t *offset, fu_bool_t check_len) {
     FuSpan *err_sp;
     /* start with backslash `\` */
     assert(FuStr_get_char(str, start) == '\\');
@@ -880,7 +881,7 @@ FuLit *FuToken_to_lit_str(FuToken tok) {
     return lit;
 }
 
-fu_uint64_t Fu_cstr_to_uint64(FuSpan *sp, char *cstr, fu_size_t base) {
+static fu_uint64_t Fu_cstr_to_uint64(FuSpan *sp, char *cstr, fu_size_t base) {
     if (base < 2 || base > 36) {
         FATAL(sp, "invalid int base");
     }
@@ -903,7 +904,7 @@ fu_uint64_t Fu_cstr_to_uint64(FuSpan *sp, char *cstr, fu_size_t base) {
     return v;
 }
 
-fu_err_t Fu_check_int_suffix(FuLit *lit, FuStr *suffix) {
+static fu_err_t Fu_check_int_suffix(FuLit *lit, FuStr *suffix) {
     if (FuStr_eq_cstr(suffix, "i8")) {
         lit->_int.size = 8;
         lit->_int.is_signed = 1;
@@ -1065,7 +1066,7 @@ FuLit *FuParser_parse_lit(FuParser *p) {
     return lit;
 }
 
-FuExpr *FuParser_parse_prefix_expr(FuParser *p, fu_op_k op, fu_op_prec_t prec) {
+static FuExpr *FuParser_parse_prefix_expr(FuParser *p, fu_op_k op, fu_op_prec_t prec) {
     FuToken op_tok = FuParser_bump(p);
     FuExpr *right = FuParser_parse_expr(p, prec);
     if (!right) {
@@ -1095,7 +1096,7 @@ FuExpr *FuParser_parse_prefix_expr(FuParser *p, fu_op_k op, fu_op_prec_t prec) {
     return expr;
 }
 
-FuExpr *FuParser_parse_infix_expr(FuParser *p, FuExpr *left, fu_op_k op, fu_op_prec_t prec) {
+static FuExpr *FuParser_parse_infix_expr(FuParser *p, FuExpr *left, fu_op_k op, fu_op_prec_t prec) {
     FuToken op_tok = FuParser_bump(p);
     switch (op) {
     case OP_FIELD:
@@ -1134,7 +1135,7 @@ FuExpr *FuParser_parse_infix_expr(FuParser *p, FuExpr *left, fu_op_k op, fu_op_p
     return NULL;
 }
 
-FuExpr *FuParser_parse_suffix_expr(FuParser *p, FuExpr *left, fu_op_k op) {
+static FuExpr *FuParser_parse_suffix_expr(FuParser *p, FuExpr *left, fu_op_k op) {
     FuToken op_tok = FuParser_bump(p);
     FuSpan *sp = FuSpan_join(op_tok.sp, left->sp);
     switch (op) {

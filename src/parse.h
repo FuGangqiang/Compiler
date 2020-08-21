@@ -346,6 +346,16 @@ fu_bool_t FuToken_is_outer_doc_comment(FuToken tok);
 fu_bool_t FuToken_is_blank(FuToken tok);
 fu_bool_t FuToken_is_expr_start(FuToken tok);
 
+FuLit *FuToken_to_lit_nil(FuToken tok);
+FuLit *FuToken_to_lit_bool(FuToken tok);
+FuLit *FuToken_to_lit_byte(FuToken tok);
+FuLit *FuToken_to_lit_byte_str(FuToken tok);
+FuLit *FuToken_to_lit_char(FuToken tok);
+FuLit *FuToken_to_lit_str(FuToken tok);
+FuLit *FuToken_to_lit_int(FuToken tok);
+FuLit *FuToken_to_lit_float(FuToken tok);
+FuLit *FuToken_to_lit_format_str(FuToken tok);
+
 fu_bool_t FuToken_to_prefix_op(FuToken tok, fu_op_k *op);
 fu_bool_t FuToken_to_infix_op(FuToken tok, fu_op_k *op);
 fu_bool_t FuToken_to_suffix_op(FuToken tok, fu_op_k *op);
@@ -420,9 +430,11 @@ void FuParser_for_file(FuParser *p, char *fpath, fu_size_t len);
 
 FuLit *FuParser_parse_lit(FuParser *p);
 FuIdent *FuParser_parse_ident(FuParser *p);
+
 FuPathItem *FuParser_parse_path_item(FuParser *p);
 FuPath *FuParser_parse_path(FuParser *p);
 FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec);
+fu_vis_k FuParser_parse_visibility(FuParser *p);
 
 FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_const(FuParser *p, FuVec *attrs, fu_vis_k vis);
