@@ -228,6 +228,10 @@ void FuExpr_drop(FuExpr *expr) {
     case EXPR_THROW:
         FuExpr_drop(expr->_throw.expr);
         break;
+    case EXPR_CALL:
+        FuExpr_drop(expr->_call.base);
+        FuVec_drop_with_ptrs(expr->_call.args, (FuDropFn)FuExpr_drop);
+        break;
     default:
         FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
     }
@@ -255,6 +259,7 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_push_utf8_cstr(str, "path: ");
         /* todo: expr->_path.anno */
         FuStr_append(str, FuPath_display(expr->_path.path));
+        FuStr_push(str, '\n');
         break;
     case EXPR_TUPLE: {
         FuStr_push_indent(str, indent);
@@ -331,6 +336,24 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
             FuStr_append(str, FuExpr_display(expr->_throw.expr, indent + 1));
         }
         break;
+    case EXPR_CALL: {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "fn:\n");
+        FuStr_append(str, FuExpr_display(expr->_call.base, indent + 1));
+        fu_size_t len = FuVec_len(expr->_call.args);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "args len: %d\n", len);
+        if (len > 0) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "args:\n");
+            fu_size_t i;
+            for (i = 0; i < len; i++) {
+                FuExpr *item = FuVec_get_ptr(expr->_call.args, i);
+                FuStr_append(str, FuExpr_display(item, indent + 1));
+            }
+        }
+        break;
+    }
     default:
         FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
     }

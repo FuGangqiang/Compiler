@@ -296,6 +296,7 @@ fu_bool_t FuToken_to_infix_op(FuToken tok, fu_op_k *op) {
         BIND(TOK_OR_OR, OP_OR)
         BIND(TOK_DOT_DOT, OP_RANGE)
         BIND(TOK_DOT_DOT_EQ, OP_RANGE_EQ)
+        BIND(TOK_OPEN_PAREN, OP_CALL)
     default:
         break;
     }

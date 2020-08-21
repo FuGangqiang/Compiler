@@ -745,9 +745,10 @@ struct FuExpr {
             FuType *ty;
         } _cast;
         struct {
-            FuNode *path;
+            /* fn, or tuple struct */
+            FuExpr *base;
             /* FuExpr */
-            FuVec *expr_args;
+            FuVec *args;
         } _call;
         struct {
             FuExpr *obj_expr;

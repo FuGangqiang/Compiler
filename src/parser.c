@@ -1066,6 +1066,36 @@ FuLit *FuParser_parse_lit(FuParser *p) {
     return lit;
 }
 
+static FuVec *FuParser_parse_fn_args(FuParser *p) {
+    FuVec *args = FuVec_new(sizeof(FuExpr *));
+    FuExpr *expr = FuParser_parse_expr(p, 0);
+    if (!expr) {
+        return args;
+    }
+    FuVec_push_ptr(args, expr);
+    FuToken tok = FuParser_nth_token(p, 0);
+    while (tok.kd == TOK_COMMA) {
+        FuParser_bump(p);
+        FuExpr *expr = FuParser_parse_expr(p, 0);
+        if (!expr) {
+            FATAL1(tok.sp, "expect expression, but find tok: %s", FuKind_token_cstr(tok.kd));
+        }
+        FuVec_push_ptr(args, expr);
+        tok = FuParser_nth_token(p, 0);
+    }
+    return args;
+}
+
+static FuExpr *FuParser_parse_call_expr(FuParser *p, FuExpr *left) {
+    FuVec *args = FuParser_parse_fn_args(p);
+    FuToken tok = FuParser_expect_token(p, TOK_CLOSE_PAREN);
+    FuSpan *sp = FuSpan_join(left->sp, tok.sp);
+    FuExpr *expr = FuExpr_new(sp, EXPR_CALL);
+    expr->_call.base = left;
+    expr->_call.args = args;
+    return expr;
+}
+
 static FuExpr *FuParser_parse_prefix_expr(FuParser *p, fu_op_k op, fu_op_prec_t prec) {
     FuToken op_tok = FuParser_bump(p);
     FuExpr *right = FuParser_parse_expr(p, prec);
@@ -1102,6 +1132,8 @@ static FuExpr *FuParser_parse_infix_expr(FuParser *p, FuExpr *left, fu_op_k op, 
     case OP_FIELD:
         /* todo: field, fn call, method call, macro */
     case OP_CALL:
+        return FuParser_parse_call_expr(p, left);
+        break;
     case OP_INDEX:
     case OP_STRUCT:
     case OP_CAST:

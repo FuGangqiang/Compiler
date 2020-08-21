@@ -33,7 +33,7 @@ EXPR(EXPR_INDEX, "expr index")
 EXPR(EXPR_ADDRESS_OF, "expr address of")
 /* `a as u32` */
 EXPR(EXPR_CAST, "expr cast")
-/* `fname(a, b, c)` */
+/* `fname(a, b, c)`, or tuple struct init */
 EXPR(EXPR_CALL, "expr call")
 /* `x.foo#<Bar, Baz>(a, b, c, d)` */
 EXPR(EXPR_METHOD_CALL, "expr method call")

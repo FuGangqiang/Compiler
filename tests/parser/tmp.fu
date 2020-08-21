@@ -1,11 +1,2 @@
-static a = return;
-static a = return b'c';
-static a = break;
-static a = break true;
-static a = break 'loop false;
-static a = continue;
-static a = continue 'loop;
-static a = yield '中';
-static a = await "hello";
-static a = throw;
-static a = throw nil;
+static a = sum();
+static a = sum(x, y);

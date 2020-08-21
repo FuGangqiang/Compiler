@@ -1,90 +1,26 @@
-nid: 11
+nid: 2
 kd: ND_PKG
 items:
   nid: 0
   kd: ND_STATIC
   ident:a
   init_expr:
-    kd: EXPR_RETURN
+    kd: EXPR_CALL
+    fn:
+      kd: EXPR_PATH
+      path: sum
+    args len: 0
   nid: 1
   kd: ND_STATIC
   ident:a
   init_expr:
-    kd: EXPR_RETURN
-    expr:
-      kd: EXPR_LIT
-      lit:
-        kd: LIT_BYTE
-        v: 99
-  nid: 2
-  kd: ND_STATIC
-  ident:a
-  init_expr:
-    kd: EXPR_BREAK
-  nid: 3
-  kd: ND_STATIC
-  ident:a
-  init_expr:
-    kd: EXPR_BREAK
-    expr:
-      kd: EXPR_LIT
-      lit:
-        kd: LIT_BOOL
-        v: 1
-  nid: 4
-  kd: ND_STATIC
-  ident:a
-  init_expr:
-    kd: EXPR_BREAK
-    label: 'loop
-    expr:
-      kd: EXPR_LIT
-      lit:
-        kd: LIT_BOOL
-        v: 0
-  nid: 5
-  kd: ND_STATIC
-  ident:a
-  init_expr:
-    kd: EXPR_CONTINUE
-  nid: 6
-  kd: ND_STATIC
-  ident:a
-  init_expr:
-    kd: EXPR_CONTINUE
-    label: 'loop
-  nid: 7
-  kd: ND_STATIC
-  ident:a
-  init_expr:
-    kd: EXPR_YIELD
-    expr:
-      kd: EXPR_LIT
-      lit:
-        kd: LIT_CHAR
-        v: 20013
-  nid: 8
-  kd: ND_STATIC
-  ident:a
-  init_expr:
-    kd: EXPR_AWAIT
-    expr:
-      kd: EXPR_LIT
-      lit:
-        kd: LIT_STR
-        len: 5, v: hello
-  nid: 9
-  kd: ND_STATIC
-  ident:a
-  init_expr:
-    kd: EXPR_THROW
-  nid: 10
-  kd: ND_STATIC
-  ident:a
-  init_expr:
-    kd: EXPR_THROW
-    expr:
-      kd: EXPR_LIT
-      lit:
-        kd: LIT_NIL
-        v: nil
+    kd: EXPR_CALL
+    fn:
+      kd: EXPR_PATH
+      path: sum
+    args len: 2
+    args:
+      kd: EXPR_PATH
+      path: x
+      kd: EXPR_PATH
+      path: y
