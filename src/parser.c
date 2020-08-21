@@ -1068,7 +1068,7 @@ FuLit *FuParser_parse_lit(FuParser *p) {
 
 static FuVec *FuParser_parse_fn_args(FuParser *p) {
     FuVec *args = FuVec_new(sizeof(FuExpr *));
-    FuExpr *expr = FuParser_parse_expr(p, 0);
+    FuExpr *expr = FuParser_parse_expr(p, 0, FU_FALSE);
     if (!expr) {
         return args;
     }
@@ -1076,10 +1076,7 @@ static FuVec *FuParser_parse_fn_args(FuParser *p) {
     FuToken tok = FuParser_nth_token(p, 0);
     while (tok.kd == TOK_COMMA) {
         FuParser_bump(p);
-        FuExpr *expr = FuParser_parse_expr(p, 0);
-        if (!expr) {
-            FATAL1(tok.sp, "expect expression, but find tok: %s", FuKind_token_cstr(tok.kd));
-        }
+        FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
         FuVec_push_ptr(args, expr);
         tok = FuParser_nth_token(p, 0);
     }
@@ -1098,11 +1095,7 @@ static FuExpr *FuParser_parse_call_expr(FuParser *p, FuExpr *left) {
 
 static FuExpr *FuParser_parse_index_expr(FuParser *p, FuExpr *left) {
     FuToken tok;
-    FuExpr *idx = FuParser_parse_expr(p, 0);
-    if (!idx) {
-        tok = FuParser_nth_token(p, 0);
-        FATAL1(tok.sp, "expect expression, find token: %s", FuKind_token_cstr(tok.kd));
-    }
+    FuExpr *idx = FuParser_parse_expr(p, 0, FU_TRUE);
     tok = FuParser_expect_token(p, TOK_CLOSE_BRACKET);
     FuSpan *sp = FuSpan_join(left->sp, tok.sp);
     FuExpr *expr = FuExpr_new(sp, EXPR_INDEX);
@@ -1121,7 +1114,7 @@ static FuFieldInit *FuParser_parse_field_init(FuParser *p) {
         FuParser_bump(p);
         FuIdent *ident = FuParser_parse_ident(p);
         FuParser_expect_token(p, TOK_EQ);
-        FuExpr *expr = FuParser_parse_expr(p, 0);
+        FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
         sp = FuSpan_join(tok0.sp, expr->sp);
         FuFieldInit *init = FuFieldInit_new(sp, FLD_NAME, attrs);
         init->_name.ident = ident;
@@ -1130,16 +1123,13 @@ static FuFieldInit *FuParser_parse_field_init(FuParser *p) {
     }
     if (tok0.kd == TOK_DOT_DOT_DOT) {
         FuParser_bump(p);
-        FuExpr *expr = FuParser_parse_expr(p, 0);
+        FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
         sp = FuSpan_join(tok0.sp, expr->sp);
         FuFieldInit *init = FuFieldInit_new(sp, FLD_BASE, attrs);
         init->_base = expr;
         return init;
     }
-    FuExpr *expr = FuParser_parse_expr(p, 0);
-    if (!expr) {
-        FATAL1(tok0.sp, "expect expression, find token: %s", FuKind_token_cstr(tok0.kd));
-    }
+    FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
     tok1 = FuParser_nth_token(p, 0);
     if (tok1.kd == TOK_DOT_DOT_DOT) {
         FuParser_bump(p);
@@ -1181,11 +1171,7 @@ static FuExpr *FuParser_parse_struct_expr(FuParser *p, FuExpr *left) {
 
 static FuExpr *FuParser_parse_prefix_expr(FuParser *p, fu_op_k op, fu_op_prec_t prec) {
     FuToken op_tok = FuParser_bump(p);
-    FuExpr *right = FuParser_parse_expr(p, prec);
-    if (!right) {
-        FuToken tok = FuParser_nth_token(p, 0);
-        FATAL1(tok.sp, "expect expression, but found tok: %s", FuKind_token_cstr(tok.kd));
-    }
+    FuExpr *right = FuParser_parse_expr(p, prec, FU_TRUE);
     FuSpan *sp = FuSpan_join(op_tok.sp, right->sp);
 
     FuExpr *expr;
@@ -1239,7 +1225,7 @@ static FuExpr *FuParser_parse_infix_expr(FuParser *p, FuExpr *left, fu_op_k op, 
         break;
     }
     default: {
-        FuExpr *right = FuParser_parse_expr(p, prec);
+        FuExpr *right = FuParser_parse_expr(p, prec, FU_TRUE);
         FuSpan *sp = FuSpan_join(left->sp, right->sp);
         FuExpr *expr = FuExpr_new(sp, EXPR_BINARY);
         expr->_binary.op = op;
@@ -1279,11 +1265,8 @@ static FuExpr *FuParser_parse_suffix_expr(FuParser *p, FuExpr *left, fu_op_k op)
 
 static FuExpr *FuParser_parse_group_or_tuple_expr(FuParser *p) {
     FuToken open_tok = FuParser_expect_token(p, TOK_OPEN_PAREN);
-    FuExpr *expr = FuParser_parse_expr(p, 0);
+    FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
     FuToken tok = FuParser_bump(p);
-    if (!expr) {
-        FATAL(open_tok.sp, "expression can not be null");
-    }
 
     /* group expression */
     if (tok.kd == TOK_CLOSE_PAREN) {
@@ -1295,10 +1278,7 @@ static FuExpr *FuParser_parse_group_or_tuple_expr(FuParser *p) {
         FuVec *fields = FuVec_new(sizeof(FuExpr *));
         FuVec_push_ptr(fields, expr);
         while (tok.kd == TOK_COMMA) {
-            expr = FuParser_parse_expr(p, 0);
-            if (!expr) {
-                FATAL(tok.sp, "expression can not be null");
-            }
+            expr = FuParser_parse_expr(p, 0, FU_TRUE);
             FuVec_push_ptr(fields, expr);
             tok = FuParser_bump(p);
         }
@@ -1330,7 +1310,7 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
     FuExpr *keyword_expr;
     switch (tok.sym) {
     case KW_RETURN: {
-        FuExpr *expr = FuParser_parse_expr(p, 0);
+        FuExpr *expr = FuParser_parse_expr(p, 0, FU_FALSE);
         if (expr) {
             sp = FuSpan_join(tok.sp, expr->sp);
         } else {
@@ -1343,7 +1323,7 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
     }
     case KW_BREAK: {
         FuLabel *label = FuParser_parse_label(p);
-        FuExpr *expr = FuParser_parse_expr(p, 0);
+        FuExpr *expr = FuParser_parse_expr(p, 0, FU_FALSE);
         if (expr) {
             sp = FuSpan_join(tok.sp, expr->sp);
         } else if (label) {
@@ -1370,10 +1350,7 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
         break;
     }
     case KW_YIELD: {
-        FuExpr *expr = FuParser_parse_expr(p, 0);
-        if (!expr) {
-            FATAL(tok.sp, "expect expression");
-        }
+        FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
         sp = FuSpan_join(tok.sp, expr->sp);
         keyword_expr = FuExpr_new(sp, EXPR_YIELD);
         keyword_expr->_yield.expr = expr;
@@ -1381,10 +1358,7 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
         break;
     }
     case KW_AWAIT: {
-        FuExpr *expr = FuParser_parse_expr(p, 0);
-        if (!expr) {
-            FATAL(tok.sp, "expect expression");
-        }
+        FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
         sp = FuSpan_join(tok.sp, expr->sp);
         keyword_expr = FuExpr_new(sp, EXPR_AWAIT);
         keyword_expr->_await.expr = expr;
@@ -1392,7 +1366,7 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
         break;
     }
     case KW_THROW: {
-        FuExpr *expr = FuParser_parse_expr(p, 0);
+        FuExpr *expr = FuParser_parse_expr(p, 0, FU_FALSE);
         if (expr) {
             sp = FuSpan_join(tok.sp, FuParser_current_span(p));
         } else {
@@ -1419,7 +1393,7 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
     return NULL;
 }
 
-FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec) {
+FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null) {
     FuExpr *prefix_expr = NULL;
 
     /* parse prefix expr */
@@ -1475,7 +1449,11 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec) {
     default: {
         fu_op_k prefix_op;
         if (!FuToken_to_prefix_op(tok, &prefix_op)) {
-            return NULL;
+            if (check_null) {
+                FATAL1(tok.sp, "expect expression, find token: %s", FuKind_token_cstr(tok.kd));
+            } else {
+                return NULL;
+            }
         }
         prefix_expr = FuParser_parse_prefix_expr(p, prefix_op, FuOp_precedence(prefix_op));
         break;
@@ -1581,7 +1559,7 @@ FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis) {
     FuParser_expect_keyword(p, KW_STATIC);
     FuIdent *ident = FuParser_parse_ident(p);
     FuParser_expect_token(p, TOK_EQ);
-    FuExpr *expr = FuParser_parse_expr(p, 0);
+    FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
     FuParser_expect_token(p, TOK_SEMI);
     FuSpan *sp = FuSpan_join(lo, expr->sp);
     FuNode *nd = FuNode_new(p->ctx, sp, ND_STATIC);
@@ -1597,7 +1575,7 @@ FuNode *FuParser_parse_item_const(FuParser *p, FuVec *attrs, fu_vis_k vis) {
     FuParser_expect_keyword(p, KW_CONST);
     FuIdent *ident = FuParser_parse_ident(p);
     FuParser_expect_token(p, TOK_EQ);
-    FuExpr *expr = FuParser_parse_expr(p, 0);
+    FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
     FuParser_expect_token(p, TOK_SEMI);
     FuSpan *sp = FuSpan_join(lo, expr->sp);
     FuNode *nd = FuNode_new(p->ctx, sp, ND_CONST);

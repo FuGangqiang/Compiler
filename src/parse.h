@@ -443,7 +443,7 @@ FuIdent *FuParser_parse_ident(FuParser *p);
 
 FuPathItem *FuParser_parse_path_item(FuParser *p);
 FuPath *FuParser_parse_path(FuParser *p);
-FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec);
+FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 fu_vis_k FuParser_parse_visibility(FuParser *p);
 
 FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis);
