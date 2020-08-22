@@ -98,6 +98,8 @@ enum fu_op_k {
 };
 
 fu_op_prec_t FuOp_precedence(fu_op_k kd);
+fu_bool_t FuOp_is_unary(fu_op_k kd);
+fu_bool_t FuOp_is_binary(fu_op_k kd);
 
 enum fu_log_k {
 #define LOG(kd, _doc) kd,
@@ -767,9 +769,6 @@ struct FuExpr {
             FuExpr *obj;
             FuExpr *idx;
         } _index;
-        struct {
-            FuExpr *expr;
-        } _address_of;
         struct {
             FuExpr *expr;
             FuType *ty;

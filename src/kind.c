@@ -188,6 +188,46 @@ fu_op_prec_t FuOp_precedence(fu_op_k kd) {
     }
 }
 
+fu_bool_t FuOp_is_unary(fu_op_k kd) {
+    switch (kd) {
+    case OP_DEREF:
+    case OP_NOT:
+    case OP_NEG:
+    case OP_ADDRESS:
+        return FU_TRUE;
+        break;
+    default:
+        return FU_FALSE;
+    }
+}
+
+fu_bool_t FuOp_is_binary(fu_op_k kd) {
+    switch (kd) {
+    case OP_ADD:
+    case OP_SUB:
+    case OP_MUL:
+    case OP_DIV:
+    case OP_REM:
+    case OP_BIT_AND:
+    case OP_BIT_XOR:
+    case OP_BIT_OR:
+    case OP_SHL:
+    case OP_SHR:
+    case OP_LT:
+    case OP_LE:
+    case OP_GT:
+    case OP_GE:
+    case OP_EQ:
+    case OP_NE:
+    case OP_AND:
+    case OP_OR:
+        return FU_TRUE;
+        break;
+    default:
+        return FU_FALSE;
+    }
+}
+
 char *FuKind_pat_cstr(fu_pat_k kd) {
     switch (kd) {
 /* clang-format off */

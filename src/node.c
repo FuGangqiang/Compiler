@@ -369,8 +369,6 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
     FuStr_push_indent(str, indent);
     FuStr_push_utf8_format(str, "kd: %s\n", FuKind_expr_cstr(expr->kd));
     switch (expr->kd) {
-    case EXPR_ERR:
-        break;
     case EXPR_LIT:
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "lit:\n");
