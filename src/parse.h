@@ -349,12 +349,10 @@ fu_bool_t FuToken_is_ident(FuToken tok);
 fu_bool_t FuToken_is_open_delim(FuToken tok);
 fu_bool_t FuToken_is_close_delim(FuToken tok);
 fu_bool_t FuToken_is_match_delim(FuToken open, FuToken close);
-fu_bool_t FuToken_is_bin_op(FuToken tok);
-fu_bool_t FuToken_is_bin_eq_op(FuToken tok);
+fu_bool_t FuToken_is_assign(FuToken tok);
 fu_bool_t FuToken_is_lit(FuToken tok);
 fu_bool_t FuToken_is_outer_doc_comment(FuToken tok);
 fu_bool_t FuToken_is_blank(FuToken tok);
-fu_bool_t FuToken_is_expr_start(FuToken tok);
 
 FuLit *FuToken_to_lit_nil(FuToken tok);
 FuLit *FuToken_to_lit_bool(FuToken tok);

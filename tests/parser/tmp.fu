@@ -1,4 +1,11 @@
-static r = ..;
-static r = ..10;
-static r = 0..;
-static r = 1..10;
+static r = a = b + 1;
+static r = a += b + 1;
+static r = a -= b + 1;
+static r = a *= b + 1;
+static r = a /= b + 1;
+static r = a %= b + 1;
+static r = a &= b + 1;
+static r = a |= b + 1;
+static r = a ^= b + 1;
+static r = a <<= b + 1;
+static r = a >>= b + 1;

@@ -157,27 +157,9 @@ fu_bool_t FuToken_is_match_delim(FuToken open, FuToken close) {
     return FU_FALSE;
 }
 
-fu_bool_t FuToken_is_bin_op(FuToken tok) {
+fu_bool_t FuToken_is_assign(FuToken tok) {
     switch (tok.kd) {
-    case TOK_PLUS:
-    case TOK_MINUS:
-    case TOK_STAR:
-    case TOK_SLASH:
-    case TOK_PERCENT:
-    case TOK_AND:
-    case TOK_OR:
-    case TOK_CARET:
-    case TOK_SHL:
-    case TOK_SHR:
-        return FU_TRUE;
-        break;
-    default:
-        return FU_FALSE;
-    }
-}
-
-fu_bool_t FuToken_is_bin_eq_op(FuToken tok) {
-    switch (tok.kd) {
+    case TOK_EQ:
     case TOK_PLUS_EQ:
     case TOK_MINUS_EQ:
     case TOK_STAR_EQ:

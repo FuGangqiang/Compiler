@@ -644,6 +644,26 @@ static FuExpr *FuParser_parse_range_expr(FuParser *p, FuExpr *left, fu_op_k op, 
     return expr;
 }
 
+static FuExpr *FuParser_parse_assign_expr(FuParser *p, FuExpr *left, fu_op_k op, fu_op_prec_t prec) {
+    FuToken op_tok = FuParser_expect_token_fn(p, FuToken_is_assign, "assign token");
+    FuExpr *right = FuParser_parse_expr(p, prec, FU_TRUE);
+    FuSpan *sp = FuSpan_join(left->sp, right->sp);
+    FuExpr *expr;
+    if (op == OP_ASSIGN) {
+        expr = FuExpr_new(sp, EXPR_ASSIGN);
+        expr->_assign.op_sp = op_tok.sp;
+        expr->_assign.lexpr = left;
+        expr->_assign.rexpr = right;
+    } else {
+        expr = FuExpr_new(sp, EXPR_ASSIGN_OP);
+        expr->_assign_op.op = op;
+        expr->_assign_op.op_sp = op_tok.sp;
+        expr->_assign_op.lexpr = left;
+        expr->_assign_op.rexpr = right;
+    }
+    return expr;
+}
+
 static FuExpr *FuParser_parse_prefix_expr(FuParser *p, fu_op_k op, fu_op_prec_t prec) {
     FuExpr *expr;
     switch (op) {
@@ -687,6 +707,8 @@ static FuExpr *FuParser_parse_infix_expr(FuParser *p, FuExpr *left, fu_op_k op, 
         break;
     }
     case OP_CAST:
+        FATAL1(op_tok.sp, "unimplemented op: ", FuKind_op_cstr(op));
+        break;
     case OP_ASSIGN:
     case OP_ADD_ASSIGN:
     case OP_SUB_ASSIGN:
@@ -698,7 +720,7 @@ static FuExpr *FuParser_parse_infix_expr(FuParser *p, FuExpr *left, fu_op_k op, 
     case OP_BIT_XOR_ASSIGN:
     case OP_SHL_ASSIGN:
     case OP_SHR_ASSIGN: {
-        FATAL1(op_tok.sp, "unimplemented op: ", FuKind_op_cstr(op));
+        return FuParser_parse_assign_expr(p, left, op, prec);
         break;
     }
     default: {

@@ -346,6 +346,14 @@ void FuExpr_drop(FuExpr *expr) {
         FuExpr_drop(expr->_range.start);
         FuExpr_drop(expr->_range.end);
         break;
+    case EXPR_ASSIGN:
+        FuExpr_drop(expr->_assign.lexpr);
+        FuExpr_drop(expr->_assign.rexpr);
+        break;
+    case EXPR_ASSIGN_OP:
+        FuExpr_drop(expr->_assign_op.lexpr);
+        FuExpr_drop(expr->_assign_op.rexpr);
+        break;
     default:
         FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
     }
@@ -547,6 +555,24 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
             FuStr_push_utf8_cstr(str, "end:\n");
             FuStr_append(str, FuExpr_display(expr->_range.end, indent + 1));
         }
+        break;
+    case EXPR_ASSIGN:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "lexpr:\n");
+        FuStr_append(str, FuExpr_display(expr->_assign.lexpr, indent + 1));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "rexpr:\n");
+        FuStr_append(str, FuExpr_display(expr->_assign.rexpr, indent + 1));
+        break;
+    case EXPR_ASSIGN_OP:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "op: %s\n", FuKind_op_cstr(expr->_assign_op.op));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "lexpr:\n");
+        FuStr_append(str, FuExpr_display(expr->_assign_op.lexpr, indent + 1));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "rexpr:\n");
+        FuStr_append(str, FuExpr_display(expr->_assign_op.rexpr, indent + 1));
         break;
     default:
         FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
