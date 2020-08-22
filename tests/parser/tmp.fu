@@ -1,4 +1,6 @@
-static x1 = point1.x;
-static flag1 = point1.is_origin();
-static vector = point1.sub(point2);
-static display = print(vector);
+static xs = [
+    .2 = 1,
+    .4 = 2,
+    0...,
+    ;10
+];

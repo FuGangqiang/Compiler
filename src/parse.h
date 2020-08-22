@@ -636,6 +636,11 @@ struct FuFieldInit {
         } _name;
         FuExpr *_repeat;
         FuExpr *_base;
+        struct {
+            FuLit *lit;
+            FuExpr *init;
+        } _index;
+        FuExpr *_size;
     };
 };
 
@@ -739,13 +744,11 @@ struct FuExpr {
             FuPath *path;
         } _path;
         struct {
-            /* FuNode._field_init */
+            /* FuFieldInit */
             FuVec *field_inits;
-            FuExpr *base_expr;
-            fu_size_t size;
         } _array;
         struct {
-            /* FuNode._field_init */
+            /* FuFieldInit */
             FuVec *fields;
         } _tuple;
         struct {

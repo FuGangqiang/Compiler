@@ -4,9 +4,13 @@
 
 /* expr */
 FIELD(FLD_EXPR, "expr field")
-/* .0 = val0, .x = valx */
+/* .x = valx */
 FIELD(FLD_NAME, "name field")
 /* 0... */
 FIELD(FLD_REPEAT, "repeat field")
 /* ...base */
 FIELD(FLD_BASE, "base field")
+/* .0 = val0 */
+FIELD(FLD_INDEX, "index field")
+/* ;size */
+FIELD(FLD_SIZE, "size field")

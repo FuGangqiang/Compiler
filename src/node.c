@@ -113,6 +113,13 @@ void FuFieldInit_drop(FuFieldInit *init) {
     case FLD_BASE:
         FuExpr_drop(init->_base);
         break;
+    case FLD_INDEX:
+        FuLit_drop(init->_index.lit);
+        FuExpr_drop(init->_index.init);
+        break;
+    case FLD_SIZE:
+        FuExpr_drop(init->_size);
+        break;
     default:
         FATAL(NULL, "can not be here");
         break;
@@ -150,6 +157,19 @@ FuStr *FuFieldInit_display(FuFieldInit *init, fu_size_t indent) {
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "base:\n");
         FuStr_append(str, FuExpr_display(init->_base, indent + 1));
+        break;
+    case FLD_INDEX:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "index:\n");
+        FuStr_append(str, FuLit_display(init->_index.lit, indent + 1));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "init:\n");
+        FuStr_append(str, FuExpr_display(init->_index.init, indent + 1));
+        break;
+    case FLD_SIZE:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "size:\n");
+        FuStr_append(str, FuExpr_display(init->_size, indent + 1));
         break;
     default:
         FATAL(NULL, "can not be here");
@@ -314,6 +334,9 @@ void FuExpr_drop(FuExpr *expr) {
     case EXPR_STRUCT:
         FuExpr_drop(expr->_struct.base);
         FuVec_drop_with_ptrs(expr->_struct.field_inits, (FuDropFn)FuFieldInit_drop);
+        break;
+    case EXPR_ARRAY:
+        FuVec_drop_with_ptrs(expr->_array.field_inits, (FuDropFn)FuFieldInit_drop);
         break;
     case EXPR_FIELD:
         FuPathItem_drop(expr->_field.field);
@@ -485,6 +508,21 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         }
         break;
     }
+    case EXPR_ARRAY: {
+        fu_size_t len = FuVec_len(expr->_array.field_inits);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "field inits len: %d\n", len);
+        if (len > 0) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "field inits:\n");
+            fu_size_t i;
+            for (i = 0; i < len; i++) {
+                FuFieldInit *item = FuVec_get_ptr(expr->_array.field_inits, i);
+                FuStr_append(str, FuFieldInit_display(item, indent + 1));
+            }
+        }
+        break;
+    }
     case EXPR_FIELD:
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "base:\n");
@@ -583,7 +621,7 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         FuStr_append(str, FuExpr_display(nd->_expr.expr, indent + 1));
         break;
     case ND_STATIC:
-        FuStr_push_utf8_cstr(str, "ident:");
+        FuStr_push_utf8_cstr(str, "ident: ");
         FuStr_append(str, FuIdent_display(nd->_static.ident));
         FuStr_push_utf8_cstr(str, "\n");
         FuStr_push_indent(str, indent);
@@ -591,7 +629,7 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         FuStr_append(str, FuExpr_display(nd->_static.init_expr, indent + 1));
         break;
     case ND_CONST:
-        FuStr_push_utf8_cstr(str, "ident:");
+        FuStr_push_utf8_cstr(str, "ident: ");
         FuStr_append(str, FuIdent_display(nd->_const.ident));
         FuStr_push_utf8_cstr(str, "\n");
         FuStr_push_indent(str, indent);

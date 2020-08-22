@@ -1127,15 +1127,28 @@ static FuFieldInit *FuParser_parse_field_init(FuParser *p) {
     /* todo: parse attr */
     tok0 = FuParser_nth_token(p, 0);
     if (tok0.kd == TOK_DOT) {
+        tok1 = FuParser_nth_token(p, 1);
         FuParser_bump(p);
-        FuIdent *ident = FuParser_parse_ident(p);
-        FuParser_expect_token(p, TOK_EQ);
-        FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
-        sp = FuSpan_join(tok0.sp, expr->sp);
-        FuFieldInit *init = FuFieldInit_new(sp, FLD_NAME, attrs);
-        init->_name.ident = ident;
-        init->_name.init = expr;
-        return init;
+        if (tok1.kd == TOK_IDENT) {
+            FuIdent *ident = FuParser_parse_ident(p);
+            FuParser_expect_token(p, TOK_EQ);
+            FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
+            sp = FuSpan_join(tok0.sp, expr->sp);
+            FuFieldInit *init = FuFieldInit_new(sp, FLD_NAME, attrs);
+            init->_name.ident = ident;
+            init->_name.init = expr;
+            return init;
+        } else if (tok1.kd == TOK_INT) {
+            FuLit *lit = FuParser_parse_lit(p);
+            FuParser_expect_token(p, TOK_EQ);
+            FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
+            sp = FuSpan_join(tok0.sp, expr->sp);
+            FuFieldInit *init = FuFieldInit_new(sp, FLD_INDEX, attrs);
+            init->_index.lit = lit;
+            init->_index.init = expr;
+            return init;
+        }
+        FATAL1(tok1.sp, "expect identifier name or array index, but find token: %s", FuKind_token_cstr(tok1.kd));
     }
     if (tok0.kd == TOK_DOT_DOT_DOT) {
         FuParser_bump(p);
@@ -1143,6 +1156,14 @@ static FuFieldInit *FuParser_parse_field_init(FuParser *p) {
         sp = FuSpan_join(tok0.sp, expr->sp);
         FuFieldInit *init = FuFieldInit_new(sp, FLD_BASE, attrs);
         init->_base = expr;
+        return init;
+    }
+    if (tok0.kd == TOK_SEMI) {
+        FuParser_bump(p);
+        FuExpr *size = FuParser_parse_expr(p, 0, FU_TRUE);
+        sp = FuSpan_join(tok0.sp, size->sp);
+        FuFieldInit *init = FuFieldInit_new(sp, FLD_SIZE, attrs);
+        init->_size = size;
         return init;
     }
     FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
@@ -1183,6 +1204,16 @@ static FuExpr *FuParser_parse_struct_expr(FuParser *p, FuExpr *left) {
     expr->_struct.base = left;
     expr->_struct.field_inits = inits;
     return expr;
+}
+
+static FuExpr *FuParser_parser_array_expr(FuParser *p) {
+    FuToken open_tok = FuParser_expect_token(p, TOK_OPEN_BRACKET);
+    FuVec *inits = FuParser_parse_field_inits(p);
+    FuToken close_tok = FuParser_expect_token(p, TOK_CLOSE_BRACKET);
+    FuSpan *sp = FuSpan_join(open_tok.sp, close_tok.sp);
+    FuExpr *array_expr = FuExpr_new(sp, EXPR_ARRAY);
+    array_expr->_array.field_inits = inits;
+    return array_expr;
 }
 
 static FuExpr *FuParser_parse_prefix_expr(FuParser *p, fu_op_k op, fu_op_prec_t prec) {
@@ -1444,6 +1475,9 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
         }
         break;
     }
+    case TOK_OPEN_BRACKET:
+        prefix_expr = FuParser_parser_array_expr(p);
+        break;
     case TOK_LT:
         /* check first invoke, begin expr */
         /* todo: expr->_path.anno */

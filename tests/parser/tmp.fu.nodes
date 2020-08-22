@@ -1,51 +1,40 @@
-nid: 4
+nid: 1
 kd: ND_PKG
 items:
   nid: 0
   kd: ND_STATIC
-  ident:x1
+  ident: xs
   init_expr:
-    kd: EXPR_FIELD
-    base:
-      kd: EXPR_PATH
-      path: point1
-    field: x
-  nid: 1
-  kd: ND_STATIC
-  ident:flag1
-  init_expr:
-    kd: EXPR_METHOD_CALL
-    method:
-      kd: EXPR_FIELD
-      base:
-        kd: EXPR_PATH
-        path: point1
-      field: is_origin
-    args len: 0
-  nid: 2
-  kd: ND_STATIC
-  ident:vector
-  init_expr:
-    kd: EXPR_METHOD_CALL
-    method:
-      kd: EXPR_FIELD
-      base:
-        kd: EXPR_PATH
-        path: point1
-      field: sub
-    args len: 1
-    args:
-      kd: EXPR_PATH
-      path: point2
-  nid: 3
-  kd: ND_STATIC
-  ident:display
-  init_expr:
-    kd: EXPR_CALL
-    fn:
-      kd: EXPR_PATH
-      path: print
-    args len: 1
-    args:
-      kd: EXPR_PATH
-      path: vector
+    kd: EXPR_ARRAY
+    field inits len: 4
+    field inits:
+      kd: FLD_INDEX
+      index:
+        kd: LIT_INT
+        size: 0, is_signed: 0, v: 2
+      init:
+        kd: EXPR_LIT
+        lit:
+          kd: LIT_INT
+          size: 0, is_signed: 0, v: 1
+      kd: FLD_INDEX
+      index:
+        kd: LIT_INT
+        size: 0, is_signed: 0, v: 4
+      init:
+        kd: EXPR_LIT
+        lit:
+          kd: LIT_INT
+          size: 0, is_signed: 0, v: 2
+      kd: FLD_REPEAT
+      repeat:
+        kd: EXPR_LIT
+        lit:
+          kd: LIT_INT
+          size: 0, is_signed: 0, v: 0
+      kd: FLD_SIZE
+      size:
+        kd: EXPR_LIT
+        lit:
+          kd: LIT_INT
+          size: 0, is_signed: 0, v: 10
