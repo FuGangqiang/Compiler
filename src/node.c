@@ -342,6 +342,10 @@ void FuExpr_drop(FuExpr *expr) {
         FuPathItem_drop(expr->_field.field);
         FuExpr_drop(expr->_field.base);
         break;
+    case EXPR_RANGE:
+        FuExpr_drop(expr->_range.start);
+        FuExpr_drop(expr->_range.end);
+        break;
     default:
         FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
     }
@@ -531,6 +535,18 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_push_utf8_cstr(str, "field: ");
         FuStr_append(str, FuPathItem_display(expr->_field.field));
         FuStr_push_utf8_cstr(str, "\n");
+        break;
+    case EXPR_RANGE:
+        if (expr->_range.start) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "start:\n");
+            FuStr_append(str, FuExpr_display(expr->_range.start, indent + 1));
+        }
+        if (expr->_range.end) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "end:\n");
+            FuStr_append(str, FuExpr_display(expr->_range.end, indent + 1));
+        }
         break;
     default:
         FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));

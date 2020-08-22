@@ -1,6 +1,4 @@
-static xs = [
-    .2 = 1,
-    .4 = 2,
-    0...,
-    ;10
-];
+static r = ..;
+static r = ..10;
+static r = 0..;
+static r = 1..10;

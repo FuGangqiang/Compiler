@@ -758,8 +758,8 @@ struct FuExpr {
         } _struct;
         struct {
             fu_bool_t is_inclusive;
-            FuExpr *start_expr;
-            FuExpr *stop_expr;
+            FuExpr *start;
+            FuExpr *end;
         } _range;
         struct {
             FuExpr *base;

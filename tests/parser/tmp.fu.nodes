@@ -1,40 +1,43 @@
-nid: 1
+nid: 4
 kd: ND_PKG
 items:
   nid: 0
   kd: ND_STATIC
-  ident: xs
+  ident: r
   init_expr:
-    kd: EXPR_ARRAY
-    field inits len: 4
-    field inits:
-      kd: FLD_INDEX
-      index:
+    kd: EXPR_RANGE
+  nid: 1
+  kd: ND_STATIC
+  ident: r
+  init_expr:
+    kd: EXPR_RANGE
+    end:
+      kd: EXPR_LIT
+      lit:
         kd: LIT_INT
-        size: 0, is_signed: 0, v: 2
-      init:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 1
-      kd: FLD_INDEX
-      index:
+        size: 0, is_signed: 0, v: 10
+  nid: 2
+  kd: ND_STATIC
+  ident: r
+  init_expr:
+    kd: EXPR_RANGE
+    start:
+      kd: EXPR_LIT
+      lit:
         kd: LIT_INT
-        size: 0, is_signed: 0, v: 4
-      init:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 2
-      kd: FLD_REPEAT
-      repeat:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 0
-      kd: FLD_SIZE
-      size:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 10
+        size: 0, is_signed: 0, v: 0
+  nid: 3
+  kd: ND_STATIC
+  ident: r
+  init_expr:
+    kd: EXPR_RANGE
+    start:
+      kd: EXPR_LIT
+      lit:
+        kd: LIT_INT
+        size: 0, is_signed: 0, v: 1
+    end:
+      kd: EXPR_LIT
+      lit:
+        kd: LIT_INT
+        size: 0, is_signed: 0, v: 10
