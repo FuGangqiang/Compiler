@@ -299,6 +299,7 @@ fu_bool_t FuToken_to_infix_op(FuToken tok, fu_op_k *op) {
         BIND(TOK_OPEN_PAREN, OP_CALL)
         BIND(TOK_OPEN_BRACKET, OP_INDEX)
         BIND(TOK_OPEN_BRACE, OP_STRUCT)
+        BIND(TOK_DOT, OP_FIELD)
     default:
         break;
     }

@@ -1,47 +1,51 @@
-nid: 2
+nid: 4
 kd: ND_PKG
 items:
   nid: 0
   kd: ND_STATIC
-  ident:pa
+  ident:x1
   init_expr:
-    kd: EXPR_STRUCT
+    kd: EXPR_FIELD
     base:
       kd: EXPR_PATH
-      path: Point
-    field inits len: 2
-    field inits:
-      kd: FLD_EXPR
-      expr:
-        kd: EXPR_PATH
-        path: x
-      kd: FLD_REPEAT
-      repeat:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 0
+      path: point1
+    field: x
   nid: 1
   kd: ND_STATIC
-  ident:pb
+  ident:flag1
   init_expr:
-    kd: EXPR_STRUCT
-    base:
-      kd: EXPR_PATH
-      path: Point
-    field inits len: 3
-    field inits:
-      kd: FLD_NAME
-      name: x
-      init:
-        kd: EXPR_PATH
-        path: x
-      kd: FLD_NAME
-      name: y
-      init:
-        kd: EXPR_PATH
-        path: y
-      kd: FLD_BASE
+    kd: EXPR_METHOD_CALL
+    method:
+      kd: EXPR_FIELD
       base:
         kd: EXPR_PATH
-        path: pa
+        path: point1
+      field: is_origin
+    args len: 0
+  nid: 2
+  kd: ND_STATIC
+  ident:vector
+  init_expr:
+    kd: EXPR_METHOD_CALL
+    method:
+      kd: EXPR_FIELD
+      base:
+        kd: EXPR_PATH
+        path: point1
+      field: sub
+    args len: 1
+    args:
+      kd: EXPR_PATH
+      path: point2
+  nid: 3
+  kd: ND_STATIC
+  ident:display
+  init_expr:
+    kd: EXPR_CALL
+    fn:
+      kd: EXPR_PATH
+      path: print
+    args len: 1
+    args:
+      kd: EXPR_PATH
+      path: vector

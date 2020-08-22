@@ -759,8 +759,8 @@ struct FuExpr {
             FuExpr *stop_expr;
         } _range;
         struct {
-            FuExpr *obj_expr;
-            FuIdent *ident;
+            FuExpr *base;
+            FuPathItem *field;
         } _field;
         struct {
             FuExpr *obj;
@@ -780,9 +780,9 @@ struct FuExpr {
             FuVec *args;
         } _call;
         struct {
-            FuExpr *obj_expr;
+            FuExpr *base;
             /* FuExpr */
-            FuVec *expr_args;
+            FuVec *args;
         } _method_call;
         struct {
             fu_op_k op;

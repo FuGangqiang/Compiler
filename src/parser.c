@@ -1087,9 +1087,25 @@ static FuExpr *FuParser_parse_call_expr(FuParser *p, FuExpr *left) {
     FuVec *args = FuParser_parse_fn_args(p);
     FuToken tok = FuParser_expect_token(p, TOK_CLOSE_PAREN);
     FuSpan *sp = FuSpan_join(left->sp, tok.sp);
+    if (left->kd == EXPR_FIELD) {
+        FuExpr *expr = FuExpr_new(sp, EXPR_METHOD_CALL);
+        expr->_method_call.base = left;
+        expr->_method_call.args = args;
+        return expr;
+    }
+    /* todo: tuple struct */
     FuExpr *expr = FuExpr_new(sp, EXPR_CALL);
     expr->_call.base = left;
     expr->_call.args = args;
+    return expr;
+}
+
+static FuExpr *FuParser_parser_field_expr(FuParser *p, FuExpr *left) {
+    FuPathItem *field = FuParser_parse_path_item(p);
+    FuSpan *sp = FuSpan_join(field->sp, left->sp);
+    FuExpr *expr = FuExpr_new(sp, EXPR_FIELD);
+    expr->_field.base = left;
+    expr->_field.field = field;
     return expr;
 }
 
@@ -1198,8 +1214,10 @@ static FuExpr *FuParser_parse_prefix_expr(FuParser *p, fu_op_k op, fu_op_prec_t 
 static FuExpr *FuParser_parse_infix_expr(FuParser *p, FuExpr *left, fu_op_k op, fu_op_prec_t prec) {
     FuToken op_tok = FuParser_bump(p);
     switch (op) {
+        /* todo: macro */
     case OP_FIELD:
-        /* todo: field, fn call, method call, macro */
+        return FuParser_parser_field_expr(p, left);
+        break;
     case OP_CALL:
         return FuParser_parse_call_expr(p, left);
         break;

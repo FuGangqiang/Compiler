@@ -1,3 +1,4 @@
-static pa = Point{x, 0...};
-static pb = Point{.x=x, .y=y, ...pa};
-
+static x1 = point1.x;
+static flag1 = point1.is_origin();
+static vector = point1.sub(point2);
+static display = print(vector);
