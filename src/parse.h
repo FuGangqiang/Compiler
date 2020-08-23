@@ -365,6 +365,7 @@ FuLit *FuToken_to_lit_str(FuToken tok);
 FuLit *FuToken_to_lit_int(FuToken tok);
 FuLit *FuToken_to_lit_float(FuToken tok);
 FuLit *FuToken_to_lit_format_str(FuToken tok);
+FuIdent *FuToken_index_to_ident(FuToken tok);
 
 fu_bool_t FuToken_to_prefix_op(FuToken tok, fu_op_k *op);
 fu_bool_t FuToken_to_infix_op(FuToken tok, fu_op_k *op);
@@ -763,10 +764,10 @@ struct FuExpr {
         } _range;
         struct {
             FuExpr *base;
-            FuPathItem *field;
+            FuIdent *ident;
         } _field;
         struct {
-            FuExpr *obj;
+            FuExpr *base;
             FuExpr *idx;
         } _index;
         struct {
@@ -774,14 +775,14 @@ struct FuExpr {
             FuType *ty;
         } _cast;
         struct {
-            /* fn, or tuple struct */
+            /* fn, or tuple struct constructor*/
             FuExpr *base;
             /* FuExpr */
             FuVec *args;
         } _call;
         struct {
-            FuExpr *base;
-            /* FuExpr */
+            FuPathItem *method;
+            /* FuExpr, first arg is self */
             FuVec *args;
         } _method_call;
         struct {

@@ -332,7 +332,7 @@ fu_bool_t FuToken_to_infix_op(FuToken tok, fu_op_k *op) {
         BIND(TOK_OPEN_PAREN, OP_CALL)
         BIND(TOK_OPEN_BRACKET, OP_INDEX)
         BIND(TOK_OPEN_BRACE, OP_STRUCT)
-        BIND(TOK_DOT, OP_FIELD)
+        BIND(TOK_DOT, OP_DOT)
     default:
         break;
     }
@@ -947,4 +947,17 @@ FuLit *FuToken_to_lit_format_str(FuToken tok) {
     /* todo */
     FuLit *lit = FuLit_new(tok.sp, LIT_FORMAT_STR);
     return lit;
+}
+
+/* integer index convert */
+FuIdent *FuToken_index_to_ident(FuToken tok) {
+    assert(tok.kd == TOK_INT);
+    if (tok._int.base != 10) {
+        FATAL(tok.sp, "invalid index");
+    }
+    FuStr *symbol = FuCtx_get_symbol(tok.sp->ctx, tok._int.sym);
+    if (FuStr_len(symbol) != tok._int.suffix_start) {
+        FATAL(tok.sp, "invalid index");
+    }
+    return FuIdent_new(tok.sp, tok._int.sym);
 }

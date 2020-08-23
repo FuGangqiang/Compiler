@@ -75,14 +75,14 @@ void FuPath_drop(FuPath *path) {
 
 FuStr *FuPath_display(FuPath *path) {
     FuStr *str = FuStr_new();
-    FuPathItem *item = FuVec_get_ptr(path->segments, 0);
-    FuStr_append(str, FuPathItem_display(item));
     fu_size_t len = FuVec_len(path->segments);
     fu_size_t i;
-    for (i = 1; i < len; i++) {
-        FuStr_push_utf8_cstr(str, "::");
-        item = FuVec_get_ptr(path->segments, 0);
+    for (i = 0; i < len; i++) {
+        FuPathItem *item = FuVec_get_ptr(path->segments, i);
         FuStr_append(str, FuPathItem_display(item));
+        if (i < len - 1) {
+            FuStr_push_utf8_cstr(str, "::");
+        }
     }
     return str;
 }
@@ -324,11 +324,11 @@ void FuExpr_drop(FuExpr *expr) {
         FuVec_drop_with_ptrs(expr->_call.args, (FuDropFn)FuExpr_drop);
         break;
     case EXPR_METHOD_CALL:
-        FuExpr_drop(expr->_method_call.base);
+        FuPathItem_drop(expr->_method_call.method);
         FuVec_drop_with_ptrs(expr->_method_call.args, (FuDropFn)FuExpr_drop);
         break;
     case EXPR_INDEX:
-        FuExpr_drop(expr->_index.obj);
+        FuExpr_drop(expr->_index.base);
         FuExpr_drop(expr->_index.idx);
         break;
     case EXPR_STRUCT:
@@ -339,7 +339,7 @@ void FuExpr_drop(FuExpr *expr) {
         FuVec_drop_with_ptrs(expr->_array.field_inits, (FuDropFn)FuFieldInit_drop);
         break;
     case EXPR_FIELD:
-        FuPathItem_drop(expr->_field.field);
+        FuIdent_drop(expr->_field.ident);
         FuExpr_drop(expr->_field.base);
         break;
     case EXPR_RANGE:
@@ -476,8 +476,9 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
     }
     case EXPR_METHOD_CALL: {
         FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "method:\n");
-        FuStr_append(str, FuExpr_display(expr->_method_call.base, indent + 1));
+        FuStr_push_utf8_cstr(str, "method: ");
+        FuStr_append(str, FuPathItem_display(expr->_method_call.method));
+        FuStr_push_utf8_cstr(str, "\n");
         fu_size_t len = FuVec_len(expr->_method_call.args);
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_format(str, "args len: %d\n", len);
@@ -495,7 +496,7 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
     case EXPR_INDEX:
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "obj:\n");
-        FuStr_append(str, FuExpr_display(expr->_index.obj, indent + 1));
+        FuStr_append(str, FuExpr_display(expr->_index.base, indent + 1));
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "idx:\n");
         FuStr_append(str, FuExpr_display(expr->_index.idx, indent + 1));
@@ -538,8 +539,8 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_push_utf8_cstr(str, "base:\n");
         FuStr_append(str, FuExpr_display(expr->_field.base, indent + 1));
         FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "field: ");
-        FuStr_append(str, FuPathItem_display(expr->_field.field));
+        FuStr_push_utf8_cstr(str, "ident: ");
+        FuStr_append(str, FuIdent_display(expr->_field.ident));
         FuStr_push_utf8_cstr(str, "\n");
         break;
     case EXPR_RANGE:

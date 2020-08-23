@@ -228,10 +228,10 @@ void FuVec_remove_slice(FuVec *vec, fu_size_t start, fu_size_t end, FuVec *out_o
 }
 
 void FuVec_insert(FuVec *vec, fu_size_t i, void *value) {
-    if (i >= vec->len) {
+    if (i > vec->len) {
         FATAL(NULL, "index out of range");
     }
-    FuVec_make_room(vec);
+    FuVec_reserve(vec, 1);
     void *src = vec->data + i * vec->item_size;
     void *dest = vec->data + (i + 1) * vec->item_size;
     size_t bytes = (vec->len - i) * vec->item_size;

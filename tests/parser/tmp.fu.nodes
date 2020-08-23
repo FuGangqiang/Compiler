@@ -1,222 +1,55 @@
-nid: 11
+nid: 5
 kd: ND_PKG
 items:
   nid: 0
   kd: ND_STATIC
-  ident: r
+  ident: y1
   init_expr:
-    kd: EXPR_ASSIGN
-    lexpr:
+    kd: EXPR_FIELD
+    base:
       kd: EXPR_PATH
-      path: a
-    rexpr:
-      kd: EXPR_BINARY
-      op: OP_ADD
-      lexpr:
-        kd: EXPR_PATH
-        path: b
-      rexpr:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 1
+      path: geo::point1
+    ident: 0
   nid: 1
   kd: ND_STATIC
-  ident: r
+  ident: x1
   init_expr:
-    kd: EXPR_ASSIGN_OP
-    op: OP_ADD_ASSIGN
-    lexpr:
+    kd: EXPR_FIELD
+    base:
       kd: EXPR_PATH
-      path: a
-    rexpr:
-      kd: EXPR_BINARY
-      op: OP_ADD
-      lexpr:
-        kd: EXPR_PATH
-        path: b
-      rexpr:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 1
+      path: geo::point1
+    ident: x
   nid: 2
   kd: ND_STATIC
-  ident: r
+  ident: flag1
   init_expr:
-    kd: EXPR_ASSIGN_OP
-    op: OP_SUB_ASSIGN
-    lexpr:
+    kd: EXPR_METHOD_CALL
+    method: is_origin
+    args len: 1
+    args:
       kd: EXPR_PATH
-      path: a
-    rexpr:
-      kd: EXPR_BINARY
-      op: OP_ADD
-      lexpr:
-        kd: EXPR_PATH
-        path: b
-      rexpr:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 1
+      path: point1
   nid: 3
   kd: ND_STATIC
-  ident: r
+  ident: vector
   init_expr:
-    kd: EXPR_ASSIGN_OP
-    op: OP_MUL_ASSIGN
-    lexpr:
+    kd: EXPR_METHOD_CALL
+    method: sub
+    args len: 2
+    args:
       kd: EXPR_PATH
-      path: a
-    rexpr:
-      kd: EXPR_BINARY
-      op: OP_ADD
-      lexpr:
-        kd: EXPR_PATH
-        path: b
-      rexpr:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 1
+      path: geo::point1
+      kd: EXPR_PATH
+      path: point2
   nid: 4
   kd: ND_STATIC
-  ident: r
+  ident: display
   init_expr:
-    kd: EXPR_ASSIGN_OP
-    op: OP_DIV_ASSIGN
-    lexpr:
+    kd: EXPR_CALL
+    fn:
       kd: EXPR_PATH
-      path: a
-    rexpr:
-      kd: EXPR_BINARY
-      op: OP_ADD
-      lexpr:
-        kd: EXPR_PATH
-        path: b
-      rexpr:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 1
-  nid: 5
-  kd: ND_STATIC
-  ident: r
-  init_expr:
-    kd: EXPR_ASSIGN_OP
-    op: OP_REM_ASSIGN
-    lexpr:
+      path: print
+    args len: 1
+    args:
       kd: EXPR_PATH
-      path: a
-    rexpr:
-      kd: EXPR_BINARY
-      op: OP_ADD
-      lexpr:
-        kd: EXPR_PATH
-        path: b
-      rexpr:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 1
-  nid: 6
-  kd: ND_STATIC
-  ident: r
-  init_expr:
-    kd: EXPR_ASSIGN_OP
-    op: OP_BIT_AND_ASSIGN
-    lexpr:
-      kd: EXPR_PATH
-      path: a
-    rexpr:
-      kd: EXPR_BINARY
-      op: OP_ADD
-      lexpr:
-        kd: EXPR_PATH
-        path: b
-      rexpr:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 1
-  nid: 7
-  kd: ND_STATIC
-  ident: r
-  init_expr:
-    kd: EXPR_ASSIGN_OP
-    op: OP_BIT_OR_ASSIGN
-    lexpr:
-      kd: EXPR_PATH
-      path: a
-    rexpr:
-      kd: EXPR_BINARY
-      op: OP_ADD
-      lexpr:
-        kd: EXPR_PATH
-        path: b
-      rexpr:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 1
-  nid: 8
-  kd: ND_STATIC
-  ident: r
-  init_expr:
-    kd: EXPR_ASSIGN_OP
-    op: OP_BIT_XOR_ASSIGN
-    lexpr:
-      kd: EXPR_PATH
-      path: a
-    rexpr:
-      kd: EXPR_BINARY
-      op: OP_ADD
-      lexpr:
-        kd: EXPR_PATH
-        path: b
-      rexpr:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 1
-  nid: 9
-  kd: ND_STATIC
-  ident: r
-  init_expr:
-    kd: EXPR_ASSIGN_OP
-    op: OP_SHL_ASSIGN
-    lexpr:
-      kd: EXPR_PATH
-      path: a
-    rexpr:
-      kd: EXPR_BINARY
-      op: OP_ADD
-      lexpr:
-        kd: EXPR_PATH
-        path: b
-      rexpr:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 1
-  nid: 10
-  kd: ND_STATIC
-  ident: r
-  init_expr:
-    kd: EXPR_ASSIGN_OP
-    op: OP_SHR_ASSIGN
-    lexpr:
-      kd: EXPR_PATH
-      path: a
-    rexpr:
-      kd: EXPR_BINARY
-      op: OP_ADD
-      lexpr:
-        kd: EXPR_PATH
-        path: b
-      rexpr:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 1
+      path: vector
