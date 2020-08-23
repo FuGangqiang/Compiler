@@ -45,7 +45,7 @@ static FuToken FuParser_get_token(FuParser *p) {
         /* ignore comment, blank */
         do {
             tok0 = FuLexer_get_token(p->lexer);
-        } while (tok0.kd == TOK_COMMENT || tok0.kd == TOK_WHITESPACE || tok0.kd == TOK_NEWLINE);
+        } while (FuToken_is_blank(tok0));
         FuLexer_unget_token(p->lexer, tok0);
         return FuParser_get_token(p);
         break;
@@ -473,13 +473,15 @@ static FuVec *FuParser_parse_fn_args(FuParser *p) {
     if (!expr) {
         return args;
     }
-    FuVec_push_ptr(args, expr);
-    FuToken tok = FuParser_nth_token(p, 0);
-    while (tok.kd == TOK_COMMA) {
-        FuParser_bump(p);
-        FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
+    FuToken tok;
+    while (1) {
         FuVec_push_ptr(args, expr);
         tok = FuParser_nth_token(p, 0);
+        if (tok.kd != TOK_COMMA) {
+            break;
+        }
+        FuParser_bump(p);
+        expr = FuParser_parse_expr(p, 0, FU_TRUE);
     }
     return args;
 }
@@ -615,16 +617,15 @@ static FuFieldInit *FuParser_parse_field_init(FuParser *p) {
 
 static FuVec *FuParser_parse_field_inits(FuParser *p) {
     FuToken tok;
-
     FuVec *inits = FuVec_new(sizeof(FuNode *));
-    FuFieldInit *init = FuParser_parse_field_init(p);
-    FuVec_push_ptr(inits, init);
-    tok = FuParser_nth_token(p, 0);
-    while (tok.kd == TOK_COMMA) {
-        FuParser_bump(p);
-        init = FuParser_parse_field_init(p);
+    while (1) {
+        FuFieldInit *init = FuParser_parse_field_init(p);
         FuVec_push_ptr(inits, init);
         tok = FuParser_nth_token(p, 0);
+        if (tok.kd != TOK_COMMA) {
+            break;
+        }
+        FuParser_bump(p);
     }
     return inits;
 }
@@ -807,10 +808,12 @@ static FuExpr *FuParser_parse_group_or_tuple_expr(FuParser *p) {
     /* tuple expression */
     if (tok.kd == TOK_COMMA) {
         FuVec *fields = FuVec_new(sizeof(FuExpr *));
-        FuVec_push_ptr(fields, expr);
         while (tok.kd == TOK_COMMA) {
-            expr = FuParser_parse_expr(p, 0, FU_TRUE);
             FuVec_push_ptr(fields, expr);
+            if (tok.kd != TOK_COMMA) {
+                break;
+            }
+            expr = FuParser_parse_expr(p, 0, FU_TRUE);
             tok = FuParser_bump(p);
         }
         if (tok.kd != TOK_CLOSE_PAREN) {

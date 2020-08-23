@@ -204,13 +204,16 @@ fu_bool_t FuToken_is_outer_doc_comment(FuToken tok) {
 }
 
 fu_bool_t FuToken_is_blank(FuToken tok) {
-    if (tok.kd == TOK_NEWLINE) {
+    switch (tok.kd) {
+    case TOK_NEWLINE:
+    case TOK_WHITESPACE:
+    case TOK_COMMENT:
         return FU_TRUE;
+        break;
+    default:
+        return FU_FALSE;
+        break;
     }
-    if (tok.kd == TOK_WHITESPACE) {
-        return FU_TRUE;
-    }
-    return FU_FALSE;
 }
 
 /* token 真正内容从哪里开始 */
