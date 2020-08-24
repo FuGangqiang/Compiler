@@ -1,5 +1,18 @@
 static y1 = {
     const a = 1;
     static b = 2;
+    func(a, b, 1, 2);
+    a += 1;
+    b <<= 2;
+    a = b + 1;
+    break;
+    break 'loop;
+    break 'loop a;
+    continue;
+    continue 'loop;
+    yield a;
+    throw a;
+    await a;
+    return a;
     a + b
 };

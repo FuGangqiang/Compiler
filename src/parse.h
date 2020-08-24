@@ -368,6 +368,7 @@ FuLit *FuToken_to_lit_float(FuToken tok);
 FuLit *FuToken_to_lit_format_str(FuToken tok);
 FuIdent *FuToken_index_to_ident(FuToken tok);
 
+fu_bool_t FuToken_to_assign_op(FuToken tok, fu_op_k *op);
 fu_bool_t FuToken_to_prefix_op(FuToken tok, fu_op_k *op);
 fu_bool_t FuToken_to_infix_op(FuToken tok, fu_op_k *op);
 fu_bool_t FuToken_to_suffix_op(FuToken tok, fu_op_k *op);
@@ -442,16 +443,26 @@ void FuParser_for_file(FuParser *p, char *fpath, fu_size_t len);
 
 FuLit *FuParser_parse_lit(FuParser *p);
 FuIdent *FuParser_parse_ident(FuParser *p);
+FuLabel *FuParser_parse_label(FuParser *p);
 
 FuPathItem *FuParser_parse_path_item(FuParser *p);
 FuPath *FuParser_parse_path(FuParser *p);
 FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 FuBlock *FuParser_parse_block(FuParser *p, fu_bool_t is_async, fu_bool_t is_unsafe, FuLabel *label);
 FuExpr *FuParser_parse_block_expr(FuParser *p);
-fu_vis_k FuParser_parse_visibility(FuParser *p);
 
+fu_vis_k FuParser_parse_visibility(FuParser *p);
 FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_const(FuParser *p, FuVec *attrs, fu_vis_k vis);
+FuNode *FuParser_parse_item_assign(FuParser *p, FuVec *attts, FuExpr *lexpr);
+FuNode *FuParser_parse_item_break(FuParser *p, FuVec *attts);
+FuNode *FuParser_parse_item_continue(FuParser *p, FuVec *attts);
+FuNode *FuParser_parse_item_yield(FuParser *p, FuVec *attts);
+FuNode *FuParser_parse_item_throw(FuParser *p, FuVec *attts);
+FuNode *FuParser_parse_item_await(FuParser *p, FuVec *attts);
+FuNode *FuParser_parse_item_return(FuParser *p, FuVec *attts);
+FuNode *FuParser_parse_item_block(FuParser *p, FuVec *attts);
+
 FuNode *FuParser_parse_mod_item(FuParser *p);
 FuVec *FuParser_parse_mod_items(FuParser *p);
 
@@ -820,36 +831,6 @@ struct FuExpr {
             FuSpan *op_sp;
             FuExpr *expr;
         } _catch;
-        struct {
-            FuSpan *op_sp;
-            FuExpr *lexpr;
-            FuExpr *rexpr;
-        } _assign;
-        struct {
-            fu_op_k op;
-            FuSpan *op_sp;
-            FuExpr *lexpr;
-            FuExpr *rexpr;
-        } _assign_op;
-        struct {
-            FuLabel *label;
-            FuExpr *expr;
-        } _break;
-        struct {
-            FuLabel *label;
-        } _continue;
-        struct {
-            FuExpr *expr;
-        } _yield;
-        struct {
-            FuExpr *expr;
-        } _throw;
-        struct {
-            FuExpr *expr;
-        } _return;
-        struct {
-            FuExpr *expr;
-        } _await;
         FuBlock *_block;
         struct {
             FuScope *scope;
@@ -900,9 +881,6 @@ struct FuExpr {
 FuExpr *FuExpr_new(FuSpan *sp, fu_expr_k kd);
 FuExpr *FuExpr_new_lit(FuLit *lit);
 FuExpr *FuExpr_new_path(FuAnnoSelf *anno, FuPath *path);
-
-fu_bool_t FuExpr_can_endwith_comma(FuExpr *expr);
-fu_bool_t FuExpr_must_endwith_comma(FuExpr *expr);
 
 void FuExpr_drop(FuExpr *expr);
 FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent);
@@ -981,6 +959,7 @@ struct FuNode {
         struct {
             FuType *ty;
             FuExpr *expr;
+            fu_bool_t end_semi;
         } _expr;
         struct {
             fu_vis_k vis;
@@ -1003,6 +982,32 @@ struct FuNode {
             FuType *ty;
             FuExpr *init_expr;
         } _let;
+        struct {
+            fu_op_k op;
+            FuSpan *op_sp;
+            FuExpr *lexpr;
+            FuExpr *rexpr;
+        } _assign;
+        struct {
+            FuLabel *label;
+            FuExpr *expr;
+        } _break;
+        struct {
+            FuLabel *label;
+        } _continue;
+        struct {
+            FuExpr *expr;
+        } _yield;
+        struct {
+            FuExpr *expr;
+        } _throw;
+        struct {
+            FuExpr *expr;
+        } _await;
+        struct {
+            FuExpr *expr;
+        } _return;
+        FuBlock *_block;
         struct {
             FuIdent *ident;
             FuScope *scope;

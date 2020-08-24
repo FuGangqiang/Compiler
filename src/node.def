@@ -14,6 +14,17 @@ NODE(ND_STATIC, "node static")
 /* `const FOO: i32 = 42` */
 NODE(ND_CONST, "node const")
 NODE(ND_LET, "node let")
+/* `a = b`, `a += b` */
+NODE(ND_ASSIGN, "node assign")
+/* `break` */
+NODE(ND_BREAK, "node break")
+/* `continue` */
+NODE(ND_CONTINUE, "node continue")
+NODE(ND_YIELD, "node yield")
+NODE(ND_THROW, "node throw")
+NODE(ND_AWAIT, "node await")
+NODE(ND_RETURN, "node return")
+NODE(ND_BLOCK, "node block")
 /* `fn foo(bar: usize) -> usize { ... }` */
 NODE(ND_FN, "node function")
 NODE(ND_TYPE, "node type")

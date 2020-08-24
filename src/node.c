@@ -319,32 +319,6 @@ FuExpr *FuExpr_new_path(FuAnnoSelf *anno, FuPath *path) {
     return expr;
 }
 
-fu_bool_t FuExpr_must_endwith_comma(FuExpr *expr) {
-    switch (expr->kd) {
-    case EXPR_ASSIGN:
-    case EXPR_ASSIGN_OP:
-    case EXPR_BREAK:
-    case EXPR_CONTINUE:
-    case EXPR_YIELD:
-    case EXPR_THROW:
-    case EXPR_RETURN:
-    case EXPR_AWAIT:
-        return FU_TRUE;
-    default:
-        return FU_FALSE;
-    }
-}
-
-fu_bool_t FuExpr_can_endwith_comma(FuExpr *expr) {
-    switch (expr->kd) {
-    case EXPR_CALL:
-    case EXPR_METHOD_CALL:
-        return FU_TRUE;
-    default:
-        return FuExpr_must_endwith_comma(expr);
-    }
-}
-
 void FuExpr_drop(FuExpr *expr) {
     if (!expr) {
         return;
@@ -367,25 +341,7 @@ void FuExpr_drop(FuExpr *expr) {
         FuExpr_drop(expr->_binary.lexpr);
         FuExpr_drop(expr->_binary.rexpr);
         break;
-    case EXPR_RETURN:
-        FuExpr_drop(expr->_return.expr);
-        break;
-    case EXPR_BREAK:
-        FuExpr_drop(expr->_break.expr);
-        FuLabel_drop(expr->_break.label);
-        break;
-    case EXPR_CONTINUE:
-        FuLabel_drop(expr->_continue.label);
-        break;
-    case EXPR_YIELD:
-        FuExpr_drop(expr->_yield.expr);
-        break;
-    case EXPR_AWAIT:
-        FuExpr_drop(expr->_await.expr);
-        break;
-    case EXPR_THROW:
-        FuExpr_drop(expr->_throw.expr);
-        break;
+
     case EXPR_CALL:
         FuExpr_drop(expr->_call.base);
         FuVec_drop_with_ptrs(expr->_call.args, (FuDropFn)FuExpr_drop);
@@ -412,14 +368,6 @@ void FuExpr_drop(FuExpr *expr) {
     case EXPR_RANGE:
         FuExpr_drop(expr->_range.start);
         FuExpr_drop(expr->_range.end);
-        break;
-    case EXPR_ASSIGN:
-        FuExpr_drop(expr->_assign.lexpr);
-        FuExpr_drop(expr->_assign.rexpr);
-        break;
-    case EXPR_ASSIGN_OP:
-        FuExpr_drop(expr->_assign_op.lexpr);
-        FuExpr_drop(expr->_assign_op.rexpr);
         break;
     case EXPR_BLOCK:
         FuBlock_drop(expr->_block);
@@ -481,51 +429,7 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_push_utf8_cstr(str, "rexpr:\n");
         FuStr_append(str, FuExpr_display(expr->_binary.rexpr, indent + 1));
         break;
-    case EXPR_RETURN:
-        if (expr->_return.expr) {
-            FuStr_push_indent(str, indent);
-            FuStr_push_utf8_cstr(str, "expr:\n");
-            FuStr_append(str, FuExpr_display(expr->_return.expr, indent + 1));
-        }
-        break;
-    case EXPR_BREAK:
-        if (expr->_break.label) {
-            FuStr_push_indent(str, indent);
-            FuStr_push_utf8_cstr(str, "label: ");
-            FuStr_append(str, FuLabel_display(expr->_break.label));
-            FuStr_push_utf8_cstr(str, "\n");
-        }
-        if (expr->_break.expr) {
-            FuStr_push_indent(str, indent);
-            FuStr_push_utf8_cstr(str, "expr:\n");
-            FuStr_append(str, FuExpr_display(expr->_break.expr, indent + 1));
-        }
-        break;
-    case EXPR_CONTINUE:
-        if (expr->_continue.label) {
-            FuStr_push_indent(str, indent);
-            FuStr_push_utf8_cstr(str, "label: ");
-            FuStr_append(str, FuLabel_display(expr->_continue.label));
-            FuStr_push_utf8_cstr(str, "\n");
-        }
-        break;
-    case EXPR_YIELD:
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "expr:\n");
-        FuStr_append(str, FuExpr_display(expr->_yield.expr, indent + 1));
-        break;
-    case EXPR_AWAIT:
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "expr:\n");
-        FuStr_append(str, FuExpr_display(expr->_await.expr, indent + 1));
-        break;
-    case EXPR_THROW:
-        if (expr->_throw.expr) {
-            FuStr_push_indent(str, indent);
-            FuStr_push_utf8_cstr(str, "expr:\n");
-            FuStr_append(str, FuExpr_display(expr->_throw.expr, indent + 1));
-        }
-        break;
+
     case EXPR_CALL: {
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "fn:\n");
@@ -625,24 +529,6 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
             FuStr_append(str, FuExpr_display(expr->_range.end, indent + 1));
         }
         break;
-    case EXPR_ASSIGN:
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "lexpr:\n");
-        FuStr_append(str, FuExpr_display(expr->_assign.lexpr, indent + 1));
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "rexpr:\n");
-        FuStr_append(str, FuExpr_display(expr->_assign.rexpr, indent + 1));
-        break;
-    case EXPR_ASSIGN_OP:
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_format(str, "op: %s\n", FuKind_op_cstr(expr->_assign_op.op));
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "lexpr:\n");
-        FuStr_append(str, FuExpr_display(expr->_assign_op.lexpr, indent + 1));
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "rexpr:\n");
-        FuStr_append(str, FuExpr_display(expr->_assign_op.rexpr, indent + 1));
-        break;
     case EXPR_BLOCK:
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "block:\n");
@@ -678,6 +564,32 @@ void FuNode_drop(FuNode *nd) {
     case ND_CONST:
         FuExpr_drop(nd->_const.init_expr);
         FuIdent_drop(nd->_const.ident);
+        break;
+    case ND_ASSIGN:
+        FuExpr_drop(nd->_assign.lexpr);
+        FuExpr_drop(nd->_assign.rexpr);
+        break;
+    case ND_BREAK:
+        FuExpr_drop(nd->_break.expr);
+        FuLabel_drop(nd->_break.label);
+        break;
+    case ND_CONTINUE:
+        FuLabel_drop(nd->_continue.label);
+        break;
+    case ND_YIELD:
+        FuExpr_drop(nd->_yield.expr);
+        break;
+    case ND_THROW:
+        FuExpr_drop(nd->_throw.expr);
+        break;
+    case ND_AWAIT:
+        FuExpr_drop(nd->_await.expr);
+        break;
+    case ND_RETURN:
+        FuExpr_drop(nd->_return.expr);
+        break;
+    case ND_BLOCK:
+        FuBlock_drop(nd->_block);
         break;
     case ND_PKG:
         FuScope_drop(nd->_pkg.globals);
@@ -730,13 +642,14 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
     FuStr_push_utf8_format(str, "nid: %d\n", nd->nid);
     FuStr_push_indent(str, indent);
     FuStr_push_utf8_format(str, "kd: %s\n", FuKind_node_cstr(nd->kd));
-    FuStr_push_indent(str, indent);
     switch (nd->kd) {
     case ND_EXPR:
+        FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "expr:\n");
         FuStr_append(str, FuExpr_display(nd->_expr.expr, indent + 1));
         break;
     case ND_STATIC:
+        FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "ident: ");
         FuStr_append(str, FuIdent_display(nd->_static.ident));
         FuStr_push_utf8_cstr(str, "\n");
@@ -745,6 +658,7 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         FuStr_append(str, FuExpr_display(nd->_static.init_expr, indent + 1));
         break;
     case ND_CONST:
+        FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "ident: ");
         FuStr_append(str, FuIdent_display(nd->_const.ident));
         FuStr_push_utf8_cstr(str, "\n");
@@ -752,7 +666,68 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         FuStr_push_utf8_cstr(str, "init_expr:\n");
         FuStr_append(str, FuExpr_display(nd->_const.init_expr, indent + 1));
         break;
+    case ND_ASSIGN:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "op: %s\n", FuKind_op_cstr(nd->_assign.op));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "lexpr:\n");
+        FuStr_append(str, FuExpr_display(nd->_assign.lexpr, indent + 1));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "rexpr:\n");
+        FuStr_append(str, FuExpr_display(nd->_assign.rexpr, indent + 1));
+        break;
+    case ND_BREAK:
+        if (nd->_break.label) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "label: ");
+            FuStr_append(str, FuLabel_display(nd->_break.label));
+            FuStr_push_utf8_cstr(str, "\n");
+        }
+        if (nd->_break.expr) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "expr:\n");
+            FuStr_append(str, FuExpr_display(nd->_break.expr, indent + 1));
+        }
+        break;
+    case ND_CONTINUE:
+        if (nd->_continue.label) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "label: ");
+            FuStr_append(str, FuLabel_display(nd->_continue.label));
+            FuStr_push_utf8_cstr(str, "\n");
+        }
+        break;
+    case ND_YIELD:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "expr:\n");
+        FuStr_append(str, FuExpr_display(nd->_yield.expr, indent + 1));
+        break;
+    case ND_THROW:
+        if (nd->_throw.expr) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "expr:\n");
+            FuStr_append(str, FuExpr_display(nd->_throw.expr, indent + 1));
+        }
+        break;
+    case ND_AWAIT:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "expr:\n");
+        FuStr_append(str, FuExpr_display(nd->_await.expr, indent + 1));
+        break;
+    case ND_RETURN:
+        if (nd->_return.expr) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "expr:\n");
+            FuStr_append(str, FuExpr_display(nd->_return.expr, indent + 1));
+        }
+        break;
+    case ND_BLOCK:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "block:\n");
+        FuStr_append(str, FuBlock_display(nd->_block, indent + 1));
+        break;
     case ND_PKG:
+        FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "items:\n");
         FuStr_append(str, FuNode_display_items(nd->_pkg.items, indent + 1));
         break;

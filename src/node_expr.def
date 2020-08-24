@@ -35,22 +35,6 @@ EXPR(EXPR_METHOD_CALL, "expr method call")
 EXPR(EXPR_UNARY, "expr unary")
 /* `a + b` */
 EXPR(EXPR_BINARY, "expr binary")
-/* `a = b` */
-EXPR(EXPR_ASSIGN, "expr assign")
-/* `a += b` */
-EXPR(EXPR_ASSIGN_OP, "expr assign op")
-/* `break` */
-EXPR(EXPR_BREAK, "expr break")
-/* `continue` */
-EXPR(EXPR_CONTINUE, "expr continue")
-/* `yield expr` */
-EXPR(EXPR_YIELD, "expr yield")
-/* `throw expr` */
-EXPR(EXPR_THROW, "expr throw")
-/* `return` */
-EXPR(EXPR_RETURN, "expr return")
-/* `await future` */
-EXPR(EXPR_AWAIT, "expr await")
 /* `{ block }` */
 EXPR(EXPR_BLOCK, "expr block")
 EXPR(EXPR_CLOSURE, "expr closure")

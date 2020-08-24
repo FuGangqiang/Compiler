@@ -278,6 +278,25 @@ FuStr *FuToken_display(FuToken tok) {
     }
 /* clang-format on */
 
+fu_bool_t FuToken_to_assign_op(FuToken tok, fu_op_k *op) {
+    switch (tok.kd) {
+        BIND(TOK_EQ, OP_ASSIGN)
+        BIND(TOK_PLUS_EQ, OP_ADD_ASSIGN)
+        BIND(TOK_MINUS_EQ, OP_SUB_ASSIGN)
+        BIND(TOK_STAR_EQ, OP_MUL_ASSIGN)
+        BIND(TOK_SLASH_EQ, OP_DIV_ASSIGN)
+        BIND(TOK_PERCENT_EQ, OP_REM_ASSIGN)
+        BIND(TOK_AND_EQ, OP_BIT_AND_ASSIGN)
+        BIND(TOK_OR_EQ, OP_BIT_OR_ASSIGN)
+        BIND(TOK_CARET_EQ, OP_BIT_XOR_ASSIGN)
+        BIND(TOK_SHL_EQ, OP_SHL_ASSIGN)
+        BIND(TOK_SHR_EQ, OP_SHR_ASSIGN)
+    default:
+        break;
+    }
+    return FU_FALSE;
+}
+
 fu_bool_t FuToken_to_prefix_op(FuToken tok, fu_op_k *op) {
     switch (tok.kd) {
         BIND(TOK_STAR, OP_DEREF)
@@ -311,17 +330,6 @@ fu_bool_t FuToken_to_infix_op(FuToken tok, fu_op_k *op) {
         BIND(TOK_CARET, OP_BIT_XOR)
         BIND(TOK_SHL, OP_SHL)
         BIND(TOK_SHR, OP_SHR)
-        BIND(TOK_EQ, OP_ASSIGN)
-        BIND(TOK_PLUS_EQ, OP_ADD_ASSIGN)
-        BIND(TOK_MINUS_EQ, OP_SUB_ASSIGN)
-        BIND(TOK_STAR_EQ, OP_MUL_ASSIGN)
-        BIND(TOK_SLASH_EQ, OP_DIV_ASSIGN)
-        BIND(TOK_PERCENT_EQ, OP_REM_ASSIGN)
-        BIND(TOK_AND_EQ, OP_BIT_AND_ASSIGN)
-        BIND(TOK_OR_EQ, OP_BIT_OR_ASSIGN)
-        BIND(TOK_CARET_EQ, OP_BIT_XOR_ASSIGN)
-        BIND(TOK_SHL_EQ, OP_SHL_ASSIGN)
-        BIND(TOK_SHR_EQ, OP_SHR_ASSIGN)
         BIND(TOK_LT, OP_LT)
         BIND(TOK_LE, OP_LE)
         BIND(TOK_GT, OP_GT)

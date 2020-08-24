@@ -1,7 +1,7 @@
-nid: 4
+nid: 17
 kd: ND_PKG
 items:
-  nid: 3
+  nid: 16
   kd: ND_STATIC
   ident: y1
   init_expr:
@@ -27,6 +27,102 @@ items:
             kd: LIT_INT
             size: 0, is_signed: 0, v: 2
         nid: 2
+        kd: ND_EXPR
+        expr:
+          kd: EXPR_CALL
+          fn:
+            kd: EXPR_PATH
+            path: func
+          args len: 4
+          args:
+            kd: EXPR_PATH
+            path: a
+            kd: EXPR_PATH
+            path: b
+            kd: EXPR_LIT
+            lit:
+              kd: LIT_INT
+              size: 0, is_signed: 0, v: 1
+            kd: EXPR_LIT
+            lit:
+              kd: LIT_INT
+              size: 0, is_signed: 0, v: 2
+        nid: 3
+        kd: ND_ASSIGN
+        op: OP_ADD_ASSIGN
+        lexpr:
+          kd: EXPR_PATH
+          path: a
+        rexpr:
+          kd: EXPR_LIT
+          lit:
+            kd: LIT_INT
+            size: 0, is_signed: 0, v: 1
+        nid: 4
+        kd: ND_ASSIGN
+        op: OP_SHL_ASSIGN
+        lexpr:
+          kd: EXPR_PATH
+          path: b
+        rexpr:
+          kd: EXPR_LIT
+          lit:
+            kd: LIT_INT
+            size: 0, is_signed: 0, v: 2
+        nid: 5
+        kd: ND_ASSIGN
+        op: OP_ASSIGN
+        lexpr:
+          kd: EXPR_PATH
+          path: a
+        rexpr:
+          kd: EXPR_BINARY
+          op: OP_ADD
+          lexpr:
+            kd: EXPR_PATH
+            path: b
+          rexpr:
+            kd: EXPR_LIT
+            lit:
+              kd: LIT_INT
+              size: 0, is_signed: 0, v: 1
+        nid: 6
+        kd: ND_BREAK
+        nid: 7
+        kd: ND_BREAK
+        label: 'loop
+        nid: 8
+        kd: ND_BREAK
+        label: 'loop
+        expr:
+          kd: EXPR_PATH
+          path: a
+        nid: 9
+        kd: ND_CONTINUE
+        nid: 10
+        kd: ND_CONTINUE
+        label: 'loop
+        nid: 11
+        kd: ND_YIELD
+        expr:
+          kd: EXPR_PATH
+          path: a
+        nid: 12
+        kd: ND_THROW
+        expr:
+          kd: EXPR_PATH
+          path: a
+        nid: 13
+        kd: ND_AWAIT
+        expr:
+          kd: EXPR_PATH
+          path: a
+        nid: 14
+        kd: ND_RETURN
+        expr:
+          kd: EXPR_PATH
+          path: a
+        nid: 15
         kd: ND_EXPR
         expr:
           kd: EXPR_BINARY
