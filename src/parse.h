@@ -431,7 +431,6 @@ struct FuParser {
     FuLexer *lexer;
     /* FuToken */
     FuVec *tok_buf;
-    fu_size_t cursor;
     fu_bool_t in_tok_tree;
     /* FuToken */
     FuVec *unclosed_delims;

@@ -9,7 +9,6 @@ FuParser *FuParser_new(FuCtx *ctx) {
     FuParser *p = FuMem_new(FuParser);
     p->ctx = ctx;
     p->tok_buf = FuVec_new(sizeof(FuToken));
-    p->cursor = 0;
     p->unclosed_delims = FuVec_new(sizeof(FuToken));
     return p;
 }
@@ -350,12 +349,11 @@ static FuToken FuParser_get_token(FuParser *p) {
 }
 
 static FuToken FuParser_nth_token(FuParser *p, fu_size_t n) {
-    fu_size_t i = p->cursor + n;
-    while (i >= FuVec_len(p->tok_buf)) {
+    while (n >= FuVec_len(p->tok_buf)) {
         FuToken tok = FuParser_get_token(p);
         FuVec_push(p->tok_buf, &tok);
     }
-    return *(FuToken *)FuVec_get(p->tok_buf, i);
+    return *(FuToken *)FuVec_get(p->tok_buf, n);
 }
 
 static fu_bool_t FuParser_is_eof(FuParser *p) {
@@ -368,9 +366,7 @@ static fu_bool_t FuParser_is_eof(FuParser *p) {
 
 static FuToken FuParser_bump(FuParser *p) {
     FuToken cur_tok = FuParser_nth_token(p, 0);
-    FuVec_remove_slice(p->tok_buf, 0, p->cursor + 1, NULL);
-    FuToken tok = FuParser_get_token(p);
-    FuVec_push(p->tok_buf, &tok);
+    FuVec_remove_slice(p->tok_buf, 0, 1, NULL);
     return cur_tok;
 }
 

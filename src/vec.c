@@ -222,7 +222,7 @@ void FuVec_remove_slice(FuVec *vec, fu_size_t start, fu_size_t end, FuVec *out_o
     }
     void *src = vec->data + end * vec->item_size;
     void *dest = vec->data + start * vec->item_size;
-    size_t bytes = (end - start) * vec->item_size;
+    size_t bytes = (vec->len - end) * vec->item_size;
     memmove(dest, src, bytes);
     vec->len -= end - start;
 }
