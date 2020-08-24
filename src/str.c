@@ -258,7 +258,7 @@ fu_bool_t FuStr_eq_cstr(FuStr *str, char *cstr) {
 void FuStr_read_file(FuStr *str, char *fpath, fu_size_t len) {
     FILE *f = fopen(fpath, "r");
     if (!f) {
-        FATAL1(NULL, "can not open file: %s", fpath);
+        FATAL1(NULL, "can not open file: `%s`", fpath);
     }
     fseek(f, 0, SEEK_END);
     long fsize = ftell(f);

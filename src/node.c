@@ -252,7 +252,7 @@ FuStr *FuLit_display(FuLit *lit, fu_size_t indent) {
         FuStr_push_utf8_cstr(str, "\n");
         break;
     default:
-        FATAL1(lit->sp, "unimplemented, lit: %s\n", FuKind_lit_cstr(lit->kd));
+        FATAL1(lit->sp, "unimplemented lit: `%s`\n", FuKind_lit_cstr(lit->kd));
         break;
     }
     return str;
@@ -373,7 +373,7 @@ void FuExpr_drop(FuExpr *expr) {
         FuBlock_drop(expr->_block);
         break;
     default:
-        FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
+        FATAL1(expr->sp, "unimplemented expr: `%s`", FuKind_expr_cstr(expr->kd));
     }
     FuMem_free(expr);
 }
@@ -535,7 +535,7 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_append(str, FuBlock_display(expr->_block, indent + 1));
         break;
     default:
-        FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
+        FATAL1(expr->sp, "unimplemented expr: `%s`", FuKind_expr_cstr(expr->kd));
     }
     return str;
 }
@@ -599,7 +599,7 @@ void FuNode_drop(FuNode *nd) {
         FuVec_drop(nd->_pkg.items);
         break;
     default:
-        FATAL1(NULL, "unimplemented: %s", FuKind_node_cstr(nd->kd));
+        FATAL1(NULL, "unimplemented node: `%s`", FuKind_node_cstr(nd->kd));
     }
     if (nd->attrs) {
         /* todo: attr drop */
@@ -732,7 +732,7 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         FuStr_append(str, FuNode_display_items(nd->_pkg.items, indent + 1));
         break;
     default:
-        FATAL1(NULL, "unimplemented: %s", FuKind_node_cstr(nd->kd));
+        FATAL1(NULL, "unimplemented node: `%s`", FuKind_node_cstr(nd->kd));
         break;
     }
     return str;

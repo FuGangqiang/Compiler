@@ -382,10 +382,10 @@ static FuSpan *FuParser_current_span(FuParser *p) {
 static FuToken FuParser_expect_keyword(FuParser *p, fu_keyword_k kd) {
     FuToken tok = FuParser_nth_token(p, 0);
     if (tok.kd != TOK_KEYWORD) {
-        FATAL2(tok.sp, "expect %s, find token: %s", FuKind_keyword_cstr(kd), FuKind_token_cstr(tok.kd));
+        FATAL2(tok.sp, "expect `%s`, find `%s`", FuKind_keyword_cstr(kd), FuToken_kind_csr(tok));
     }
     if (tok.sym != kd) {
-        FATAL2(tok.sp, "expect %s, find keyword: %s", FuKind_keyword_cstr(kd), FuKind_keyword_cstr(tok.sym));
+        FATAL2(tok.sp, "expect `%s`, find `%s`", FuKind_keyword_cstr(kd), FuToken_kind_csr(tok));
     }
     return FuParser_bump(p);
 }
@@ -393,7 +393,7 @@ static FuToken FuParser_expect_keyword(FuParser *p, fu_keyword_k kd) {
 static FuToken FuParser_expect_token(FuParser *p, fu_token_k kd) {
     FuToken tok = FuParser_nth_token(p, 0);
     if (tok.kd != kd) {
-        FATAL2(tok.sp, "expect token: %s, find token: %s", FuKind_token_cstr(kd), FuKind_token_cstr(tok.kd));
+        FATAL2(tok.sp, "expect `%s`, find `%s`", FuKind_token_cstr(kd), FuToken_kind_csr(tok));
     }
     return FuParser_bump(p);
 }
@@ -401,7 +401,7 @@ static FuToken FuParser_expect_token(FuParser *p, fu_token_k kd) {
 static FuToken FuParser_expect_token_fn(FuParser *p, FuCheckTokenFn fn, char *wanted) {
     FuToken tok = FuParser_nth_token(p, 0);
     if (!fn(tok)) {
-        FATAL2(tok.sp, "expect %s, find token: %s", wanted, FuKind_token_cstr(tok.kd));
+        FATAL2(tok.sp, "expect `%s`, find `%s`", wanted, FuToken_kind_csr(tok));
     }
     return FuParser_bump(p);
 }
@@ -444,7 +444,7 @@ FuLit *FuParser_parse_lit(FuParser *p) {
         } else if (tok.sym == KW_TRUE || tok.sym == KW_FALSE) {
             lit = FuToken_to_lit_bool(tok);
         } else {
-            FATAL(tok.sp, "expect literal");
+            FATAL1(tok.sp, "expect literal, find `%s`", FuToken_kind_csr(tok));
         }
         break;
     case TOK_BYTE:
@@ -469,7 +469,7 @@ FuLit *FuParser_parse_lit(FuParser *p) {
         break;
     case TOK_FORMAT_STR:
     case TOK_FORMAT_RAW_STR:
-        FATAL1(tok.sp, "unimplemented: %s", FuKind_token_cstr(tok.kd));
+        FATAL1(tok.sp, "unimplemented lit: `%s`", FuToken_kind_csr(tok));
         break;
     default:
         FATAL(tok.sp, "can not be here");
@@ -593,7 +593,7 @@ static FuFieldInit *FuParser_parse_field_init(FuParser *p) {
             init->_index.init = expr;
             return init;
         }
-        FATAL1(tok1.sp, "expect identifier name or array index, but find token: %s", FuKind_token_cstr(tok1.kd));
+        FATAL1(tok1.sp, "expect identifier name or array index, find `%s`", FuToken_kind_csr(tok1));
     }
     if (tok0.kd == TOK_DOT_DOT_DOT) {
         FuParser_bump(p);
@@ -727,7 +727,7 @@ static FuExpr *FuParser_parse_infix_expr(FuParser *p, FuExpr *left, fu_op_k op, 
         break;
     }
     case OP_CAST:
-        FATAL1(op_tok.sp, "unimplemented op: ", FuKind_op_cstr(op));
+        FATAL1(op_tok.sp, "unimplemented op: `%s`", FuKind_op_cstr(op));
         break;
     default: {
         FuParser_bump(p);
@@ -793,14 +793,14 @@ static FuExpr *FuParser_parse_group_or_tuple_expr(FuParser *p) {
             tok = FuParser_bump(p);
         }
         if (tok.kd != TOK_CLOSE_PAREN) {
-            FATAL1(tok.sp, "expect `)`, find token: ", FuKind_token_cstr(tok.kd));
+            FATAL1(tok.sp, "expect `)`, find `%s`", FuToken_kind_csr(tok));
         }
         FuSpan *sp = FuSpan_join(open_tok.sp, tok.sp);
         FuExpr *tuple_expr = FuExpr_new(sp, EXPR_TUPLE);
         tuple_expr->_tuple.fields = fields;
         return tuple_expr;
     }
-    FATAL1(tok.sp, "expect ), but found tok: %s", FuKind_token_cstr(tok.kd));
+    FATAL1(tok.sp, "expect `)`, find tok: `%s`", FuToken_kind_csr(tok));
     return NULL;
 }
 
@@ -831,7 +831,7 @@ static fu_bool_t FuParser_check_block(FuParser *p) {
         if (tok.kd == TOK_LABEL) {
             tok1 = FuParser_nth_token(p, 1);
             if (tok1.kd != TOK_COLON) {
-                FATAL1(tok1.sp, "expect `:`, but find token: %s", FuKind_token_cstr(tok1.kd));
+                FATAL1(tok1.sp, "expect `:`, find `%s`", FuToken_kind_csr(tok1));
             }
             i += 2;
             continue;
@@ -875,7 +875,7 @@ static FuNode *FuParser_parse_item_block_keyword(FuParser *p, FuVec *attrs, fu_v
         }
         break;
     default:
-        FATAL1(tok.sp, "unimplement item: %s", FuKind_keyword_cstr(tok.sym));
+        FATAL1(tok.sp, "unimplement item: `%s`", FuKind_keyword_cstr(tok.sym));
         break;
     }
     return NULL;
@@ -895,7 +895,7 @@ static FuNode *FuParser_parse_block_item(FuParser *p) {
             return FuParser_parse_item_block(p, attrs);
             break;
         }
-        FATAL1(tok.sp, "umimplement block item: %s", FuKind_token_cstr(tok.kd));
+        FATAL1(tok.sp, "umimplement block item: `%s`", FuToken_kind_csr(tok));
         break;
     default: {
         FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
@@ -984,7 +984,7 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
         expr = FuParser_parse_block_expr(p);
         return expr;
     }
-    FATAL1(tok.sp, "unimplemented keyword expr: %s", FuKind_keyword_cstr(tok.sym));
+    FATAL1(tok.sp, "unimplemented keyword expr: `%s`", FuKind_keyword_cstr(tok.sym));
     return NULL;
 }
 
@@ -1021,7 +1021,7 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
     case TOK_LT:
         /* check first invoke, begin expr */
         /* todo: expr->_path.anno */
-        FATAL1(tok.sp, "unimplemented expr: %s", FuKind_token_cstr(tok.kd));
+        FATAL1(tok.sp, "unimplemented expr: `%s`", FuToken_kind_csr(tok));
     case TOK_IDENT: {
         FuPath *path = FuParser_parse_path(p);
         /* todo: macro parse */
@@ -1050,7 +1050,7 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
         fu_op_k prefix_op;
         if (!FuToken_to_prefix_op(tok, &prefix_op)) {
             if (check_null) {
-                FATAL1(tok.sp, "expect expression, find token: %s", FuKind_token_cstr(tok.kd));
+                FATAL1(tok.sp, "expect expression, find `%s`", FuToken_kind_csr(tok));
             } else {
                 return NULL;
             }
@@ -1195,7 +1195,7 @@ FuNode *FuParser_parse_item_assign(FuParser *p, FuVec *attrs, FuExpr *lexpr) {
     nd->attrs = attrs;
     nd->_assign.lexpr = lexpr;
     if (!FuToken_to_assign_op(op_tok, &(nd->_assign.op))) {
-        FATAL1(op_tok.sp, "expect assign, find token: %s", FuKind_token_cstr(op_tok.kd));
+        FATAL1(op_tok.sp, "expect assign, find `%s`", FuToken_kind_csr(op_tok));
     }
     nd->_assign.op_sp = op_tok.sp;
     nd->_assign.rexpr = rexpr;
@@ -1319,7 +1319,7 @@ FuNode *FuParser_parse_mod_item(FuParser *p) {
     if (tok.kd != TOK_KEYWORD) {
         /* todo: attr drop */
         FuVec_drop(attrs);
-        FATAL1(tok.sp, "expect item keyword, find tok: %s", FuKind_token_cstr(tok.kd));
+        FATAL1(tok.sp, "expect item keyword, find `%s`", FuToken_kind_csr(tok));
     }
     switch (tok.sym) {
     case KW_STATIC:
@@ -1329,7 +1329,7 @@ FuNode *FuParser_parse_mod_item(FuParser *p) {
         item = FuParser_parse_item_const(p, attrs, vis);
         break;
     default:
-        FATAL1(tok.sp, "unimplement item: %s", FuKind_keyword_cstr(tok.sym));
+        FATAL1(tok.sp, "unimplement item: `%s`", FuKind_keyword_cstr(tok.sym));
         item = NULL;
         break;
     }

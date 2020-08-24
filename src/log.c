@@ -32,6 +32,7 @@ FuStr *FuLog_dispaly(FuLog *log) {
     FuStr_push(str, '\n');
     if (log->sp) {
         FuStr_append(str, FuSpan_line(log->sp));
+        FuStr_push(str, '\n');
     }
     return str;
 }

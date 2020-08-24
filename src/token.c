@@ -267,6 +267,13 @@ FuStr *FuToken_display(FuToken tok) {
     return str;
 }
 
+char *FuToken_kind_csr(FuToken tok) {
+    if (tok.kd == TOK_KEYWORD) {
+        return FuKind_keyword_cstr(tok.sym);
+    }
+    return FuKind_token_cstr(tok.kd);
+}
+
 /* clang-format off */
 #define BIND(tok_kind, op_kind) \
     case tok_kind: {            \

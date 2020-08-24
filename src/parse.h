@@ -376,6 +376,7 @@ fu_bool_t FuToken_to_suffix_op(FuToken tok, fu_op_k *op);
 fu_size_t FuToken_left_skip_count(FuToken tok);
 
 FuStr *FuToken_display(FuToken tok);
+char* FuToken_kind_csr(FuToken tok);
 
 struct FuLexer {
     FuCtx *ctx;
