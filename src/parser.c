@@ -825,7 +825,7 @@ static fu_bool_t FuParser_check_block(FuParser *p) {
             continue;
         }
         if (tok.kd == TOK_LABEL) {
-            tok1 = FuParser_nth_token(p, 1);
+            tok1 = FuParser_nth_token(p, i + 1);
             if (tok1.kd != TOK_COLON) {
                 FATAL1(tok1.sp, "expect `:`, find `%s`", FuToken_kind_csr(tok1));
             }
@@ -913,7 +913,7 @@ static FuNode *FuParser_parse_block_item(FuParser *p) {
     return NULL;
 }
 
-FuBlock *FuParser_parse_block(FuParser *p, fu_bool_t is_async, fu_bool_t is_unsafe, FuLabel *label) {
+FuBlock *FuParser_parse_block(FuParser *p) {
     FuToken open_tok = FuParser_expect_token(p, TOK_OPEN_BRACE);
     FuVec *items = FuVec_new(sizeof(FuNode *));
     FuNode *item;
@@ -943,9 +943,6 @@ FuBlock *FuParser_parse_block(FuParser *p, fu_bool_t is_async, fu_bool_t is_unsa
     FuToken close_tok = FuParser_expect_token(p, TOK_CLOSE_BRACE);
     FuSpan *sp = FuSpan_join(open_tok.sp, close_tok.sp);
     FuBlock *blk = FuBlock_new(sp);
-    blk->is_async = is_async;
-    blk->is_unsafe = is_unsafe;
-    blk->label = label;
     blk->items = items;
     return blk;
 }
@@ -958,10 +955,13 @@ FuExpr *FuParser_parse_block_expr(FuParser *p) {
     if (label) {
         FuParser_expect_token(p, TOK_COLON);
     }
-    FuBlock *blk = FuParser_parse_block(p, is_async, is_unsafe, label);
+    FuBlock *blk = FuParser_parse_block(p);
     FuSpan *sp = FuSpan_join(lo, blk->sp);
     FuExpr *expr = FuExpr_new(sp, EXPR_BLOCK);
-    expr->_block = blk;
+    expr->_block.is_async = is_async;
+    expr->_block.is_unsafe = is_unsafe;
+    expr->_block.label = label;
+    expr->_block.block = blk;
     return expr;
 }
 
@@ -1298,11 +1298,14 @@ FuNode *FuParser_parse_item_block(FuParser *p, FuVec *attrs) {
     if (label) {
         FuParser_expect_token(p, TOK_COLON);
     }
-    FuBlock *blk = FuParser_parse_block(p, is_async, is_unsafe, label);
+    FuBlock *blk = FuParser_parse_block(p);
     FuSpan *sp = FuSpan_join(lo, blk->sp);
     FuNode *nd = FuNode_new(p->ctx, sp, ND_BLOCK);
     nd->attrs = attrs;
-    nd->_block = blk;
+    nd->_block.is_async = is_async;
+    nd->_block.is_unsafe = is_unsafe;
+    nd->_block.label = label;
+    nd->_block.block = blk;
     return nd;
 }
 

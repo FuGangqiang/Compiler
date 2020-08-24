@@ -448,7 +448,7 @@ FuLabel *FuParser_parse_label(FuParser *p);
 FuPathItem *FuParser_parse_path_item(FuParser *p);
 FuPath *FuParser_parse_path(FuParser *p);
 FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
-FuBlock *FuParser_parse_block(FuParser *p, fu_bool_t is_async, fu_bool_t is_unsafe, FuLabel *label);
+FuBlock *FuParser_parse_block(FuParser *p);
 FuExpr *FuParser_parse_block_expr(FuParser *p);
 
 fu_vis_k FuParser_parse_visibility(FuParser *p);
@@ -588,12 +588,8 @@ struct FuAttr {
 struct FuBlock {
     FuSpan *sp;
     FuScope *scope;
-    fu_bool_t is_async;
-    fu_bool_t is_unsafe;
-    FuLabel *label;
     /* FuNode */
     FuVec *items;
-    fu_bool_t end_comma;
 };
 
 FuBlock *FuBlock_new(FuSpan *sp);
@@ -831,7 +827,12 @@ struct FuExpr {
             FuSpan *op_sp;
             FuExpr *expr;
         } _catch;
-        FuBlock *_block;
+        struct {
+            fu_bool_t is_async;
+            fu_bool_t is_unsafe;
+            FuLabel *label;
+            FuBlock *block;
+        } _block;
         struct {
             FuScope *scope;
             /* FuNode._fn_param */
@@ -1007,7 +1008,12 @@ struct FuNode {
         struct {
             FuExpr *expr;
         } _return;
-        FuBlock *_block;
+        struct {
+            fu_bool_t is_async;
+            fu_bool_t is_unsafe;
+            FuLabel *label;
+            FuBlock *block;
+        } _block;
         struct {
             FuIdent *ident;
             FuScope *scope;

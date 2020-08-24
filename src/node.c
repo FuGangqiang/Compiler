@@ -269,23 +269,12 @@ void FuBlock_drop(FuBlock *blk) {
         return;
     }
     FuScope_drop(blk->scope);
-    FuLabel_drop(blk->label);
     FuVec_drop(blk->items);
     FuMem_free(blk);
 }
 
 FuStr *FuBlock_display(FuBlock *blk, fu_size_t indent) {
     FuStr *str = FuStr_new();
-    FuStr_push_indent(str, indent);
-    FuStr_push_utf8_format(str, "is_async: %d\n", blk->is_async);
-    FuStr_push_indent(str, indent);
-    FuStr_push_utf8_format(str, "is_unsafe: %d\n", blk->is_unsafe);
-    if (blk->label) {
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "label: ");
-        FuStr_append(str, FuLabel_display(blk->label));
-        FuStr_push_utf8_cstr(str, "\n");
-    }
     fu_size_t len = FuVec_len(blk->items);
     if (len) {
         FuStr_push_indent(str, indent);
@@ -370,7 +359,8 @@ void FuExpr_drop(FuExpr *expr) {
         FuExpr_drop(expr->_range.end);
         break;
     case EXPR_BLOCK:
-        FuBlock_drop(expr->_block);
+        FuLabel_drop(expr->_block.label);
+        FuBlock_drop(expr->_block.block);
         break;
     default:
         FATAL1(expr->sp, "unimplemented expr: `%s`", FuKind_expr_cstr(expr->kd));
@@ -531,8 +521,18 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         break;
     case EXPR_BLOCK:
         FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "is_async: %d\n", expr->_block.is_async);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "is_unsafe: %d\n", expr->_block.is_unsafe);
+        if (expr->_block.label) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "label: ");
+            FuStr_append(str, FuLabel_display(expr->_block.label));
+            FuStr_push_utf8_cstr(str, "\n");
+        }
+        FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "block:\n");
-        FuStr_append(str, FuBlock_display(expr->_block, indent + 1));
+        FuStr_append(str, FuBlock_display(expr->_block.block, indent + 1));
         break;
     default:
         FATAL1(expr->sp, "unimplemented expr: `%s`", FuKind_expr_cstr(expr->kd));
@@ -589,7 +589,8 @@ void FuNode_drop(FuNode *nd) {
         FuExpr_drop(nd->_return.expr);
         break;
     case ND_BLOCK:
-        FuBlock_drop(nd->_block);
+        FuLabel_drop(nd->_block.label);
+        FuBlock_drop(nd->_block.block);
         break;
     case ND_PKG:
         FuScope_drop(nd->_pkg.globals);
@@ -723,8 +724,18 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         break;
     case ND_BLOCK:
         FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "is_async: %d\n", nd->_block.is_async);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "is_unsafe: %d\n", nd->_block.is_unsafe);
+        if (nd->_block.label) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "label: ");
+            FuStr_append(str, FuLabel_display(nd->_block.label));
+            FuStr_push_utf8_cstr(str, "\n");
+        }
+        FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "block:\n");
-        FuStr_append(str, FuBlock_display(nd->_block, indent + 1));
+        FuStr_append(str, FuBlock_display(nd->_block.block, indent + 1));
         break;
     case ND_PKG:
         FuStr_push_indent(str, indent);
