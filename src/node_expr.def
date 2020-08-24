@@ -44,8 +44,6 @@ EXPR(EXPR_LET_COND, "expr let cond")
 EXPR(EXPR_IF, "expr if")
 /* `while expr { block }` */
 EXPR(EXPR_WHILE, "expr while")
-/* `do { block } while expr` */
-EXPR(EXPR_DO_WHILE, "expr do while")
 /* `for pat in expr { block }` */
 EXPR(EXPR_FOR, "expr for")
 /* `loop { block }` */

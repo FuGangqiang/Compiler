@@ -10,7 +10,6 @@ class
 const
 continue
 defer
-do
 dyn
 else
 enum
