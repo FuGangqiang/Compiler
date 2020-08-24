@@ -2,7 +2,7 @@
 #error "You must define VIS macro before include this file"
 #endif
 
-VIS(VIS_PRI, "private visual")
+VIS(VIS_PRIV, "private visual")
 VIS(VIS_BUILTIN, "builtin visual")
 VIS(VIS_PUB, "pub visual")
 VIS(VIS_PKG, "pkg visual")

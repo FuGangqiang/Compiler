@@ -1,5 +1,5 @@
-static y1 = geo::point1.0;
-static x1 = geo::point1.x;
-static flag1 = point1.is_origin();
-static vector = geo::point1.sub(point2);
-static display = print(vector);
+static y1 = {
+    const a = 1;
+    static b = 2;
+    a + b
+};

@@ -52,6 +52,7 @@ typedef struct FuLit FuLit;
 
 typedef struct FuAnnoSelf FuAnnoSelf;
 typedef struct FuAttr FuAttr;
+typedef struct FuBlock FuBlock;
 typedef struct FuFieldInit FuFieldInit;
 typedef struct FuGeArg FuGeArg;
 typedef struct FuGeBound FuGeBound;
@@ -445,6 +446,8 @@ FuIdent *FuParser_parse_ident(FuParser *p);
 FuPathItem *FuParser_parse_path_item(FuParser *p);
 FuPath *FuParser_parse_path(FuParser *p);
 FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
+FuBlock *FuParser_parse_block(FuParser *p, fu_bool_t is_async, fu_bool_t is_unsafe, FuLabel *label);
+FuExpr *FuParser_parse_block_expr(FuParser *p);
 fu_vis_k FuParser_parse_visibility(FuParser *p);
 
 FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis);
@@ -570,6 +573,21 @@ struct FuAttr {
         FuStr *_doc_comment;
     };
 };
+
+struct FuBlock {
+    FuSpan *sp;
+    FuScope *scope;
+    fu_bool_t is_async;
+    fu_bool_t is_unsafe;
+    FuLabel *label;
+    /* FuNode */
+    FuVec *items;
+    fu_bool_t end_comma;
+};
+
+FuBlock *FuBlock_new(FuSpan *sp);
+void FuBlock_drop(FuBlock *blk);
+FuStr *FuBlock_display(FuBlock *blk, fu_size_t indent);
 
 struct FuUse {
     FuSpan *sp;
@@ -832,14 +850,7 @@ struct FuExpr {
         struct {
             FuExpr *expr;
         } _await;
-        struct {
-            fu_bool_t is_unsafe;
-            fu_bool_t is_async;
-            FuScope *scope;
-            FuLabel *label;
-            /* FuNode */
-            FuVec *items;
-        } _block;
+        FuBlock *_block;
         struct {
             FuScope *scope;
             /* FuNode._fn_param */
@@ -889,6 +900,9 @@ struct FuExpr {
 FuExpr *FuExpr_new(FuSpan *sp, fu_expr_k kd);
 FuExpr *FuExpr_new_lit(FuLit *lit);
 FuExpr *FuExpr_new_path(FuAnnoSelf *anno, FuPath *path);
+
+fu_bool_t FuExpr_can_endwith_comma(FuExpr *expr);
+fu_bool_t FuExpr_must_endwith_comma(FuExpr *expr);
 
 void FuExpr_drop(FuExpr *expr);
 FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent);

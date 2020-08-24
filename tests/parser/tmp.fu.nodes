@@ -1,55 +1,39 @@
-nid: 5
+nid: 4
 kd: ND_PKG
 items:
-  nid: 0
+  nid: 3
   kd: ND_STATIC
   ident: y1
   init_expr:
-    kd: EXPR_FIELD
-    base:
-      kd: EXPR_PATH
-      path: geo::point1
-    ident: 0
-  nid: 1
-  kd: ND_STATIC
-  ident: x1
-  init_expr:
-    kd: EXPR_FIELD
-    base:
-      kd: EXPR_PATH
-      path: geo::point1
-    ident: x
-  nid: 2
-  kd: ND_STATIC
-  ident: flag1
-  init_expr:
-    kd: EXPR_METHOD_CALL
-    method: is_origin
-    args len: 1
-    args:
-      kd: EXPR_PATH
-      path: point1
-  nid: 3
-  kd: ND_STATIC
-  ident: vector
-  init_expr:
-    kd: EXPR_METHOD_CALL
-    method: sub
-    args len: 2
-    args:
-      kd: EXPR_PATH
-      path: geo::point1
-      kd: EXPR_PATH
-      path: point2
-  nid: 4
-  kd: ND_STATIC
-  ident: display
-  init_expr:
-    kd: EXPR_CALL
-    fn:
-      kd: EXPR_PATH
-      path: print
-    args len: 1
-    args:
-      kd: EXPR_PATH
-      path: vector
+    kd: EXPR_BLOCK
+    block:
+      is_async: 0
+      is_unsafe: 0
+      items:
+        nid: 0
+        kd: ND_CONST
+        ident: a
+        init_expr:
+          kd: EXPR_LIT
+          lit:
+            kd: LIT_INT
+            size: 0, is_signed: 0, v: 1
+        nid: 1
+        kd: ND_STATIC
+        ident: b
+        init_expr:
+          kd: EXPR_LIT
+          lit:
+            kd: LIT_INT
+            size: 0, is_signed: 0, v: 2
+        nid: 2
+        kd: ND_EXPR
+        expr:
+          kd: EXPR_BINARY
+          op: OP_ADD
+          lexpr:
+            kd: EXPR_PATH
+            path: a
+          rexpr:
+            kd: EXPR_PATH
+            path: b

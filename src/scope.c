@@ -13,6 +13,9 @@ FuScope *FuScope_new(FuCtx *ctx, FuScope *super, fu_sym_t name) {
 }
 
 void FuScope_drop(FuScope *scp) {
+    if (!scp) {
+        return;
+    }
     FuMap_drop(scp->types);
     FuMem_free(scp);
 }

@@ -258,6 +258,47 @@ FuStr *FuLit_display(FuLit *lit, fu_size_t indent) {
     return str;
 }
 
+FuBlock *FuBlock_new(FuSpan *sp) {
+    FuBlock *blk = FuMem_new(FuBlock);
+    blk->sp = sp;
+    return blk;
+}
+
+void FuBlock_drop(FuBlock *blk) {
+    if (!blk) {
+        return;
+    }
+    FuScope_drop(blk->scope);
+    FuLabel_drop(blk->label);
+    FuVec_drop(blk->items);
+    FuMem_free(blk);
+}
+
+FuStr *FuBlock_display(FuBlock *blk, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "is_async: %d\n", blk->is_async);
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "is_unsafe: %d\n", blk->is_unsafe);
+    if (blk->label) {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "label: ");
+        FuStr_append(str, FuLabel_display(blk->label));
+        FuStr_push_utf8_cstr(str, "\n");
+    }
+    fu_size_t len = FuVec_len(blk->items);
+    if (len) {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "items:\n");
+        fu_size_t i;
+        for (i = 0; i < len; i++) {
+            FuNode *item = FuVec_get_ptr(blk->items, i);
+            FuStr_append(str, FuNode_display(item, indent + 1));
+        }
+    }
+    return str;
+}
+
 FuExpr *FuExpr_new(FuSpan *sp, fu_expr_k kd) {
     FuExpr *expr = FuMem_new(FuExpr);
     expr->sp = sp;
@@ -276,6 +317,32 @@ FuExpr *FuExpr_new_path(FuAnnoSelf *anno, FuPath *path) {
     expr->_path.anno = anno;
     expr->_path.path = path;
     return expr;
+}
+
+fu_bool_t FuExpr_must_endwith_comma(FuExpr *expr) {
+    switch (expr->kd) {
+    case EXPR_ASSIGN:
+    case EXPR_ASSIGN_OP:
+    case EXPR_BREAK:
+    case EXPR_CONTINUE:
+    case EXPR_YIELD:
+    case EXPR_THROW:
+    case EXPR_RETURN:
+    case EXPR_AWAIT:
+        return FU_TRUE;
+    default:
+        return FU_FALSE;
+    }
+}
+
+fu_bool_t FuExpr_can_endwith_comma(FuExpr *expr) {
+    switch (expr->kd) {
+    case EXPR_CALL:
+    case EXPR_METHOD_CALL:
+        return FU_TRUE;
+    default:
+        return FuExpr_must_endwith_comma(expr);
+    }
 }
 
 void FuExpr_drop(FuExpr *expr) {
@@ -353,6 +420,9 @@ void FuExpr_drop(FuExpr *expr) {
     case EXPR_ASSIGN_OP:
         FuExpr_drop(expr->_assign_op.lexpr);
         FuExpr_drop(expr->_assign_op.rexpr);
+        break;
+    case EXPR_BLOCK:
+        FuBlock_drop(expr->_block);
         break;
     default:
         FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));
@@ -572,6 +642,11 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "rexpr:\n");
         FuStr_append(str, FuExpr_display(expr->_assign_op.rexpr, indent + 1));
+        break;
+    case EXPR_BLOCK:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "block:\n");
+        FuStr_append(str, FuBlock_display(expr->_block, indent + 1));
         break;
     default:
         FATAL1(expr->sp, "unimplemented: %s", FuKind_expr_cstr(expr->kd));

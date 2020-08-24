@@ -424,6 +424,18 @@ static fu_bool_t FuParser_check_token_fn(FuParser *p, FuCheckTokenFn fn) {
 }
 */
 
+fu_bool_t FuParser_eat_keyword(FuParser *p, fu_keyword_k kw) {
+    FuToken tok = FuParser_nth_token(p, 0);
+    if (tok.kd != TOK_KEYWORD) {
+        return FU_FALSE;
+    }
+    if (tok.sym == kw) {
+        FuParser_bump(p);
+        return FU_TRUE;
+    }
+    return FU_FALSE;
+}
+
 FuLit *FuParser_parse_lit(FuParser *p) {
     FuToken tok = FuParser_expect_token_fn(p, FuToken_is_lit, "literal");
     FuLit *lit = NULL;
@@ -917,6 +929,8 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
         return keyword_expr;
         break;
     } break;
+    case KW_ASYNC:
+    case KW_UNSAFE:
     case KW_IF:
     case KW_MATCH:
     case KW_WHILE:
@@ -931,6 +945,126 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
         break;
     }
     return NULL;
+}
+
+fu_bool_t FuParser_check_block_expr(FuParser *p) {
+    FuToken tok, tok1;
+    fu_size_t i = 0;
+    while (1) {
+        tok = FuParser_nth_token(p, i);
+        if (tok.kd == TOK_EOF) {
+            return FU_FALSE;
+        }
+        if (tok.kd == TOK_OPEN_BRACE) {
+            return FU_TRUE;
+        }
+        if (tok.kd == TOK_KEYWORD && (tok.sym == KW_ASYNC || tok.sym == KW_UNSAFE)) {
+            i++;
+            continue;
+        }
+        if (tok.kd == TOK_LABEL) {
+            tok1 = FuParser_nth_token(p, 1);
+            if (tok1.kd != TOK_COLON) {
+                FATAL1(tok1.sp, "expect `:`, but find token: %s", FuKind_token_cstr(tok1.kd));
+            }
+            i += 2;
+            continue;
+        }
+        break;
+    }
+    return FU_FALSE;
+}
+
+FuNode *FuParser_parse_block_item(FuParser *p) {
+    FuNode *item;
+    FuVec *attrs = FuVec_new(sizeof(FuAttr *));
+    /* todo: attrs */
+    FuToken tok = FuParser_nth_token(p, 0);
+    switch (tok.kd) {
+    case TOK_KEYWORD:
+        switch (tok.sym) {
+        case KW_STATIC:
+            item = FuParser_parse_item_static(p, attrs, VIS_PRIV);
+            break;
+        case KW_CONST:
+            item = FuParser_parse_item_const(p, attrs, VIS_PRIV);
+            break;
+        case KW_UNSAFE:
+        case KW_ASYNC:
+            if (FuParser_check_block_expr(p)) {
+                FuExpr *expr = FuParser_parse_block_expr(p);
+                item = FuNode_new(p->ctx, expr->sp, ND_EXPR);
+                item->_expr.expr = expr;
+            }
+            break;
+        default:
+            FATAL1(tok.sp, "unimplement block item: %s", FuKind_keyword_cstr(tok.sym));
+            break;
+        }
+        break;
+    default: {
+        FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
+        item = FuNode_new(p->ctx, expr->sp, ND_EXPR);
+        item->attrs = attrs;
+        item->_expr.expr = expr;
+        break;
+    }
+    }
+    return item;
+}
+
+FuBlock *FuParser_parse_block(FuParser *p, fu_bool_t is_async, fu_bool_t is_unsafe, FuLabel *label) {
+    FuToken open_tok = FuParser_expect_token(p, TOK_OPEN_BRACE);
+    FuVec *items = FuVec_new(sizeof(FuNode *));
+    FuToken tok;
+    FuNode *item;
+    while (1) {
+        tok = FuParser_nth_token(p, 0);
+        if (tok.kd == TOK_CLOSE_BRACE) {
+            break;
+        }
+        item = FuParser_parse_block_item(p);
+        FuVec_push_ptr(items, item);
+        if (item->kd != ND_EXPR) {
+            continue;
+        }
+        /* expr check */
+        if (FuExpr_must_endwith_comma(item->_expr.expr)) {
+            FuParser_expect_token(p, TOK_COMMA);
+            continue;
+        }
+        tok = FuParser_nth_token(p, 0);
+        if (FuExpr_can_endwith_comma(item->_expr.expr) && tok.kd == TOK_COMMA) {
+            FuParser_bump(p);
+            continue;
+        }
+        if (tok.kd == TOK_COMMA) {
+            FATAL(tok.sp, "unneeded comma");
+        }
+    }
+    FuToken close_tok = FuParser_expect_token(p, TOK_CLOSE_BRACE);
+    FuSpan *sp = FuSpan_join(open_tok.sp, close_tok.sp);
+    FuBlock *blk = FuBlock_new(sp);
+    blk->is_async = is_async;
+    blk->is_unsafe = is_unsafe;
+    blk->label = label;
+    blk->items = items;
+    return blk;
+}
+
+FuExpr *FuParser_parse_block_expr(FuParser *p) {
+    FuSpan *lo = FuParser_current_span(p);
+    fu_bool_t is_async = FuParser_eat_keyword(p, KW_ASYNC);
+    fu_bool_t is_unsafe = FuParser_eat_keyword(p, KW_UNSAFE);
+    FuLabel *label = FuParser_parse_label(p);
+    if (label) {
+        FuParser_expect_token(p, TOK_COLON);
+    }
+    FuBlock *blk = FuParser_parse_block(p, is_async, is_unsafe, label);
+    FuSpan *sp = FuSpan_join(lo, blk->sp);
+    FuExpr *expr = FuExpr_new(sp, EXPR_BLOCK);
+    expr->_block = blk;
+    return expr;
 }
 
 FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null) {
@@ -960,6 +1094,8 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
         if (tok.sym == KW_NIL || tok.sym == KW_TRUE || tok.sym == KW_FALSE) {
             FuLit *lit = FuParser_parse_lit(p);
             prefix_expr = FuExpr_new_lit(lit);
+        } else if (FuParser_check_block_expr(p)) {
+            prefix_expr = FuParser_parse_block_expr(p);
         } else {
             /* other keyword */
             prefix_expr = FuParser_parse_keyword_expr(p);
@@ -989,6 +1125,14 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
         */
         break;
     }
+    case TOK_LABEL:
+    case TOK_OPEN_BRACE:
+        if (FuParser_check_block_expr(p)) {
+            prefix_expr = FuParser_parse_block_expr(p);
+        } else {
+            FATAL(tok.sp, "unimplemented expr");
+        }
+        break;
     default: {
         fu_op_k prefix_op;
         if (!FuToken_to_prefix_op(tok, &prefix_op)) {
@@ -1079,7 +1223,8 @@ FuPath *FuParser_parse_path(FuParser *p) {
 fu_vis_k FuParser_parse_visibility(FuParser *p) {
     FuToken tok = FuParser_nth_token(p, 0);
     if (tok.kd != TOK_KEYWORD) {
-        return VIS_PRI;
+        return VIS_PRIV;
+        ;
     }
     switch (tok.sym) {
     case KW_PUB:
@@ -1091,7 +1236,7 @@ fu_vis_k FuParser_parse_visibility(FuParser *p) {
         return VIS_PKG;
         break;
     default:
-        return VIS_PRI;
+        return VIS_PRIV;
         break;
     }
 }
