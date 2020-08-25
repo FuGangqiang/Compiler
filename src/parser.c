@@ -473,6 +473,63 @@ FuLit *FuParser_parse_lit(FuParser *p) {
     return lit;
 }
 
+/*
+  关键字 nil, true, false 的 kd 属于 TOK_IDENT，
+  这样在宏里面这些关键字可以统一作为 TOK_IDENT 类型
+ */
+FuIdent *FuParser_parse_ident(FuParser *p) {
+    FuSpan *sp = FuParser_current_span(p);
+    FuToken tok = FuParser_expect_token_fn(p, FuToken_is_ident, "expect ident");
+    FuIdent *ident = FuMem_new(FuIdent);
+    ident->sp = sp;
+    ident->name = tok.sym;
+    return ident;
+}
+
+FuPathItem *FuParser_parse_path_item(FuParser *p) {
+    FuSpan *lo = FuParser_current_span(p);
+    FuIdent *ident = FuParser_parse_ident(p);
+    FuVec *ge_args = NULL;
+    /* todo: generic
+    if (FuParser_check_2_token(p, TOK_POUND, TOK_LT)) {
+        ge_args = FuParser_parse_ge_args(p);
+    }
+    */
+    FuPathItem *item = FuMem_new(FuPathItem);
+    item->sp = FuSpan_join(lo, FuParser_current_span(p));
+    item->ident = ident;
+    item->ge_args = ge_args;
+    return item;
+}
+
+/* todo: generic */
+FuPath *FuParser_parse_path(FuParser *p) {
+    FuPath *path = FuMem_new(FuPath);
+    path->segments = FuVec_new(sizeof(FuPathItem *));
+    while (1) {
+        FuPathItem *item = FuParser_parse_path_item(p);
+        FuVec_push_ptr(path->segments, item);
+        if (FuParser_check_token(p, TOK_MOD_SEP)) {
+            FuParser_bump(p);
+        } else {
+            break;
+        }
+    }
+    FuPathItem *start = FuVec_first_ptr(path->segments);
+    FuPathItem *end = FuVec_last_ptr(path->segments);
+    path->sp = FuSpan_join(start->sp, end->sp);
+    return path;
+}
+
+FuLabel *FuParser_parse_label(FuParser *p) {
+    FuToken tok = FuParser_nth_token(p, 0);
+    if (tok.kd != TOK_LABEL) {
+        return NULL;
+    }
+    FuParser_bump(p);
+    return FuLabel_new(tok.sp, tok.sym);
+}
+
 static FuVec *FuParser_parse_fn_args(FuParser *p) {
     FuVec *args = FuVec_new(sizeof(FuExpr *));
     FuExpr *expr = FuParser_parse_expr(p, 0, FU_FALSE);
@@ -798,15 +855,6 @@ static FuExpr *FuParser_parse_group_or_tuple_expr(FuParser *p) {
     }
     FATAL1(tok.sp, "expect `)`, find tok: `%s`", FuToken_kind_csr(tok));
     return NULL;
-}
-
-FuLabel *FuParser_parse_label(FuParser *p) {
-    FuToken tok = FuParser_nth_token(p, 0);
-    if (tok.kd != TOK_LABEL) {
-        return NULL;
-    }
-    FuParser_bump(p);
-    return FuLabel_new(tok.sp, tok.sym);
 }
 
 static fu_bool_t FuParser_check_block(FuParser *p) {
@@ -1164,54 +1212,6 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
         break;
     }
     return left;
-}
-
-/*
-  关键字 nil, true, false 的 kd 属于 TOK_IDENT，
-  这样在宏里面这些关键字可以统一作为 TOK_IDENT 类型
- */
-FuIdent *FuParser_parse_ident(FuParser *p) {
-    FuSpan *sp = FuParser_current_span(p);
-    FuToken tok = FuParser_expect_token_fn(p, FuToken_is_ident, "expect ident");
-    FuIdent *ident = FuMem_new(FuIdent);
-    ident->sp = sp;
-    ident->name = tok.sym;
-    return ident;
-}
-
-FuPathItem *FuParser_parse_path_item(FuParser *p) {
-    FuSpan *lo = FuParser_current_span(p);
-    FuIdent *ident = FuParser_parse_ident(p);
-    FuVec *ge_args = NULL;
-    /* todo: generic
-    if (FuParser_check_2_token(p, TOK_POUND, TOK_LT)) {
-        ge_args = FuParser_parse_ge_args(p);
-    }
-    */
-    FuPathItem *item = FuMem_new(FuPathItem);
-    item->sp = FuSpan_join(lo, FuParser_current_span(p));
-    item->ident = ident;
-    item->ge_args = ge_args;
-    return item;
-}
-
-/* todo: generic */
-FuPath *FuParser_parse_path(FuParser *p) {
-    FuPath *path = FuMem_new(FuPath);
-    path->segments = FuVec_new(sizeof(FuPathItem *));
-    while (1) {
-        FuPathItem *item = FuParser_parse_path_item(p);
-        FuVec_push_ptr(path->segments, item);
-        if (FuParser_check_token(p, TOK_MOD_SEP)) {
-            FuParser_bump(p);
-        } else {
-            break;
-        }
-    }
-    FuPathItem *start = FuVec_first_ptr(path->segments);
-    FuPathItem *end = FuVec_last_ptr(path->segments);
-    path->sp = FuSpan_join(start->sp, end->sp);
-    return path;
 }
 
 fu_vis_k FuParser_parse_visibility(FuParser *p) {
