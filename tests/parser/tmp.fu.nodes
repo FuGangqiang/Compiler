@@ -48,6 +48,7 @@ items:
                   size: 0, is_signed: 0, v: 4
           nid: 1
           kd: ND_EXPR
+          end_semi: 0
           expr:
             kd: EXPR_METHOD_CALL
             method: map

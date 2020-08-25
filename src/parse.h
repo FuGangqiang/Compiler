@@ -878,6 +878,7 @@ struct FuExpr {
 FuExpr *FuExpr_new(FuSpan *sp, fu_expr_k kd);
 FuExpr *FuExpr_new_lit(FuLit *lit);
 FuExpr *FuExpr_new_path(FuAnnoSelf *anno, FuPath *path);
+fu_bool_t FuExpr_can_endwith_semi(FuExpr *expr);
 
 void FuExpr_drop(FuExpr *expr);
 FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent);
@@ -986,12 +987,6 @@ struct FuNode {
         struct {
             FuExpr *expr;
         } _return;
-        struct {
-            fu_bool_t is_async;
-            fu_bool_t is_unsafe;
-            FuLabel *label;
-            FuBlock *block;
-        } _block;
         struct {
             FuExpr *cond_expr;
             FuExpr *block;

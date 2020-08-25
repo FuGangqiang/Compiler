@@ -898,13 +898,17 @@ static FuNode *FuParser_parse_block_item(FuParser *p) {
         if (FuParser_check_token_fn(p, FuToken_is_assign)) {
             return FuParser_parse_item_assign(p, attrs, expr);
         }
-        tok = FuParser_nth_token(p, 0);
         FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
         nd->attrs = attrs;
         nd->_expr.expr = expr;
+        tok = FuParser_nth_token(p, 0);
         if (tok.kd == TOK_SEMI) {
-            FuParser_bump(p);
-            nd->_expr.end_semi = FU_TRUE;
+            if (FuExpr_can_endwith_semi(expr)) {
+                nd->_expr.end_semi = FU_TRUE;
+                FuParser_bump(p);
+            } else {
+                FATAL(tok.sp, "can not insert semicolon after this expression");
+            }
         }
         return nd;
         break;
@@ -934,7 +938,7 @@ FuBlock *FuParser_parse_block(FuParser *p) {
             if (item->kd != ND_EXPR) {
                 continue;
             }
-            if (!item->_expr.end_semi) {
+            if (FuExpr_can_endwith_semi(item->_expr.expr) && !item->_expr.end_semi) {
                 FATAL(item->sp, "expression should end with semicolon");
             }
         }
@@ -1372,21 +1376,10 @@ FuNode *FuParser_parse_item_return(FuParser *p, FuVec *attrs) {
 }
 
 FuNode *FuParser_parse_item_block(FuParser *p, FuVec *attrs) {
-    FuSpan *lo = FuParser_current_span(p);
-    fu_bool_t is_async = FuParser_eat_keyword(p, KW_ASYNC);
-    fu_bool_t is_unsafe = FuParser_eat_keyword(p, KW_UNSAFE);
-    FuLabel *label = FuParser_parse_label(p);
-    if (label) {
-        FuParser_expect_token(p, TOK_COLON);
-    }
-    FuBlock *blk = FuParser_parse_block(p);
-    FuSpan *sp = FuSpan_join(lo, blk->sp);
-    FuNode *nd = FuNode_new(p->ctx, sp, ND_BLOCK);
+    FuExpr *expr = FuParser_parse_block_expr(p);
+    FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
     nd->attrs = attrs;
-    nd->_block.is_async = is_async;
-    nd->_block.is_unsafe = is_unsafe;
-    nd->_block.label = label;
-    nd->_block.block = blk;
+    nd->_expr.expr = expr;
     return nd;
 }
 

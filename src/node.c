@@ -333,6 +333,17 @@ FuExpr *FuExpr_new_path(FuAnnoSelf *anno, FuPath *path) {
     return expr;
 }
 
+fu_bool_t FuExpr_can_endwith_semi(FuExpr *expr) {
+    switch (expr->kd) {
+    case EXPR_CALL:
+    case EXPR_METHOD_CALL:
+        return FU_TRUE;
+    default:
+        return FU_FALSE;
+        break;
+    }
+}
+
 void FuExpr_drop(FuExpr *expr) {
     if (!expr) {
         return;
@@ -634,10 +645,6 @@ void FuNode_drop(FuNode *nd) {
     case ND_RETURN:
         FuExpr_drop(nd->_return.expr);
         break;
-    case ND_BLOCK:
-        FuLabel_drop(nd->_block.label);
-        FuBlock_drop(nd->_block.block);
-        break;
     case ND_PKG:
         FuScope_drop(nd->_pkg.globals);
         FuScope_drop(nd->_pkg.builtins);
@@ -691,6 +698,8 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
     FuStr_push_utf8_format(str, "kd: %s\n", FuKind_node_cstr(nd->kd));
     switch (nd->kd) {
     case ND_EXPR:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "end_semi: %d\n", nd->_expr.end_semi);
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "expr:\n");
         FuStr_append(str, FuExpr_display(nd->_expr.expr, indent + 1));
@@ -767,21 +776,6 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
             FuStr_push_utf8_cstr(str, "expr:\n");
             FuStr_append(str, FuExpr_display(nd->_return.expr, indent + 1));
         }
-        break;
-    case ND_BLOCK:
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_format(str, "is_async: %d\n", nd->_block.is_async);
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_format(str, "is_unsafe: %d\n", nd->_block.is_unsafe);
-        if (nd->_block.label) {
-            FuStr_push_indent(str, indent);
-            FuStr_push_utf8_cstr(str, "label: ");
-            FuStr_append(str, FuLabel_display(nd->_block.label));
-            FuStr_push_utf8_cstr(str, "\n");
-        }
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "block:\n");
-        FuStr_append(str, FuBlock_display(nd->_block.block, indent + 1));
         break;
     case ND_PKG:
         FuStr_push_indent(str, indent);

@@ -24,7 +24,6 @@ NODE(ND_YIELD, "node yield")
 NODE(ND_THROW, "node throw")
 NODE(ND_AWAIT, "node await")
 NODE(ND_RETURN, "node return")
-NODE(ND_BLOCK, "node block")
 /* `while expr { block }` */
 NODE(ND_WHILE, "node while")
 /* `for pat in expr { block }` */
