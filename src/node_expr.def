@@ -42,26 +42,10 @@ EXPR(EXPR_CLOSURE, "expr closure")
 EXPR(EXPR_LET_COND, "expr let cond")
 /* `if expr { block } else { expr }` */
 EXPR(EXPR_IF, "expr if")
-/* `while expr { block }` */
-EXPR(EXPR_WHILE, "expr while")
-/* `for pat in expr { block }` */
-EXPR(EXPR_FOR, "expr for")
-/* `loop { block }` */
-EXPR(EXPR_LOOP, "expr loop")
 /* `match expr { arms }` */
 EXPR(EXPR_MATCH, "expr match")
-/*
- * try {
- *     block
- * } catch Error::Wrong(msg) {
- *     block
- * } catch err {
- *     block
- * } finally {
- *     block
- * }
- */
-EXPR(EXPR_TRY, "expr try")
+/* `loop { block }` */
+EXPR(EXPR_LOOP, "expr loop")
 EXPR(EXPR_CATCH, "expr ?")
 /* `foo!(xxx)`, `foo![xxx]`, `foo!{xxx}` */
 EXPR(EXPR_MACRO_CALL, "expr macro call")

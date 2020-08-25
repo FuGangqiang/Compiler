@@ -25,6 +25,23 @@ NODE(ND_THROW, "node throw")
 NODE(ND_AWAIT, "node await")
 NODE(ND_RETURN, "node return")
 NODE(ND_BLOCK, "node block")
+/* `while expr { block }` */
+NODE(ND_WHILE, "node while")
+/* `for pat in expr { block }` */
+NODE(ND_FOR, "node for")
+/* `loop { block }` */
+/*
+ * try {
+ *     block
+ * } catch Error::Wrong(msg) {
+ *     block
+ * } catch err {
+ *     block
+ * } finally {
+ *     block
+ * }
+ */
+NODE(ND_TRY, "expr try")
 /* `fn foo(bar: usize) -> usize { ... }` */
 NODE(ND_FN, "node function")
 NODE(ND_TYPE, "node type")

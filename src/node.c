@@ -345,17 +345,28 @@ void FuExpr_drop(FuExpr *expr) {
         /* todo: expr->_path.anno */
         FuPath_drop(expr->_path.path);
         break;
+    case EXPR_ARRAY:
+        FuVec_drop_with_ptrs(expr->_array.field_inits, (FuDropFn)FuFieldInit_drop);
+        break;
     case EXPR_TUPLE:
         FuVec_drop_with_ptrs(expr->_tuple.fields, (FuDropFn)FuExpr_drop);
         break;
-    case EXPR_UNARY:
-        FuExpr_drop(expr->_unary.expr);
+    case EXPR_STRUCT:
+        FuExpr_drop(expr->_struct.base);
+        FuVec_drop_with_ptrs(expr->_struct.field_inits, (FuDropFn)FuFieldInit_drop);
         break;
-    case EXPR_BINARY:
-        FuExpr_drop(expr->_binary.lexpr);
-        FuExpr_drop(expr->_binary.rexpr);
+    case EXPR_RANGE:
+        FuExpr_drop(expr->_range.start);
+        FuExpr_drop(expr->_range.end);
         break;
-
+    case EXPR_FIELD:
+        FuIdent_drop(expr->_field.ident);
+        FuExpr_drop(expr->_field.base);
+        break;
+    case EXPR_INDEX:
+        FuExpr_drop(expr->_index.base);
+        FuExpr_drop(expr->_index.idx);
+        break;
     case EXPR_CALL:
         FuExpr_drop(expr->_call.base);
         FuVec_drop_with_ptrs(expr->_call.args, (FuDropFn)FuExpr_drop);
@@ -364,24 +375,12 @@ void FuExpr_drop(FuExpr *expr) {
         FuPathItem_drop(expr->_method_call.method);
         FuVec_drop_with_ptrs(expr->_method_call.args, (FuDropFn)FuExpr_drop);
         break;
-    case EXPR_INDEX:
-        FuExpr_drop(expr->_index.base);
-        FuExpr_drop(expr->_index.idx);
+    case EXPR_UNARY:
+        FuExpr_drop(expr->_unary.expr);
         break;
-    case EXPR_STRUCT:
-        FuExpr_drop(expr->_struct.base);
-        FuVec_drop_with_ptrs(expr->_struct.field_inits, (FuDropFn)FuFieldInit_drop);
-        break;
-    case EXPR_ARRAY:
-        FuVec_drop_with_ptrs(expr->_array.field_inits, (FuDropFn)FuFieldInit_drop);
-        break;
-    case EXPR_FIELD:
-        FuIdent_drop(expr->_field.ident);
-        FuExpr_drop(expr->_field.base);
-        break;
-    case EXPR_RANGE:
-        FuExpr_drop(expr->_range.start);
-        FuExpr_drop(expr->_range.end);
+    case EXPR_BINARY:
+        FuExpr_drop(expr->_binary.lexpr);
+        FuExpr_drop(expr->_binary.rexpr);
         break;
     case EXPR_BLOCK:
         FuLabel_drop(expr->_block.label);
@@ -418,6 +417,21 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_append(str, FuPath_display(expr->_path.path));
         FuStr_push(str, '\n');
         break;
+    case EXPR_ARRAY: {
+        fu_size_t len = FuVec_len(expr->_array.field_inits);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "field inits len: %d\n", len);
+        if (len > 0) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "field inits:\n");
+            fu_size_t i;
+            for (i = 0; i < len; i++) {
+                FuFieldInit *item = FuVec_get_ptr(expr->_array.field_inits, i);
+                FuStr_append(str, FuFieldInit_display(item, indent + 1));
+            }
+        }
+        break;
+    }
     case EXPR_TUPLE: {
         FuStr_push_indent(str, indent);
         fu_size_t len = FuVec_len(expr->_tuple.fields);
@@ -431,24 +445,53 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         }
         break;
     }
-    case EXPR_UNARY:
+    case EXPR_STRUCT: {
         FuStr_push_indent(str, indent);
-        FuStr_push_utf8_format(str, "op: %s\n", FuKind_op_cstr(expr->_binary.op));
+        FuStr_push_utf8_cstr(str, "base:\n");
+        FuStr_append(str, FuExpr_display(expr->_struct.base, indent + 1));
+        fu_size_t len = FuVec_len(expr->_struct.field_inits);
         FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "expr:\n");
-        FuStr_append(str, FuExpr_display(expr->_unary.expr, indent + 1));
+        FuStr_push_utf8_format(str, "field inits len: %d\n", len);
+        if (len > 0) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "field inits:\n");
+            fu_size_t i;
+            for (i = 0; i < len; i++) {
+                FuFieldInit *item = FuVec_get_ptr(expr->_struct.field_inits, i);
+                FuStr_append(str, FuFieldInit_display(item, indent + 1));
+            }
+        }
         break;
-    case EXPR_BINARY:
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_format(str, "op: %s\n", FuKind_op_cstr(expr->_binary.op));
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "lexpr:\n");
-        FuStr_append(str, FuExpr_display(expr->_binary.lexpr, indent + 1));
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "rexpr:\n");
-        FuStr_append(str, FuExpr_display(expr->_binary.rexpr, indent + 1));
+    }
+    case EXPR_RANGE:
+        if (expr->_range.start) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "start:\n");
+            FuStr_append(str, FuExpr_display(expr->_range.start, indent + 1));
+        }
+        if (expr->_range.end) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "end:\n");
+            FuStr_append(str, FuExpr_display(expr->_range.end, indent + 1));
+        }
         break;
-
+    case EXPR_FIELD:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "base:\n");
+        FuStr_append(str, FuExpr_display(expr->_field.base, indent + 1));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "ident: ");
+        FuStr_append(str, FuIdent_display(expr->_field.ident));
+        FuStr_push_utf8_cstr(str, "\n");
+        break;
+    case EXPR_INDEX:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "obj:\n");
+        FuStr_append(str, FuExpr_display(expr->_index.base, indent + 1));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "idx:\n");
+        FuStr_append(str, FuExpr_display(expr->_index.idx, indent + 1));
+        break;
     case EXPR_CALL: {
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "fn:\n");
@@ -486,67 +529,22 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         }
         break;
     }
-    case EXPR_INDEX:
+    case EXPR_UNARY:
         FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "obj:\n");
-        FuStr_append(str, FuExpr_display(expr->_index.base, indent + 1));
+        FuStr_push_utf8_format(str, "op: %s\n", FuKind_op_cstr(expr->_binary.op));
         FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "idx:\n");
-        FuStr_append(str, FuExpr_display(expr->_index.idx, indent + 1));
+        FuStr_push_utf8_cstr(str, "expr:\n");
+        FuStr_append(str, FuExpr_display(expr->_unary.expr, indent + 1));
         break;
-    case EXPR_STRUCT: {
+    case EXPR_BINARY:
         FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "base:\n");
-        FuStr_append(str, FuExpr_display(expr->_struct.base, indent + 1));
-        fu_size_t len = FuVec_len(expr->_struct.field_inits);
+        FuStr_push_utf8_format(str, "op: %s\n", FuKind_op_cstr(expr->_binary.op));
         FuStr_push_indent(str, indent);
-        FuStr_push_utf8_format(str, "field inits len: %d\n", len);
-        if (len > 0) {
-            FuStr_push_indent(str, indent);
-            FuStr_push_utf8_cstr(str, "field inits:\n");
-            fu_size_t i;
-            for (i = 0; i < len; i++) {
-                FuFieldInit *item = FuVec_get_ptr(expr->_struct.field_inits, i);
-                FuStr_append(str, FuFieldInit_display(item, indent + 1));
-            }
-        }
-        break;
-    }
-    case EXPR_ARRAY: {
-        fu_size_t len = FuVec_len(expr->_array.field_inits);
+        FuStr_push_utf8_cstr(str, "lexpr:\n");
+        FuStr_append(str, FuExpr_display(expr->_binary.lexpr, indent + 1));
         FuStr_push_indent(str, indent);
-        FuStr_push_utf8_format(str, "field inits len: %d\n", len);
-        if (len > 0) {
-            FuStr_push_indent(str, indent);
-            FuStr_push_utf8_cstr(str, "field inits:\n");
-            fu_size_t i;
-            for (i = 0; i < len; i++) {
-                FuFieldInit *item = FuVec_get_ptr(expr->_array.field_inits, i);
-                FuStr_append(str, FuFieldInit_display(item, indent + 1));
-            }
-        }
-        break;
-    }
-    case EXPR_FIELD:
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "base:\n");
-        FuStr_append(str, FuExpr_display(expr->_field.base, indent + 1));
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "ident: ");
-        FuStr_append(str, FuIdent_display(expr->_field.ident));
-        FuStr_push_utf8_cstr(str, "\n");
-        break;
-    case EXPR_RANGE:
-        if (expr->_range.start) {
-            FuStr_push_indent(str, indent);
-            FuStr_push_utf8_cstr(str, "start:\n");
-            FuStr_append(str, FuExpr_display(expr->_range.start, indent + 1));
-        }
-        if (expr->_range.end) {
-            FuStr_push_indent(str, indent);
-            FuStr_push_utf8_cstr(str, "end:\n");
-            FuStr_append(str, FuExpr_display(expr->_range.end, indent + 1));
-        }
+        FuStr_push_utf8_cstr(str, "rexpr:\n");
+        FuStr_append(str, FuExpr_display(expr->_binary.rexpr, indent + 1));
         break;
     case EXPR_BLOCK:
         FuStr_push_indent(str, indent);

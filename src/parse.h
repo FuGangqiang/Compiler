@@ -864,19 +864,6 @@ struct FuExpr {
             FuExpr *next_if;
         } _if;
         struct {
-            FuExpr *cond_expr;
-            FuExpr *block;
-        } _while;
-        struct {
-            FuExpr *cond_expr;
-            FuExpr *block;
-        } _do_while;
-        struct {
-            FuPat *pat;
-            FuExpr *expr;
-            FuExpr *block;
-        } _for;
-        struct {
             FuExpr *block;
         } _loop;
         struct {
@@ -884,12 +871,6 @@ struct FuExpr {
             /* FuNode._arm */
             FuVec *arms;
         } _match;
-        struct {
-            FuExpr *block;
-            /* FuNode._arm */
-            FuVec *arms;
-            FuExpr *finally;
-        } _try;
         FuMacroCall *_macro_call;
     };
 };
@@ -1011,6 +992,21 @@ struct FuNode {
             FuLabel *label;
             FuBlock *block;
         } _block;
+        struct {
+            FuExpr *cond_expr;
+            FuExpr *block;
+        } _while;
+        struct {
+            FuPat *pat;
+            FuExpr *expr;
+            FuExpr *block;
+        } _for;
+        struct {
+            FuExpr *block;
+            /* FuNode._arm */
+            FuVec *arms;
+            FuExpr *finally;
+        } _try;
         struct {
             FuIdent *ident;
             FuScope *scope;
