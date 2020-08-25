@@ -965,6 +965,84 @@ FuExpr *FuParser_parse_block_expr(FuParser *p) {
     return expr;
 }
 
+FuFnParam *FuParser_parse_fn_param(FuParser *p) {
+    FuVec *attrs = FuVec_new(sizeof(FuAttr *));
+    /* todo: parse attrs */
+    FuIdent *ident = FuParser_parse_ident(p);
+    /* todo: parse type */
+    FuFnParam *param = FuFnParam_new(ident->sp, ident);
+    param->attrs = attrs;
+    return param;
+}
+
+FuVec *FuParser_parse_fn_params(FuParser *p, fu_token_k close_kd) {
+    /* todo: parse type */
+    FuVec *params = FuVec_new(sizeof(FuFnParam));
+    FuToken tok = FuParser_nth_token(p, 0);
+    if (tok.kd == close_kd) {
+        return params;
+    }
+    while (1) {
+        FuFnParam *param = FuParser_parse_fn_param(p);
+        FuVec_push_ptr(params, param);
+        FuToken tok = FuParser_nth_token(p, 0);
+        if (tok.kd == TOK_COMMA) {
+            FuParser_bump(p);
+            continue;
+        }
+        break;
+    }
+    return params;
+}
+
+static fu_bool_t FuParser_check_closure(FuParser *p) {
+    FuToken tok;
+    fu_size_t i = 0;
+    while (1) {
+        tok = FuParser_nth_token(p, i);
+        if (tok.kd == TOK_EOF) {
+            return FU_FALSE;
+        }
+        if (tok.kd == TOK_OR || tok.kd == TOK_OR_OR) {
+            return FU_TRUE;
+        }
+        if (tok.kd == TOK_KEYWORD && (tok.sym == KW_ASYNC || tok.sym == KW_UNSAFE)) {
+            i++;
+            continue;
+        }
+        break;
+    }
+    return FU_FALSE;
+}
+
+FuExpr *FuParser_parse_closure_expr(FuParser *p) {
+    FuSpan *lo = FuParser_current_span(p);
+    fu_bool_t is_async = FuParser_eat_keyword(p, KW_ASYNC);
+    fu_bool_t is_unsafe = FuParser_eat_keyword(p, KW_UNSAFE);
+    /* todo: parse closure type */
+    FuVec *params;
+    FuToken tok = FuParser_nth_token(p, 0);
+    if (tok.kd == TOK_OR_OR) {
+        /* `|| expr` */
+        params = FuVec_new(sizeof(FuFnParam *));
+        FuParser_bump(p);
+    } else {
+        /* `| param ... |` expr */
+        FuParser_expect_token(p, TOK_OR);
+        params = FuParser_parse_fn_params(p, TOK_OR);
+        FuParser_expect_token(p, TOK_OR);
+    }
+
+    FuExpr *body = FuParser_parse_expr(p, 0, FU_TRUE);
+    FuSpan *sp = FuSpan_join(lo, body->sp);
+    FuExpr *expr = FuExpr_new(sp, EXPR_CLOSURE);
+    expr->_closure.is_async = is_async;
+    expr->_closure.is_unsafe = is_unsafe;
+    expr->_closure.params = params;
+    expr->_closure.body = body;
+    return expr;
+}
+
 static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
     FuExpr *expr;
     FuToken tok = FuParser_nth_token(p, 0);
@@ -977,8 +1055,10 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
         return expr;
     }
     if (FuParser_check_block(p)) {
-        expr = FuParser_parse_block_expr(p);
-        return expr;
+        return FuParser_parse_block_expr(p);
+    }
+    if (FuParser_check_closure(p)) {
+        return FuParser_parse_closure_expr(p);
     }
     FATAL1(tok.sp, "unimplemented keyword expr: `%s`", FuKind_keyword_cstr(tok.sym));
     return NULL;
@@ -1025,7 +1105,8 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
         break;
     }
     case TOK_OR:
-        FATAL(tok.sp, "unimplemented closure expr");
+    case TOK_OR_OR:
+        prefix_expr = FuParser_parse_closure_expr(p);
         break;
     case TOK_MACRO: {
         FATAL(tok.sp, "unimplemented macro expr");

@@ -54,6 +54,7 @@ typedef struct FuAnnoSelf FuAnnoSelf;
 typedef struct FuAttr FuAttr;
 typedef struct FuBlock FuBlock;
 typedef struct FuFieldInit FuFieldInit;
+typedef struct FuFnParam FuFnParam;
 typedef struct FuGeArg FuGeArg;
 typedef struct FuGeBound FuGeBound;
 typedef struct FuGeneric FuGeneric;
@@ -376,7 +377,7 @@ fu_bool_t FuToken_to_suffix_op(FuToken tok, fu_op_k *op);
 fu_size_t FuToken_left_skip_count(FuToken tok);
 
 FuStr *FuToken_display(FuToken tok);
-char* FuToken_kind_csr(FuToken tok);
+char *FuToken_kind_csr(FuToken tok);
 
 struct FuLexer {
     FuCtx *ctx;
@@ -674,6 +675,18 @@ FuFieldInit *FuFieldInit_new(FuSpan *sp, fu_field_k kd, FuVec *attrs);
 void FuFieldInit_drop(FuFieldInit *init);
 FuStr *FuFieldInit_display(FuFieldInit *init, fu_size_t indent);
 
+/* `i: i32` */
+struct FuFnParam {
+    FuSpan *sp;
+    FuVec *attrs;
+    FuIdent *ident;
+    FuType *ty;
+};
+
+FuFnParam *FuFnParam_new(FuSpan *sp, FuIdent *ident);
+void FuFnParam_drop(FuFnParam *param);
+FuStr *FuFnParam_display(FuFnParam *param, fu_size_t indent);
+
 struct FuMacroCall {
     fu_bool_t is_method;
     FuNode *path;
@@ -834,8 +847,10 @@ struct FuExpr {
             FuBlock *block;
         } _block;
         struct {
+            fu_bool_t is_async;
+            fu_bool_t is_unsafe;
             FuScope *scope;
-            /* FuNode._fn_param */
+            /* FuFnParam */
             FuVec *params;
             FuExpr *body;
         } _closure;
@@ -931,24 +946,6 @@ struct FuPat {
     };
 };
 
-/*
- * Node 结构里面有：
- * - 顶层 item 结构
- *     - use
- *     - static
- *     - const
- *     - type
- *     - mod
- *     - extension
- *     - macro def
- *     - macro call
- * - 有 attr 的结构，便于以后对 attr 统一分析
- *     - fn_param
- *     - arm
- *     - field_def
- *     - variant
- *     - pat
- */
 struct FuNode {
     FuSpan *sp;
     fu_node_k kd;
@@ -1018,7 +1015,7 @@ struct FuNode {
             FuIdent *ident;
             FuScope *scope;
             FuType *ty;
-            /* FuNode._fn_param */
+            /* FuFnParam */
             FuVec *params;
             /* FuNode */
             FuVec *body;
@@ -1076,10 +1073,6 @@ struct FuNode {
             FuScope *builtins;
             FuScope *globals;
         } _pkg;
-        struct {
-            FuIdent *ident;
-            FuType *ty;
-        } _fn_param;
         struct {
             fu_arm_k kd;
             FuPat *pat;

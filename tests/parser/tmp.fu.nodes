@@ -1,142 +1,73 @@
-nid: 18
+nid: 3
 kd: ND_PKG
 items:
-  nid: 17
+  nid: 2
   kd: ND_STATIC
-  ident: y1
+  ident: ys
   init_expr:
-    kd: EXPR_BLOCK
+    kd: EXPR_CLOSURE
     is_async: 1
     is_unsafe: 1
-    label: 'loop
-    block:
-      items:
-        nid: 0
-        kd: ND_CONST
-        ident: a
-        init_expr:
-          kd: EXPR_LIT
-          lit:
-            kd: LIT_INT
-            size: 0, is_signed: 0, v: 1
-        nid: 1
-        kd: ND_STATIC
-        ident: b
-        init_expr:
-          kd: EXPR_LIT
-          lit:
-            kd: LIT_INT
-            size: 0, is_signed: 0, v: 2
-        nid: 6
-        kd: ND_BLOCK
-        is_async: 1
-        is_unsafe: 0
-        block:
-          items:
-            nid: 2
-            kd: ND_EXPR
-            expr:
-              kd: EXPR_CALL
-              fn:
-                kd: EXPR_PATH
-                path: func
-              args len: 4
-              args:
-                kd: EXPR_PATH
-                path: a
-                kd: EXPR_PATH
-                path: b
+    params:
+    body:
+      kd: EXPR_BLOCK
+      is_async: 0
+      is_unsafe: 0
+      block:
+        items:
+          nid: 0
+          kd: ND_CONST
+          ident: xs
+          init_expr:
+            kd: EXPR_ARRAY
+            field inits len: 4
+            field inits:
+              kd: FLD_EXPR
+              expr:
                 kd: EXPR_LIT
                 lit:
                   kd: LIT_INT
                   size: 0, is_signed: 0, v: 1
+              kd: FLD_EXPR
+              expr:
                 kd: EXPR_LIT
                 lit:
                   kd: LIT_INT
                   size: 0, is_signed: 0, v: 2
-            nid: 3
-            kd: ND_ASSIGN
-            op: OP_ADD_ASSIGN
-            lexpr:
-              kd: EXPR_PATH
-              path: a
-            rexpr:
-              kd: EXPR_LIT
-              lit:
-                kd: LIT_INT
-                size: 0, is_signed: 0, v: 1
-            nid: 4
-            kd: ND_ASSIGN
-            op: OP_SHL_ASSIGN
-            lexpr:
-              kd: EXPR_PATH
-              path: b
-            rexpr:
-              kd: EXPR_LIT
-              lit:
-                kd: LIT_INT
-                size: 0, is_signed: 0, v: 2
-            nid: 5
-            kd: ND_ASSIGN
-            op: OP_ASSIGN
-            lexpr:
-              kd: EXPR_PATH
-              path: a
-            rexpr:
-              kd: EXPR_BINARY
-              op: OP_ADD
-              lexpr:
-                kd: EXPR_PATH
-                path: b
-              rexpr:
+              kd: FLD_EXPR
+              expr:
                 kd: EXPR_LIT
                 lit:
                   kd: LIT_INT
-                  size: 0, is_signed: 0, v: 1
-        nid: 7
-        kd: ND_BREAK
-        nid: 8
-        kd: ND_BREAK
-        label: 'loop
-        nid: 9
-        kd: ND_BREAK
-        label: 'loop
-        expr:
-          kd: EXPR_PATH
-          path: a
-        nid: 10
-        kd: ND_CONTINUE
-        nid: 11
-        kd: ND_CONTINUE
-        label: 'loop
-        nid: 12
-        kd: ND_YIELD
-        expr:
-          kd: EXPR_PATH
-          path: a
-        nid: 13
-        kd: ND_THROW
-        expr:
-          kd: EXPR_PATH
-          path: a
-        nid: 14
-        kd: ND_AWAIT
-        expr:
-          kd: EXPR_PATH
-          path: a
-        nid: 15
-        kd: ND_RETURN
-        expr:
-          kd: EXPR_PATH
-          path: a
-        nid: 16
-        kd: ND_EXPR
-        expr:
-          kd: EXPR_BINARY
-          op: OP_ADD
-          lexpr:
-            kd: EXPR_PATH
-            path: a
-          rexpr:
-            kd: EXPR_PATH
-            path: b
+                  size: 0, is_signed: 0, v: 3
+              kd: FLD_EXPR
+              expr:
+                kd: EXPR_LIT
+                lit:
+                  kd: LIT_INT
+                  size: 0, is_signed: 0, v: 4
+          nid: 1
+          kd: ND_EXPR
+          expr:
+            kd: EXPR_METHOD_CALL
+            method: map
+            args len: 2
+            args:
+              kd: EXPR_PATH
+              path: xs
+              kd: EXPR_CLOSURE
+              is_async: 0
+              is_unsafe: 1
+              params:
+                ident: x
+              body:
+                kd: EXPR_BINARY
+                op: OP_MUL
+                lexpr:
+                  kd: EXPR_PATH
+                  path: x
+                rexpr:
+                  kd: EXPR_LIT
+                  lit:
+                    kd: LIT_INT
+                    size: 0, is_signed: 0, v: 2

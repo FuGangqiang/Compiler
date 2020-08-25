@@ -1,20 +1,4 @@
-static y1 = async unsafe 'loop: {
-    const a = 1;
-    static b = 2;
-    async {
-        func(a, b, 1, 2);
-        a += 1;
-        b <<= 2;
-        a = b + 1;
-    }
-    break;
-    break 'loop;
-    break 'loop a;
-    continue;
-    continue 'loop;
-    yield a;
-    throw a;
-    await a;
-    return a;
-    a + b
+static ys =  async unsafe || {
+    const xs = [1, 2, 3, 4];
+    xs.map(unsafe |x| x*2)
 };

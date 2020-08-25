@@ -42,8 +42,6 @@ NODE(ND_MACRO_CALL, "node macro call")
  */
 NODE(ND_MOD, "node module")
 NODE(ND_PKG, "node package")
-/* `x: int` */
-NODE(ND_FN_PARAM, "node fn param")
 /*
  * pat => expr
  * pat if guard_expr => expr

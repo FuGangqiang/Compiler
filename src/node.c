@@ -178,6 +178,31 @@ FuStr *FuFieldInit_display(FuFieldInit *init, fu_size_t indent) {
     return str;
 }
 
+FuFnParam *FuFnParam_new(FuSpan *sp, FuIdent *ident) {
+    FuFnParam *param = FuMem_new(FuFnParam);
+    param->sp = sp;
+    param->ident = ident;
+    return param;
+}
+
+void FuFnParam_drop(FuFnParam *param) {
+    if (!param) {
+        return;
+    }
+    FuIdent_drop(param->ident);
+    FuVec_drop(param->attrs);
+    FuMem_free(param);
+}
+
+FuStr *FuFnParam_display(FuFnParam *param, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "ident: ");
+    FuStr_append(str, FuIdent_display(param->ident));
+    FuStr_push_utf8_format(str, "\n");
+    return str;
+}
+
 FuLit *FuLit_new(FuSpan *sp, fu_lit_k kind) {
     FuLit *lit = FuMem_new(FuLit);
     lit->sp = sp;
@@ -362,6 +387,10 @@ void FuExpr_drop(FuExpr *expr) {
         FuLabel_drop(expr->_block.label);
         FuBlock_drop(expr->_block.block);
         break;
+    case EXPR_CLOSURE:
+        FuVec_drop_with_ptrs(expr->_closure.params, (FuDropFn)FuFnParam_drop);
+        FuExpr_drop(expr->_closure.body);
+        break;
     default:
         FATAL1(expr->sp, "unimplemented expr: `%s`", FuKind_expr_cstr(expr->kd));
     }
@@ -533,6 +562,25 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "block:\n");
         FuStr_append(str, FuBlock_display(expr->_block.block, indent + 1));
+        break;
+    case EXPR_CLOSURE:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "is_async: %d\n", expr->_closure.is_async);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "is_unsafe: %d\n", expr->_closure.is_unsafe);
+        if (expr->_closure.params) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "params:\n");
+            fu_size_t len = FuVec_len(expr->_closure.params);
+            fu_size_t i;
+            for (i = 0; i < len; i++) {
+                FuFnParam *param = FuVec_get_ptr(expr->_closure.params, i);
+                FuStr_append(str, FuFnParam_display(param, indent + 1));
+            }
+        }
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "body:\n");
+        FuStr_append(str, FuExpr_display(expr->_closure.body, indent + 1));
         break;
     default:
         FATAL1(expr->sp, "unimplemented expr: `%s`", FuKind_expr_cstr(expr->kd));
