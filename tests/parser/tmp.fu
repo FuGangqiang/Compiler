@@ -1,11 +1,2 @@
-static s1: i8 = 2;
-static s2: [i8] -> (i8 -> bool) -> [i8] = |xs, filter| {
-    xs
-};
-static swap: *raw i8 -> *raw i8 -> nil = |x, y| {
-    temp = *x;
-    *x = *y;
-    *y = temp;
-};
-static second: (i8, i32, char) -> i32 = |tup| tup.1;
-
+static s1: u8 = -1 as u8;
+static b1: bool = 2 * -1 as u8;

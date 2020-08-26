@@ -422,6 +422,9 @@ void FuExpr_drop(FuExpr *expr) {
         FuExpr_drop(expr->_index.base);
         FuExpr_drop(expr->_index.idx);
         break;
+    case EXPR_CAST:
+        FuExpr_drop(expr->_cast.expr);
+        break;
     case EXPR_CALL:
         FuExpr_drop(expr->_call.base);
         FuVec_drop_with_ptrs(expr->_call.args, (FuDropFn)FuExpr_drop);
@@ -546,6 +549,15 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "idx:\n");
         FuStr_append(str, FuExpr_display(expr->_index.idx, indent + 1));
+        break;
+    case EXPR_CAST:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "ty: ");
+        FuStr_append(str, FuType_display(expr->_cast.ty));
+        FuStr_push_utf8_cstr(str, "\n");
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "expr:\n");
+        FuStr_append(str, FuExpr_display(expr->_cast.expr, indent + 1));
         break;
     case EXPR_CALL: {
         FuStr_push_indent(str, indent);

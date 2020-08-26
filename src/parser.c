@@ -957,6 +957,16 @@ static FuExpr *FuParser_parse_range_expr(FuParser *p, FuExpr *left, fu_op_k op, 
     return expr;
 }
 
+static FuExpr *FuParser_parse_cast_expr(FuParser *p, FuExpr *left, fu_op_k op, fu_op_prec_t prec) {
+    FuParser_expect_keyword(p, KW_AS);
+    FuType *ty = FuParser_parse_type(p, 0, FU_TRUE);
+    FuSpan *sp = FuSpan_join(left->sp, ty->sp);
+    FuExpr *expr = FuExpr_new(sp, EXPR_CAST);
+    expr->_cast.expr = left;
+    expr->_cast.ty = ty;
+    return expr;
+}
+
 static FuExpr *FuParser_parse_prefix_expr(FuParser *p, fu_op_k op, fu_op_prec_t prec) {
     FuExpr *expr;
     switch (op) {
@@ -1000,7 +1010,7 @@ static FuExpr *FuParser_parse_infix_expr(FuParser *p, FuExpr *left, fu_op_k op, 
         break;
     }
     case OP_CAST:
-        FATAL1(op_tok.sp, "unimplemented op: `%s`", FuKind_op_cstr(op));
+        return FuParser_parse_cast_expr(p, left, op, prec);
         break;
     default: {
         FuParser_bump(p);
