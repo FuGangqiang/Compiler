@@ -17,7 +17,9 @@ typedef fu_id_t fu_tid_t; /* type id */
 typedef fu_id_t fu_sym_t; /* symbol id */
 
 typedef enum fu_op_assoc_k fu_op_assoc_k;
-typedef enum fu_op_ty_k fu_op_ty_k;
+typedef enum fu_op_fix_k fu_op_fix_k;
+typedef enum fu_op_k fu_op_k;
+typedef enum fu_ty_op_k fu_ty_op_k;
 
 typedef enum fu_arm_k fu_arm_k;
 typedef enum fu_attr_k fu_attr_k;
@@ -29,7 +31,6 @@ typedef enum fu_keyword_k fu_keyword_k;
 typedef enum fu_lit_k fu_lit_k;
 typedef enum fu_log_k fu_log_k;
 typedef enum fu_node_k fu_node_k;
-typedef enum fu_op_k fu_op_k;
 typedef enum fu_pat_k fu_pat_k;
 typedef enum fu_token_k fu_token_k;
 typedef enum fu_type_k fu_type_k;
@@ -55,6 +56,7 @@ typedef struct FuAttr FuAttr;
 typedef struct FuBlock FuBlock;
 typedef struct FuFieldInit FuFieldInit;
 typedef struct FuFnParam FuFnParam;
+typedef struct FuFnSig FuFnSig;
 typedef struct FuGeArg FuGeArg;
 typedef struct FuGeBound FuGeBound;
 typedef struct FuGeneric FuGeneric;
@@ -83,7 +85,7 @@ enum fu_op_assoc_k {
 };
 
 /* operator type */
-enum fu_op_ty_k {
+enum fu_op_fix_k {
     /* `..`, `..=` */
     OP_ALLFIX,
     OP_PREFIX,
@@ -102,6 +104,15 @@ enum fu_op_k {
 fu_op_prec_t FuOp_precedence(fu_op_k kd);
 fu_bool_t FuOp_is_unary(fu_op_k kd);
 fu_bool_t FuOp_is_binary(fu_op_k kd);
+
+enum fu_ty_op_k {
+#define TYPE_OP(kd, _prec, _assoc, _ty, _doc) kd,
+#include "type_op.def"
+#undef TYPE_OP
+    _TY_OP_LAST_UNUSED
+};
+
+fu_op_prec_t FuTyOp_precedence(fu_ty_op_k kd);
 
 enum fu_log_k {
 #define LOG(kd, _doc) kd,
@@ -228,6 +239,7 @@ char *FuKind_node_cstr(fu_node_k kd);
 char *FuKind_op_cstr(fu_op_k kd);
 char *FuKind_pat_cstr(fu_pat_k kd);
 char *FuKind_token_cstr(fu_token_k kd);
+char *FuKind_ty_op_cstr(fu_ty_op_k kd);
 char *FuKind_type_cstr(fu_type_k kd);
 char *FuKind_use_cstr(fu_use_k kd);
 char *FuKind_variant_cstr(fu_variant_k kd);
@@ -373,6 +385,9 @@ fu_bool_t FuToken_to_assign_op(FuToken tok, fu_op_k *op);
 fu_bool_t FuToken_to_prefix_op(FuToken tok, fu_op_k *op);
 fu_bool_t FuToken_to_infix_op(FuToken tok, fu_op_k *op);
 fu_bool_t FuToken_to_suffix_op(FuToken tok, fu_op_k *op);
+fu_bool_t FuToken_to_prefix_ty_op(FuToken tok, fu_ty_op_k *op);
+fu_bool_t FuToken_to_infix_ty_op(FuToken tok, fu_ty_op_k *op);
+fu_bool_t FuToken_to_suffix_ty_op(FuToken tok, fu_ty_op_k *op);
 
 fu_size_t FuToken_left_skip_count(FuToken tok);
 
@@ -445,6 +460,7 @@ void FuParser_for_file(FuParser *p, char *fpath, fu_size_t len);
 FuLit *FuParser_parse_lit(FuParser *p);
 FuIdent *FuParser_parse_ident(FuParser *p);
 FuLabel *FuParser_parse_label(FuParser *p);
+FuType *FuParser_parse_type(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 
 FuPathItem *FuParser_parse_path_item(FuParser *p);
 FuPath *FuParser_parse_path(FuParser *p);
@@ -473,26 +489,27 @@ FuStr *FuParser_dump_tokens(FuParser *p);
 
 struct FuType {
     fu_type_k kd;
+    FuSpan *sp;
     fu_tid_t tid;
-    fu_nid_t nid;
     fu_vis_k vis;
     fu_bool_t is_infered;
     FuVec *attrs;
     union {
         struct {
-            FuGeneric *ge;
-            fu_bool_t is_unsafe;
-            fu_bool_t is_const;
-            fu_bool_t is_async;
-            FuVec *tys;
-        } _fn;
+            FuAnnoSelf *anno;
+            FuPath *path;
+        } _path;
         FuType *_ptr;
+        FuType *_raw_ptr;
+        FuType *_nilable;
         struct {
             FuType *ty;
-            FuExpr *size_expr;
+            FuExpr *size;
         } _array;
         FuType *_slice;
         FuVec *_tuple;
+        FuFnSig *_fn_sig;
+
         struct {
             FuGeneric *ge;
             FuIdent *ident;
@@ -525,10 +542,6 @@ struct FuType {
             FuVec *assocs;
         } _interface;
         struct {
-            FuAnnoSelf *anno;
-            FuPath *path;
-        } _path;
-        struct {
             FuGeneric *ge;
             FuIdent *ident;
             FuType *ty;
@@ -536,8 +549,15 @@ struct FuType {
     };
 };
 
-FuType *FuType_new(FuCtx *ctx, fu_type_k kd, fu_vis_k vis);
+FuType *FuType_new(FuCtx *ctx, FuSpan *sp, fu_type_k kd);
+FuType *FuType_from_keyword(FuCtx *ctx, FuSpan *sp, fu_keyword_k keyword);
+FuType *FuType_new_path(FuCtx *ctx, FuPath *path);
+FuType *FuType_new_fn_sig(FuCtx *ctx, FuSpan *sp, FuFnSig *sig);
+
 void FuType_drop(FuType *ty);
+FuStr *FuType_display(FuType *ty);
+
+fu_op_prec_t FuType_precedence(FuType *ty);
 
 void FuType_init_pkg_builtins(FuCtx *ctx, FuNode *nd);
 
@@ -687,6 +707,23 @@ FuFnParam *FuFnParam_new(FuSpan *sp, FuIdent *ident);
 void FuFnParam_drop(FuFnParam *param);
 FuStr *FuFnParam_display(FuFnParam *param, fu_size_t indent);
 
+/*
+ * function signature
+ * #<T> [T] -> (T -> bool) -> [T]
+ */
+struct FuFnSig {
+    FuGeneric *ge;
+    fu_bool_t is_unsafe;
+    fu_bool_t is_const;
+    fu_bool_t is_async;
+    fu_bool_t is_extern;
+    FuVec *tys;
+};
+
+FuFnSig *FuFnSig_new(FuGeneric *ge, FuVec *tys);
+void FuFnSig_drop(FuFnSig *sig);
+FuStr *FuFnSig_display(FuFnSig *sig);
+
 struct FuMacroCall {
     fu_bool_t is_method;
     FuNode *path;
@@ -775,6 +812,7 @@ FuStr *FuLit_display(FuLit *lit, fu_size_t indent);
 struct FuExpr {
     FuSpan *sp;
     fu_expr_k kd;
+    FuType *ty;
     fu_bool_t is_const;
     union {
         FuLit *_lit;

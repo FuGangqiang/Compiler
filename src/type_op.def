@@ -1,0 +1,17 @@
+#ifndef TYPE_OP
+#error "You must define TYPE_OP macro before include this file"
+#endif
+
+/* TYPE_OP(kind, precedence, associativity, type, doc) */
+
+/*
+ * group ()
+ */
+
+TYPE_OP(TY_OP_PTR,     30, OP_LR, OP_PREFIX, "*")  /* *T, *raw T */
+TYPE_OP(TY_OP_ARRAY,   30, OP_LR, OP_PREFIX, "[")  /* [T], [T; n] */
+TYPE_OP(TY_OP_TUPLE,   30, OP_LR, OP_PREFIX, "(")  /* (T, T) */
+
+TYPE_OP(TY_OP_NILABLE, 20, OP_LR, OP_SUFFIX, "?")  /* T? */
+
+TYPE_OP(TY_OP_TRANS,   10,  OP_LR, OP_INFIX, "->")  /* transform: T -> T */

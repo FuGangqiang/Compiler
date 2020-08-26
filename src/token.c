@@ -366,6 +366,35 @@ fu_bool_t FuToken_to_suffix_op(FuToken tok, fu_op_k *op) {
     return FU_FALSE;
 }
 
+fu_bool_t FuToken_to_prefix_ty_op(FuToken tok, fu_ty_op_k *op) {
+    switch (tok.kd) {
+        BIND(TOK_STAR, TY_OP_PTR)
+        BIND(TOK_OPEN_BRACKET, TY_OP_ARRAY)
+        BIND(TOK_OPEN_PAREN, TY_OP_TUPLE)
+    default:
+        break;
+    }
+    return FU_FALSE;
+}
+
+fu_bool_t FuToken_to_infix_ty_op(FuToken tok, fu_ty_op_k *op) {
+    switch (tok.kd) {
+        BIND(TOK_RARROW, TY_OP_TRANS)
+    default:
+        break;
+    }
+    return FU_FALSE;
+}
+
+fu_bool_t FuToken_to_suffix_ty_op(FuToken tok, fu_ty_op_k *op) {
+    switch (tok.kd) {
+        BIND(TOK_QUESTION, TY_OP_NILABLE)
+    default:
+        break;
+    }
+    return FU_FALSE;
+}
+
 #undef BIND
 
 FuLit *FuToken_to_lit_nil(FuToken tok) {

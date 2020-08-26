@@ -228,6 +228,23 @@ fu_bool_t FuOp_is_binary(fu_op_k kd) {
     }
 }
 
+fu_op_prec_t FuTyOp_precedence(fu_ty_op_k kd) {
+    switch (kd) {
+/* clang-format off */
+#define TYPE_OP(kd, prec, _assoc, _ty, _doc) \
+    case kd:                                 \
+        return prec;                         \
+        break;
+/* clang-format on */
+#include "type_op.def"
+#undef TYPE_OP
+    default:
+        FATAL(NULL, "can not be here");
+        return 0;
+        break;
+    }
+}
+
 char *FuKind_pat_cstr(fu_pat_k kd) {
     switch (kd) {
 /* clang-format off */
@@ -265,13 +282,13 @@ char *FuKind_token_cstr(fu_token_k kd) {
 char *FuKind_keyword_cstr(fu_keyword_k kd) {
     switch (kd) {
 /* clang-format off */
-#define TYPE(kd, _doc) \
+#define KEYWORD(kd, _doc) \
     case kd:           \
         return #kd;    \
         break;
 /* clang-format on */
-#include "type.def"
-#undef TYPE
+#include "keyword.def"
+#undef KEYWORD
     default:
         /* can not be here */
         return "";
@@ -323,6 +340,23 @@ char *FuKind_vis_cstr(fu_vis_k kd) {
 /* clang-format on */
 #include "node_vis.def"
 #undef VIS
+    default:
+        /* can not be here */
+        return "";
+        break;
+    }
+}
+
+char *FuKind_ty_op_cstr(fu_ty_op_k kd) {
+    switch (kd) {
+/* clang-format off */
+#define TYPE_OP(kd, _prec, _assoc, _ty, _doc) \
+    case kd:                                  \
+        return #kd;                           \
+        break;
+/* clang-format on */
+#include "type_op.def"
+#undef TYPE_OP
     default:
         /* can not be here */
         return "";

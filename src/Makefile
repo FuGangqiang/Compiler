@@ -25,7 +25,7 @@ set.o: set.c set.h def.h hash.o alloc.o
 bitset.o: bitset.c bitset.h def.h alloc.o
 
 kind.o: kind.c parse.h keyword.def token.def symbol.def node.def node_arm.def node_expr.def node_ge_arg.def \
-    node_ge_param.def node_lit.def node_op.def node_pat.def node_use.def node_variant.def node_vis.def
+    node_ge_param.def node_lit.def node_op.def node_pat.def node_use.def node_variant.def node_vis.def type_op.def
 context.o: context.c parse.h str.o vec.o map.o set.o keyword.def symbol.def node.o
 span.o: span.c parse.h str.o log.o context.o
 log.o: log.c log.h parse.h span.o
@@ -33,7 +33,7 @@ token.o: token.c parse.h kind.o span.o log.o
 lexer.o: lexer.c parse.h token.o str.o char.o hash.o set.o span.o log.o
 node.o: node.c parse.h alloc.o kind.o
 parser.o: parser.c parse.h node.o alloc.o log.o
-type.o: type.c parse.h
+type.o: type.c parse.h type.def
 scope.o: scope.c parse.h
 
 # dep objs

@@ -200,6 +200,50 @@ FuStr *FuFnParam_display(FuFnParam *param, fu_size_t indent) {
     FuStr_push_utf8_format(str, "ident: ");
     FuStr_append(str, FuIdent_display(param->ident));
     FuStr_push_utf8_format(str, "\n");
+    if (param->ty) {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "ty: ");
+        FuStr_append(str, FuType_display(param->ty));
+        FuStr_push_utf8_format(str, "\n");
+    }
+    return str;
+}
+
+FuFnSig *FuFnSig_new(FuGeneric *ge, FuVec *tys) {
+    FuFnSig *sig = FuMem_new(FuFnSig);
+    sig->ge = ge;
+    sig->tys = tys;
+    return sig;
+}
+
+void FuFnSig_drop(FuFnSig *sig) {
+    if (!sig) {
+        return;
+    }
+    FuVec_drop(sig->tys);
+    /* todo: generic */
+    FuMem_free(sig);
+}
+
+FuStr *FuFnSig_display(FuFnSig *sig) {
+    FuStr *str = FuStr_new();
+    fu_size_t len = FuVec_len(sig->tys);
+    fu_size_t i;
+    for (i = 0; i < len; i++) {
+        FuType *item = FuVec_get_ptr(sig->tys, i);
+        fu_bool_t need_paren = FU_FALSE;
+        if (FuTyOp_precedence(TY_OP_TRANS) >= FuType_precedence(item)) {
+            FuStr_push_utf8_cstr(str, "(");
+            need_paren = FU_TRUE;
+        }
+        FuStr_append(str, FuType_display(item));
+        if (need_paren) {
+            FuStr_push_utf8_cstr(str, ")");
+        }
+        if (i < len - 1) {
+            FuStr_push_utf8_cstr(str, " -> ");
+        }
+    }
     return str;
 }
 
@@ -710,6 +754,10 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         FuStr_append(str, FuIdent_display(nd->_static.ident));
         FuStr_push_utf8_cstr(str, "\n");
         FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "ty: ");
+        FuStr_append(str, FuType_display(nd->_static.ty));
+        FuStr_push_utf8_cstr(str, "\n");
+        FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "init_expr:\n");
         FuStr_append(str, FuExpr_display(nd->_static.init_expr, indent + 1));
         break;
@@ -718,6 +766,12 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         FuStr_push_utf8_cstr(str, "ident: ");
         FuStr_append(str, FuIdent_display(nd->_const.ident));
         FuStr_push_utf8_cstr(str, "\n");
+        if (nd->_const.ty) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "ty: ");
+            FuStr_append(str, FuType_display(nd->_const.ty));
+            FuStr_push_utf8_cstr(str, "\n");
+        }
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "init_expr:\n");
         FuStr_append(str, FuExpr_display(nd->_const.init_expr, indent + 1));
