@@ -1115,6 +1115,25 @@ static fu_bool_t FuParser_check_block(FuParser *p) {
     return FU_FALSE;
 }
 
+static fu_bool_t FuParser_check_loop(FuParser *p) {
+    FuToken tok, tok1;
+    tok = FuParser_nth_token(p, 0);
+    if (tok.kd == TOK_LABEL) {
+        tok1 = FuParser_nth_token(p, 1);
+        if (tok1.kd != TOK_COLON) {
+            FATAL1(tok1.sp, "expect `:`, find `%s`", FuToken_kind_csr(tok1));
+        }
+        tok = FuParser_nth_token(p, 2);
+    }
+    if (tok.kd == TOK_EOF) {
+        return FU_FALSE;
+    }
+    if (tok.kd == TOK_KEYWORD && tok.sym == KW_LOOP) {
+        return FU_TRUE;
+    }
+    return FU_FALSE;
+}
+
 static FuNode *FuParser_parse_item_block_keyword(FuParser *p, FuVec *attrs, fu_vis_k vis) {
     FuToken tok = FuParser_nth_token(p, 0);
     switch (tok.sym) {
@@ -1148,6 +1167,8 @@ static FuNode *FuParser_parse_item_block_keyword(FuParser *p, FuVec *attrs, fu_v
             return FuParser_parse_item_block(p, attrs);
         }
         break;
+    case KW_LOOP:
+        return FuParser_parse_item_loop(p, attrs);
     default:
         FATAL1(tok.sp, "unimplement item: `%s`", FuKind_keyword_cstr(tok.sym));
         break;
@@ -1167,7 +1188,9 @@ static FuNode *FuParser_parse_block_item(FuParser *p) {
     case TOK_OPEN_BRACE:
         if (FuParser_check_block(p)) {
             return FuParser_parse_item_block(p, attrs);
-            break;
+        }
+        if (FuParser_check_loop(p)) {
+            return FuParser_parse_item_loop(p, attrs);
         }
         FATAL1(tok.sp, "umimplement block item: `%s`", FuToken_kind_csr(tok));
         break;
@@ -1354,6 +1377,21 @@ FuExpr *FuParser_parse_closure_expr(FuParser *p) {
     return expr;
 }
 
+static FuExpr *FuParser_parse_loop_expr(FuParser *p) {
+    FuSpan *lo = FuParser_current_span(p);
+    FuLabel *label = FuParser_parse_label(p);
+    if (label) {
+        FuParser_expect_token(p, TOK_COLON);
+    }
+    FuParser_expect_keyword(p, KW_LOOP);
+    FuBlock *blk = FuParser_parse_block(p);
+    FuSpan *sp = FuSpan_join(lo, blk->sp);
+    FuExpr *expr = FuExpr_new(sp, EXPR_LOOP);
+    expr->_loop.label = label;
+    expr->_loop.block = blk;
+    return expr;
+}
+
 static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
     FuExpr *expr;
     FuToken tok = FuParser_nth_token(p, 0);
@@ -1370,6 +1408,9 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
     }
     if (FuParser_check_closure(p)) {
         return FuParser_parse_closure_expr(p);
+    }
+    if (FuParser_check_loop(p)) {
+        return FuParser_parse_loop_expr(p);
     }
     FATAL1(tok.sp, "unimplemented keyword expr: `%s`", FuKind_keyword_cstr(tok.sym));
     return NULL;
@@ -1430,6 +1471,8 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
     case TOK_OPEN_BRACE:
         if (FuParser_check_block(p)) {
             prefix_expr = FuParser_parse_block_expr(p);
+        } else if (FuParser_check_loop(p)) {
+            prefix_expr = FuParser_parse_loop_expr(p);
         } else {
             FATAL(tok.sp, "unimplemented expr");
         }
@@ -1647,6 +1690,14 @@ FuNode *FuParser_parse_item_return(FuParser *p, FuVec *attrs) {
 
 FuNode *FuParser_parse_item_block(FuParser *p, FuVec *attrs) {
     FuExpr *expr = FuParser_parse_block_expr(p);
+    FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
+    nd->attrs = attrs;
+    nd->_expr.expr = expr;
+    return nd;
+}
+
+FuNode *FuParser_parse_item_loop(FuParser *p, FuVec *attrs) {
+    FuExpr *expr = FuParser_parse_loop_expr(p);
     FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
     nd->attrs = attrs;
     nd->_expr.expr = expr;

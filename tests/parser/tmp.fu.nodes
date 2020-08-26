@@ -1,41 +1,61 @@
-nid: 2
+nid: 6
 kd: ND_PKG
 items:
-  nid: 0
+  nid: 5
   kd: ND_STATIC
   ident: s1
   ty: u8
   init_expr:
-    kd: EXPR_CAST
-    ty: u8
-    expr:
-      kd: EXPR_UNARY
-      op: OP_NEG
-      expr:
-        kd: EXPR_LIT
-        lit:
-          kd: LIT_INT
-          size: 0, is_signed: 0, v: 1
-  nid: 1
-  kd: ND_STATIC
-  ident: b1
-  ty: bool
-  init_expr:
-    kd: EXPR_BINARY
-    op: OP_MUL
-    lexpr:
-      kd: EXPR_LIT
-      lit:
-        kd: LIT_INT
-        size: 0, is_signed: 0, v: 2
-    rexpr:
-      kd: EXPR_CAST
-      ty: u8
-      expr:
-        kd: EXPR_UNARY
-        op: OP_NEG
+    kd: EXPR_BLOCK
+    is_async: 0
+    is_unsafe: 0
+    block:
+      items:
+        nid: 1
+        kd: ND_EXPR
+        end_semi: 0
         expr:
-          kd: EXPR_LIT
-          lit:
-            kd: LIT_INT
-            size: 0, is_signed: 0, v: 1
+          kd: EXPR_LOOP
+          block:
+            items:
+              nid: 0
+              kd: ND_ASSIGN
+              op: OP_ADD_ASSIGN
+              lexpr:
+                kd: EXPR_PATH
+                path: i
+              rexpr:
+                kd: EXPR_LIT
+                lit:
+                  kd: LIT_INT
+                  size: 0, is_signed: 0, v: 1
+        nid: 4
+        kd: ND_ASSIGN
+        op: OP_ASSIGN
+        lexpr:
+          kd: EXPR_PATH
+          path: i
+        rexpr:
+          kd: EXPR_LOOP
+          label: 'here
+          block:
+            items:
+              nid: 2
+              kd: ND_ASSIGN
+              op: OP_ADD_ASSIGN
+              lexpr:
+                kd: EXPR_PATH
+                path: i
+              rexpr:
+                kd: EXPR_LIT
+                lit:
+                  kd: LIT_INT
+                  size: 0, is_signed: 0, v: 1
+              nid: 3
+              kd: ND_BREAK
+              label: 'here
+              expr:
+                kd: EXPR_LIT
+                lit:
+                  kd: LIT_INT
+                  size: 0, is_signed: 0, v: 2

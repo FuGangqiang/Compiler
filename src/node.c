@@ -448,6 +448,10 @@ void FuExpr_drop(FuExpr *expr) {
         FuVec_drop_with_ptrs(expr->_closure.params, (FuDropFn)FuFnParam_drop);
         FuExpr_drop(expr->_closure.body);
         break;
+    case EXPR_LOOP:
+        FuLabel_drop(expr->_loop.label);
+        FuBlock_drop(expr->_loop.block);
+        break;
     default:
         FATAL1(expr->sp, "unimplemented expr: `%s`", FuKind_expr_cstr(expr->kd));
     }
@@ -646,6 +650,17 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "body:\n");
         FuStr_append(str, FuExpr_display(expr->_closure.body, indent + 1));
+        break;
+    case EXPR_LOOP:
+        if (expr->_loop.label) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "label: ");
+            FuStr_append(str, FuLabel_display(expr->_loop.label));
+            FuStr_push_utf8_cstr(str, "\n");
+        }
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "block:\n");
+        FuStr_append(str, FuBlock_display(expr->_loop.block, indent + 1));
         break;
     default:
         FATAL1(expr->sp, "unimplemented expr: `%s`", FuKind_expr_cstr(expr->kd));

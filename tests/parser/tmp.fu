@@ -1,2 +1,9 @@
-static s1: u8 = -1 as u8;
-static b1: bool = 2 * -1 as u8;
+static s1: u8 = {
+    loop {
+        i += 1;
+    }
+    i = 'here: loop {
+        i += 1;
+        break 'here 2;
+    };
+};
