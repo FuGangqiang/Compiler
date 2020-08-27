@@ -410,6 +410,10 @@ void FuExpr_drop(FuExpr *expr) {
         FuExpr_drop(expr->_struct.base);
         FuVec_drop_with_ptrs(expr->_struct.field_inits, (FuDropFn)FuFieldInit_drop);
         break;
+    case EXPR_TUPLE_STRUCT:
+        FuExpr_drop(expr->_tuple_struct.base);
+        FuVec_drop_with_ptrs(expr->_tuple_struct.field_inits, (FuDropFn)FuFieldInit_drop);
+        break;
     case EXPR_RANGE:
         FuExpr_drop(expr->_range.start);
         FuExpr_drop(expr->_range.end);
@@ -525,6 +529,24 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
             fu_size_t i;
             for (i = 0; i < len; i++) {
                 FuFieldInit *item = FuVec_get_ptr(expr->_struct.field_inits, i);
+                FuStr_append(str, FuFieldInit_display(item, indent + 1));
+            }
+        }
+        break;
+    }
+    case EXPR_TUPLE_STRUCT: {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "base:\n");
+        FuStr_append(str, FuExpr_display(expr->_tuple_struct.base, indent + 1));
+        fu_size_t len = FuVec_len(expr->_tuple_struct.field_inits);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "field inits len: %d\n", len);
+        if (len > 0) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "field inits:\n");
+            fu_size_t i;
+            for (i = 0; i < len; i++) {
+                FuFieldInit *item = FuVec_get_ptr(expr->_tuple_struct.field_inits, i);
                 FuStr_append(str, FuFieldInit_display(item, indent + 1));
             }
         }

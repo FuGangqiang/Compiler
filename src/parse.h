@@ -836,6 +836,11 @@ struct FuExpr {
             FuVec *field_inits;
         } _struct;
         struct {
+            FuExpr *base;
+            /* FuFieldInit */
+            FuVec *field_inits;
+        } _tuple_struct;
+        struct {
             fu_bool_t is_inclusive;
             FuExpr *start;
             FuExpr *end;
@@ -853,7 +858,6 @@ struct FuExpr {
             FuType *ty;
         } _cast;
         struct {
-            /* fn, or tuple struct constructor*/
             FuExpr *base;
             /* FuExpr */
             FuVec *args;

@@ -927,14 +927,30 @@ static FuVec *FuParser_parse_field_inits(FuParser *p) {
 }
 
 static FuExpr *FuParser_parse_struct_expr(FuParser *p, FuExpr *left) {
-    FuParser_expect_token(p, TOK_OPEN_BRACE);
-    FuVec *inits = FuParser_parse_field_inits(p);
-    FuToken tok = FuParser_expect_token(p, TOK_CLOSE_BRACE);
-    FuSpan *sp = FuSpan_join(left->sp, tok.sp);
-    FuExpr *expr = FuExpr_new(sp, EXPR_STRUCT);
-    expr->_struct.base = left;
-    expr->_struct.field_inits = inits;
-    return expr;
+    FuParser_expect_token(p, TOK_MOD_SEP);
+    FuToken tok = FuParser_nth_token(p, 0);
+    if (tok.kd == TOK_OPEN_BRACE) {
+        FuParser_bump(p);
+        FuVec *inits = FuParser_parse_field_inits(p);
+        FuToken tok = FuParser_expect_token(p, TOK_CLOSE_BRACE);
+        FuSpan *sp = FuSpan_join(left->sp, tok.sp);
+        FuExpr *expr = FuExpr_new(sp, EXPR_STRUCT);
+        expr->_struct.base = left;
+        expr->_struct.field_inits = inits;
+        return expr;
+    }
+    if (tok.kd == TOK_OPEN_PAREN) {
+        FuParser_bump(p);
+        FuVec *inits = FuParser_parse_field_inits(p);
+        FuToken tok = FuParser_expect_token(p, TOK_CLOSE_PAREN);
+        FuSpan *sp = FuSpan_join(left->sp, tok.sp);
+        FuExpr *expr = FuExpr_new(sp, EXPR_TUPLE_STRUCT);
+        expr->_tuple_struct.base = left;
+        expr->_tuple_struct.field_inits = inits;
+        return expr;
+    }
+    FATAL1(tok.sp, "expect `(` or `{` to build struct, find: `%s`", FuToken_kind_csr(tok));
+    return NULL;
 }
 
 static FuExpr *FuParser_parser_array_expr(FuParser *p) {
