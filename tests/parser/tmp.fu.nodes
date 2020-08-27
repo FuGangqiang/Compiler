@@ -1,7 +1,7 @@
-nid: 6
+nid: 15
 kd: ND_PKG
 items:
-  nid: 5
+  nid: 14
   kd: ND_STATIC
   ident: s1
   ty: u8
@@ -11,14 +11,130 @@ items:
     is_unsafe: 0
     block:
       items:
-        nid: 1
+        nid: 5
         kd: ND_EXPR
         end_semi: 0
         expr:
-          kd: EXPR_LOOP
+          kd: EXPR_IF
+          cond:
+            kd: EXPR_BINARY
+            op: OP_EQ
+            lexpr:
+              kd: EXPR_PATH
+              path: c
+            rexpr:
+              kd: EXPR_LIT
+              lit:
+                kd: LIT_CHAR
+                v: 114
           block:
             items:
               nid: 0
+              kd: ND_ASSIGN
+              op: OP_ASSIGN
+              lexpr:
+                kd: EXPR_PATH
+                path: i
+              rexpr:
+                kd: EXPR_LIT
+                lit:
+                  kd: LIT_INT
+                  size: 0, is_signed: 0, v: 1
+          next_if:
+            kd: EXPR_IF
+            cond:
+              kd: EXPR_BINARY
+              op: OP_EQ
+              lexpr:
+                kd: EXPR_PATH
+                path: c
+              rexpr:
+                kd: EXPR_LIT
+                lit:
+                  kd: LIT_CHAR
+                  v: 103
+            block:
+              items:
+                nid: 1
+                kd: ND_ASSIGN
+                op: OP_ASSIGN
+                lexpr:
+                  kd: EXPR_PATH
+                  path: i
+                rexpr:
+                  kd: EXPR_LIT
+                  lit:
+                    kd: LIT_INT
+                    size: 0, is_signed: 0, v: 2
+            next_if:
+              kd: EXPR_IF
+              cond: else
+              block:
+                items:
+                  nid: 4
+                  kd: ND_EXPR
+                  end_semi: 0
+                  expr:
+                    kd: EXPR_IF
+                    cond:
+                      kd: EXPR_BINARY
+                      op: OP_EQ
+                      lexpr:
+                        kd: EXPR_PATH
+                        path: c
+                      rexpr:
+                        kd: EXPR_LIT
+                        lit:
+                          kd: LIT_CHAR
+                          v: 98
+                    block:
+                      items:
+                        nid: 2
+                        kd: ND_ASSIGN
+                        op: OP_ASSIGN
+                        lexpr:
+                          kd: EXPR_PATH
+                          path: i
+                        rexpr:
+                          kd: EXPR_LIT
+                          lit:
+                            kd: LIT_INT
+                            size: 0, is_signed: 0, v: 3
+                    next_if:
+                      kd: EXPR_IF
+                      cond: else
+                      block:
+                        items:
+                          nid: 3
+                          kd: ND_ASSIGN
+                          op: OP_ASSIGN
+                          lexpr:
+                            kd: EXPR_PATH
+                            path: i
+                          rexpr:
+                            kd: EXPR_LIT
+                            lit:
+                              kd: LIT_NIL
+                              v: nil
+        nid: 7
+        kd: ND_EXPR
+        end_semi: 0
+        expr:
+          kd: EXPR_IF
+          cond:
+            kd: EXPR_BINARY
+            op: OP_EQ
+            lexpr:
+              kd: EXPR_PATH
+              path: i
+            rexpr:
+              kd: EXPR_LIT
+              lit:
+                kd: LIT_INT
+                size: 0, is_signed: 0, v: 3
+          block:
+            items:
+              nid: 6
               kd: ND_ASSIGN
               op: OP_ADD_ASSIGN
               lexpr:
@@ -29,33 +145,84 @@ items:
                 lit:
                   kd: LIT_INT
                   size: 0, is_signed: 0, v: 1
-        nid: 4
+        nid: 10
         kd: ND_ASSIGN
         op: OP_ASSIGN
         lexpr:
           kd: EXPR_PATH
           path: i
         rexpr:
-          kd: EXPR_LOOP
-          label: 'here
+          kd: EXPR_IF
+          cond:
+            kd: EXPR_BINARY
+            op: OP_EQ
+            lexpr:
+              kd: EXPR_PATH
+              path: i
+            rexpr:
+              kd: EXPR_LIT
+              lit:
+                kd: LIT_INT
+                size: 0, is_signed: 0, v: 4
           block:
             items:
-              nid: 2
-              kd: ND_ASSIGN
-              op: OP_ADD_ASSIGN
-              lexpr:
-                kd: EXPR_PATH
-                path: i
-              rexpr:
-                kd: EXPR_LIT
-                lit:
-                  kd: LIT_INT
-                  size: 0, is_signed: 0, v: 1
-              nid: 3
-              kd: ND_BREAK
-              label: 'here
+              nid: 8
+              kd: ND_EXPR
+              end_semi: 0
               expr:
                 kd: EXPR_LIT
                 lit:
                   kd: LIT_INT
                   size: 0, is_signed: 0, v: 2
+          next_if:
+            kd: EXPR_IF
+            cond: else
+            block:
+              items:
+                nid: 9
+                kd: ND_EXPR
+                end_semi: 0
+                expr:
+                  kd: EXPR_LIT
+                  lit:
+                    kd: LIT_INT
+                    size: 0, is_signed: 0, v: 3
+        nid: 13
+        kd: ND_EXPR
+        end_semi: 0
+        expr:
+          kd: EXPR_IF
+          cond:
+            kd: EXPR_BINARY
+            op: OP_EQ
+            lexpr:
+              kd: EXPR_PATH
+              path: i
+            rexpr:
+              kd: EXPR_LIT
+              lit:
+                kd: LIT_INT
+                size: 0, is_signed: 0, v: 5
+          block:
+            items:
+              nid: 11
+              kd: ND_EXPR
+              end_semi: 0
+              expr:
+                kd: EXPR_LIT
+                lit:
+                  kd: LIT_INT
+                  size: 0, is_signed: 0, v: 2
+          next_if:
+            kd: EXPR_IF
+            cond: else
+            block:
+              items:
+                nid: 12
+                kd: ND_EXPR
+                end_semi: 0
+                expr:
+                  kd: EXPR_LIT
+                  lit:
+                    kd: LIT_INT
+                    size: 0, is_signed: 0, v: 3

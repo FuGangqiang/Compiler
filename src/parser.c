@@ -402,6 +402,17 @@ static FuToken FuParser_expect_token_fn(FuParser *p, FuCheckTokenFn fn, char *wa
     return FuParser_bump(p);
 }
 
+static fu_bool_t FuParser_check_keyword(FuParser *p, fu_keyword_k kd) {
+    FuToken tok = FuParser_nth_token(p, 0);
+    if (tok.kd != TOK_KEYWORD) {
+        return FU_FALSE;
+    }
+    if (tok.sym != kd) {
+        return FU_FALSE;
+    }
+    return FU_TRUE;
+}
+
 static fu_bool_t FuParser_check_token(FuParser *p, fu_token_k kd) {
     FuToken tok0 = FuParser_nth_token(p, 0);
     if (tok0.kd == kd) {
@@ -509,7 +520,9 @@ FuPath *FuParser_parse_path(FuParser *p) {
     while (1) {
         FuPathItem *item = FuParser_parse_path_item(p);
         FuVec_push_ptr(path->segments, item);
-        if (FuParser_check_token(p, TOK_MOD_SEP)) {
+        FuToken tok0 = FuParser_nth_token(p, 0);
+        FuToken tok1 = FuParser_nth_token(p, 1);
+        if (tok0.kd == TOK_MOD_SEP && tok1.kd == TOK_IDENT) {
             FuParser_bump(p);
         } else {
             break;
@@ -1169,6 +1182,10 @@ static FuNode *FuParser_parse_item_block_keyword(FuParser *p, FuVec *attrs, fu_v
         break;
     case KW_LOOP:
         return FuParser_parse_item_loop(p, attrs);
+        break;
+    case KW_IF:
+        return FuParser_parse_item_if(p, attrs);
+        break;
     default:
         FATAL1(tok.sp, "unimplement item: `%s`", FuKind_keyword_cstr(tok.sym));
         break;
@@ -1392,6 +1409,41 @@ static FuExpr *FuParser_parse_loop_expr(FuParser *p) {
     return expr;
 }
 
+static FuExpr *FuParser_parse_next_if_expr(FuParser *p) {
+    if (!FuParser_check_keyword(p, KW_ELSE)) {
+        return NULL;
+    }
+    FuSpan *lo = FuParser_current_span(p);
+    FuParser_expect_keyword(p, KW_ELSE);
+    FuExpr *cond = NULL;
+    if (FuParser_check_keyword(p, KW_IF)) {
+        FuParser_expect_keyword(p, KW_IF);
+        cond = FuParser_parse_expr(p, 0, FU_TRUE);
+    }
+    FuBlock *block = FuParser_parse_block(p);
+    FuSpan *sp = FuSpan_join(lo, block->sp);
+    FuExpr *expr = FuExpr_new(sp, EXPR_IF);
+    expr->_if.cond = cond;
+    expr->_if.block = block;
+    if (cond) {
+        expr->_if.next_if = FuParser_parse_next_if_expr(p);
+    }
+    return expr;
+}
+
+static FuExpr *FuParser_parse_if_expr(FuParser *p) {
+    FuSpan *lo = FuParser_current_span(p);
+    FuParser_expect_keyword(p, KW_IF);
+    FuExpr *cond = FuParser_parse_expr(p, 0, FU_TRUE);
+    FuBlock *block = FuParser_parse_block(p);
+    FuSpan *sp = FuSpan_join(lo, block->sp);
+    FuExpr *expr = FuExpr_new(sp, EXPR_IF);
+    expr->_if.cond = cond;
+    expr->_if.block = block;
+    expr->_if.next_if = FuParser_parse_next_if_expr(p);
+    return expr;
+}
+
 static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
     FuExpr *expr;
     FuToken tok = FuParser_nth_token(p, 0);
@@ -1402,6 +1454,9 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
         FuLit *lit = FuParser_parse_lit(p);
         expr = FuExpr_new_lit(lit);
         return expr;
+    }
+    if (tok.sym == KW_IF) {
+        return FuParser_parse_if_expr(p);
     }
     if (FuParser_check_block(p)) {
         return FuParser_parse_block_expr(p);
@@ -1698,6 +1753,15 @@ FuNode *FuParser_parse_item_block(FuParser *p, FuVec *attrs) {
 
 FuNode *FuParser_parse_item_loop(FuParser *p, FuVec *attrs) {
     FuExpr *expr = FuParser_parse_loop_expr(p);
+    FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
+    nd->attrs = attrs;
+    nd->_expr.expr = expr;
+    return nd;
+}
+
+FuNode *FuParser_parse_item_if(FuParser *p, FuVec *attrs) {
+    FuExpr *expr = FuParser_parse_if_expr(p);
+    /* todo: check if/else */
     FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
     nd->attrs = attrs;
     nd->_expr.expr = expr;

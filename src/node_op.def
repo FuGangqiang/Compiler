@@ -16,7 +16,7 @@
 OP(OP_DOT,   150, OP_LR, OP_INFIX, ".")   /* field, method call, suffix macro, tuple struct constructor */
 OP(OP_CALL,    150, OP_LR, OP_INFIX, "(")
 OP(OP_INDEX,   150, OP_LR, OP_INFIX, "[")
-OP(OP_STRUCT,  150, OP_LR, OP_INFIX, "{")
+OP(OP_STRUCT,  150, OP_LR, OP_INFIX, "::")
 
 OP(OP_CATCH,   140, OP_PP, OP_SUFFIX, "?")
 

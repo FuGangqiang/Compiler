@@ -448,6 +448,11 @@ void FuExpr_drop(FuExpr *expr) {
         FuVec_drop_with_ptrs(expr->_closure.params, (FuDropFn)FuFnParam_drop);
         FuExpr_drop(expr->_closure.body);
         break;
+    case EXPR_IF:
+        FuExpr_drop(expr->_if.cond);
+        FuBlock_drop(expr->_if.block);
+        FuExpr_drop(expr->_if.next_if);
+        break;
     case EXPR_LOOP:
         FuLabel_drop(expr->_loop.label);
         FuBlock_drop(expr->_loop.block);
@@ -650,6 +655,23 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "body:\n");
         FuStr_append(str, FuExpr_display(expr->_closure.body, indent + 1));
+        break;
+    case EXPR_IF:
+        FuStr_push_indent(str, indent);
+        if (expr->_if.cond) {
+            FuStr_push_utf8_cstr(str, "cond:\n");
+            FuStr_append(str, FuExpr_display(expr->_if.cond, indent + 1));
+        } else {
+            FuStr_push_utf8_cstr(str, "cond: else\n");
+        }
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "block:\n");
+        FuStr_append(str, FuBlock_display(expr->_if.block, indent + 1));
+        if (expr->_if.next_if) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "next_if:\n");
+            FuStr_append(str, FuExpr_display(expr->_if.next_if, indent + 1));
+        }
         break;
     case EXPR_LOOP:
         if (expr->_loop.label) {

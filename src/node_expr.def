@@ -3,22 +3,26 @@
 #endif
 
 EXPR(EXPR_LIT, "expr literal")
-/* `foo::bar::<baz>` */
+/* `foo::bar#<baz>` */
 /* `<Vec#<T> as IInterface>::SomeType` */
 EXPR(EXPR_PATH, "expr path")
-/* 
- * [a, b, c, d] 
+/*
+ * [a, b, c, d]
  * [.0=1, .4=2, 0...; 10]
  */
 EXPR(EXPR_ARRAY, "expr array")
 /* (a, b, c) */
 EXPR(EXPR_TUPLE, "expr tuple")
-/* 
- * Foo {.x=1, .y=2}
- * Foo {.x=1, ...base}
- * Foo {.x=1, 0...}
+/*
+ * Foo::{.x=1, .y=2}
+ * Foo::{.x=1, ...base}
+ * Foo::{.x=1, 0...}
  */
 EXPR(EXPR_STRUCT, "expr struct")
+/*
+ * Foo::(1, 2)
+ */
+EXPR(EXPR_TUPLE_STRUCT, "expr tuple struct")
 /* `1..4`, `1..=4` */
 EXPR(EXPR_RANGE, "expr range")
 /* `obj.foo` */
@@ -27,7 +31,7 @@ EXPR(EXPR_FIELD, "expr field")
 EXPR(EXPR_INDEX, "expr index")
 /* `a as u32` */
 EXPR(EXPR_CAST, "expr cast")
-/* `fname(a, b, c)`, or tuple struct constructor */
+/* `fname(a, b, c)` */
 EXPR(EXPR_CALL, "expr call")
 /* `x.foo#<Bar, Baz>(a, b, c, d)` */
 EXPR(EXPR_METHOD_CALL, "expr method call")

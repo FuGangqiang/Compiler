@@ -480,6 +480,7 @@ FuNode *FuParser_parse_item_await(FuParser *p, FuVec *attts);
 FuNode *FuParser_parse_item_return(FuParser *p, FuVec *attts);
 FuNode *FuParser_parse_item_block(FuParser *p, FuVec *attts);
 FuNode *FuParser_parse_item_loop(FuParser *p, FuVec *attrs);
+FuNode *FuParser_parse_item_if(FuParser *p, FuVec *attrs);
 
 FuNode *FuParser_parse_mod_item(FuParser *p);
 FuVec *FuParser_parse_mod_items(FuParser *p);
@@ -898,8 +899,8 @@ struct FuExpr {
             FuExpr *expr;
         } _let_cond;
         struct {
-            FuExpr *cond_expr;
-            FuExpr *block;
+            FuExpr *cond;
+            FuBlock *block;
             FuExpr *next_if;
         } _if;
         struct {

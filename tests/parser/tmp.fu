@@ -1,9 +1,26 @@
 static s1: u8 = {
-    loop {
+    if c == 'r' {
+        i = 1;
+    } else if c == 'g' {
+        i = 2;
+    } else {
+         if c == 'b' {
+             i = 3;
+         } else {
+             i = nil;
+         }
+    }
+    if i == 3 {
         i += 1;
     }
-    i = 'here: loop {
-        i += 1;
-        break 'here 2;
+    i = if i == 4 {
+        2
+    } else {
+        3
     };
+    if i == 5 {
+        2
+    } else {
+        3
+    }
 };
