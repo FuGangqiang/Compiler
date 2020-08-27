@@ -1,2 +1,6 @@
-static p1: Point = Point::(1, 2);
-static p2: Point = Point::{.x=1, .y=2};
+static p1: i8 = {
+    i = 1;
+    while i < 10 {
+        i *= 5;
+    }
+};

@@ -1163,6 +1163,25 @@ static fu_bool_t FuParser_check_loop(FuParser *p) {
     return FU_FALSE;
 }
 
+static fu_bool_t FuParser_check_while(FuParser *p) {
+    FuToken tok, tok1;
+    tok = FuParser_nth_token(p, 0);
+    if (tok.kd == TOK_LABEL) {
+        tok1 = FuParser_nth_token(p, 1);
+        if (tok1.kd != TOK_COLON) {
+            FATAL1(tok1.sp, "expect `:`, find `%s`", FuToken_kind_csr(tok1));
+        }
+        tok = FuParser_nth_token(p, 2);
+    }
+    if (tok.kd == TOK_EOF) {
+        return FU_FALSE;
+    }
+    if (tok.kd == TOK_KEYWORD && tok.sym == KW_WHILE) {
+        return FU_TRUE;
+    }
+    return FU_FALSE;
+}
+
 static FuNode *FuParser_parse_item_block_keyword(FuParser *p, FuVec *attrs, fu_vis_k vis) {
     FuToken tok = FuParser_nth_token(p, 0);
     switch (tok.sym) {
@@ -1196,6 +1215,9 @@ static FuNode *FuParser_parse_item_block_keyword(FuParser *p, FuVec *attrs, fu_v
             return FuParser_parse_item_block(p, attrs);
         }
         break;
+    case KW_WHILE:
+        return FuParser_parse_item_while(p, attrs);
+        break;
     case KW_LOOP:
         return FuParser_parse_item_loop(p, attrs);
         break;
@@ -1221,6 +1243,9 @@ static FuNode *FuParser_parse_block_item(FuParser *p) {
     case TOK_OPEN_BRACE:
         if (FuParser_check_block(p)) {
             return FuParser_parse_item_block(p, attrs);
+        }
+        if (FuParser_check_while(p)) {
+            return FuParser_parse_item_while(p, attrs);
         }
         if (FuParser_check_loop(p)) {
             return FuParser_parse_item_loop(p, attrs);
@@ -1764,6 +1789,23 @@ FuNode *FuParser_parse_item_block(FuParser *p, FuVec *attrs) {
     FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
     nd->attrs = attrs;
     nd->_expr.expr = expr;
+    return nd;
+}
+
+FuNode *FuParser_parse_item_while(FuParser *p, FuVec *attrs) {
+    FuSpan *lo = FuParser_current_span(p);
+    FuLabel *label = FuParser_parse_label(p);
+    if (label) {
+        FuParser_expect_token(p, TOK_COLON);
+    }
+    FuParser_expect_keyword(p, KW_WHILE);
+    FuExpr *cond = FuParser_parse_expr(p, 0, FU_TRUE);
+    FuBlock *block = FuParser_parse_block(p);
+    FuSpan *sp = FuSpan_join(lo, block->sp);
+    FuNode *nd = FuNode_new(p->ctx, sp, ND_WHILE);
+    nd->attrs = attrs;
+    nd->_while.cond = cond;
+    nd->_while.block = block;
     return nd;
 }
 

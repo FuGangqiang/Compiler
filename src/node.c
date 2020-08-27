@@ -760,6 +760,11 @@ void FuNode_drop(FuNode *nd) {
     case ND_RETURN:
         FuExpr_drop(nd->_return.expr);
         break;
+    case ND_WHILE:
+        FuLabel_drop(nd->_while.label);
+        FuExpr_drop(nd->_while.cond);
+        FuBlock_drop(nd->_while.block);
+        break;
     case ND_PKG:
         FuScope_drop(nd->_pkg.globals);
         FuScope_drop(nd->_pkg.builtins);
@@ -901,6 +906,20 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
             FuStr_push_utf8_cstr(str, "expr:\n");
             FuStr_append(str, FuExpr_display(nd->_return.expr, indent + 1));
         }
+        break;
+    case ND_WHILE:
+        if (nd->_while.label) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "label: ");
+            FuStr_append(str, FuLabel_display(nd->_while.label));
+            FuStr_push_utf8_cstr(str, "\n");
+        }
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "cond:\n");
+        FuStr_append(str, FuExpr_display(nd->_while.cond, indent + 1));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "block:\n");
+        FuStr_append(str, FuBlock_display(nd->_while.block, indent + 1));
         break;
     case ND_PKG:
         FuStr_push_indent(str, indent);
