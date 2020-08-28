@@ -127,3 +127,8 @@ FuStr *FuSpan_line(FuSpan *sp) {
     }
     return FuStr_from_slice(fcontent, start, end - start);
 }
+
+FuStr *FuSpan_content(FuSpan *sp) {
+    FuStr *fcontent = FuCtx_get_file(sp->ctx, sp->fpath);
+    return FuStr_from_slice(fcontent, sp->start, sp->len);
+}

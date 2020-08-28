@@ -327,6 +327,202 @@ FuStr *FuLit_display(FuLit *lit, fu_size_t indent) {
     return str;
 }
 
+FuPat *FuPat_new(FuSpan *sp, fu_pat_k kd) {
+    FuPat *pat = FuMem_new(FuPat);
+    pat->kd = kd;
+    pat->sp = sp;
+    return pat;
+}
+
+void FuPat_drop(FuPat *pat) {
+    if (!pat) {
+        return;
+    }
+    switch (pat->kd) {
+    case PAT_WILD:
+        break;
+    case PAT_EXPR:
+        FuExpr_drop(pat->_expr);
+        break;
+    case PAT_INDEX:
+        FuLit_drop(pat->_index);
+        break;
+    case PAT_FIELD:
+        FuIdent_drop(pat->_field);
+        break;
+    case PAT_REPEAT:
+        FuPat_drop(pat->_repeat);
+        break;
+    case PAT_BASE:
+        FuExpr_drop(pat->_base);
+        break;
+    case PAT_BIND:
+        FuIdent_drop(pat->_bind.ident);
+        FuPat_drop(pat->_bind.pat);
+        break;
+    case PAT_OR:
+        FuVec_drop_with_ptrs(pat->_or.pats, (FuDropFn)FuPat_drop);
+        break;
+    case PAT_SLICE:
+        FuVec_drop_with_ptrs(pat->_slice.pats, (FuDropFn)FuPat_drop);
+        break;
+    case PAT_TUPLE:
+        FuVec_drop_with_ptrs(pat->_tuple.pats, (FuDropFn)FuPat_drop);
+        break;
+    case PAT_STRUCT:
+        FuExpr_drop(pat->_struct.path);
+        FuVec_drop_with_ptrs(pat->_struct.pats, (FuDropFn)FuPat_drop);
+        break;
+    case PAT_TUPLE_STRUCT:
+        FuExpr_drop(pat->_tuple_struct.path);
+        FuVec_drop_with_ptrs(pat->_tuple_struct.pats, (FuDropFn)FuPat_drop);
+        break;
+    default:
+        FATAL1(pat->sp, "unimplement pat: `%s`", FuKind_pat_cstr(pat->kd));
+        break;
+    }
+    FuMem_free(pat);
+}
+
+FuStr *FuPat_display(FuPat *pat, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "kd: %s\n", FuKind_pat_cstr(pat->kd));
+    switch (pat->kd) {
+    case PAT_WILD:
+        break;
+    case PAT_EXPR:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "expr:\n");
+        FuStr_append(str, FuExpr_display(pat->_expr, indent + 1));
+        break;
+    case PAT_INDEX:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "indent:\n");
+        FuStr_append(str, FuLit_display(pat->_index, indent + 1));
+        break;
+    case PAT_FIELD:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "field: ");
+        FuStr_append(str, FuIdent_display(pat->_field));
+        FuStr_push_utf8_cstr(str, "\n");
+        break;
+    case PAT_REPEAT:
+        if (pat->_repeat) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "repeat:\n");
+            FuStr_append(str, FuPat_display(pat->_repeat, indent + 1));
+        }
+        break;
+    case PAT_BASE:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "base:\n");
+        FuStr_append(str, FuExpr_display(pat->_base, indent + 1));
+        break;
+    case PAT_BIND:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "is_ref: %d\n", pat->_bind.is_ref);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "ident: ");
+        FuStr_append(str, FuIdent_display(pat->_bind.ident));
+        FuStr_push_utf8_cstr(str, "\n");
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "pat:\n");
+        FuStr_append(str, FuPat_display(pat->_bind.pat, indent + 1));
+        break;
+    case PAT_OR: {
+        fu_size_t len = FuVec_len(pat->_or.pats);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "len: %d\n", len);
+        if (len == 0) {
+            break;
+        }
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "pats:\n");
+        fu_size_t i;
+        for (i = 0; i < len; i++) {
+            FuPat *item = FuVec_get_ptr(pat->_or.pats, i);
+            FuStr_append(str, FuPat_display(item, indent + 1));
+        }
+        break;
+    }
+    case PAT_SLICE: {
+        fu_size_t len = FuVec_len(pat->_slice.pats);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "len: %d\n", len);
+        if (len == 0) {
+            break;
+        }
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "pats:\n");
+        fu_size_t i;
+        for (i = 0; i < len; i++) {
+            FuPat *item = FuVec_get_ptr(pat->_slice.pats, i);
+            FuStr_append(str, FuPat_display(item, indent + 1));
+        }
+        break;
+    }
+    case PAT_TUPLE: {
+        fu_size_t len = FuVec_len(pat->_tuple.pats);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "len: %d\n", len);
+        if (len == 0) {
+            break;
+        }
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "pats:\n");
+        fu_size_t i;
+        for (i = 0; i < len; i++) {
+            FuPat *item = FuVec_get_ptr(pat->_tuple.pats, i);
+            FuStr_append(str, FuPat_display(item, indent + 1));
+        }
+        break;
+    }
+    case PAT_STRUCT: {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "path:\n");
+        FuStr_append(str, FuExpr_display(pat->_struct.path, indent + 1));
+        fu_size_t len = FuVec_len(pat->_struct.pats);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "len: %d\n", len);
+        if (len == 0) {
+            break;
+        }
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "pats:\n");
+        fu_size_t i;
+        for (i = 0; i < len; i++) {
+            FuPat *item = FuVec_get_ptr(pat->_struct.pats, i);
+            FuStr_append(str, FuPat_display(item, indent + 1));
+        }
+        break;
+    }
+    case PAT_TUPLE_STRUCT: {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "path:\n");
+        FuStr_append(str, FuExpr_display(pat->_tuple_struct.path, indent + 1));
+        fu_size_t len = FuVec_len(pat->_tuple_struct.pats);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "len: %d\n", len);
+        if (len == 0) {
+            break;
+        }
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "pats:\n");
+        fu_size_t i;
+        for (i = 0; i < len; i++) {
+            FuPat *item = FuVec_get_ptr(pat->_tuple_struct.pats, i);
+            FuStr_append(str, FuPat_display(item, indent + 1));
+        }
+        break;
+    }
+    default:
+        FATAL1(pat->sp, "unimplement pat: `%s`", FuKind_pat_cstr(pat->kd));
+        break;
+    }
+    return str;
+}
+
 FuBlock *FuBlock_new(FuSpan *sp) {
     FuBlock *blk = FuMem_new(FuBlock);
     blk->sp = sp;

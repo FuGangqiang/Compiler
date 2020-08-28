@@ -38,18 +38,19 @@ typedef enum fu_use_k fu_use_k;
 typedef enum fu_variant_k fu_variant_k;
 typedef enum fu_vis_k fu_vis_k;
 
+typedef struct FuCtx FuCtx;
 typedef struct FuLog FuLog;
 typedef struct FuSpan FuSpan;
-typedef struct FuCtx FuCtx;
 typedef struct FuToken FuToken;
 typedef struct FuLexer FuLexer;
 typedef struct FuScope FuScope;
 typedef struct FuParser FuParser;
 
-typedef struct FuType FuType;
-typedef struct FuNode FuNode;
-typedef struct FuExpr FuExpr;
 typedef struct FuLit FuLit;
+typedef struct FuPat FuPat;
+typedef struct FuExpr FuExpr;
+typedef struct FuNode FuNode;
+typedef struct FuType FuType;
 
 typedef struct FuAnnoSelf FuAnnoSelf;
 typedef struct FuAttr FuAttr;
@@ -64,7 +65,6 @@ typedef struct FuGeParam FuGeParam;
 typedef struct FuIdent FuIdent;
 typedef struct FuLabel FuLabel;
 typedef struct FuMacroCall FuMacroCall;
-typedef struct FuPat FuPat;
 typedef struct FuPath FuPath;
 typedef struct FuPathItem FuPathItem;
 typedef struct FuPkg FuPkg;
@@ -266,6 +266,7 @@ FuSpan *FuSpan_join(FuSpan *sp1, FuSpan *sp2);
 
 FuStr *FuSpan_display(FuSpan *sp);
 FuStr *FuSpan_line(FuSpan *sp);
+FuStr *FuSpan_content(FuSpan *sp);
 
 /* compiler context */
 struct FuCtx {
@@ -464,6 +465,7 @@ FuType *FuParser_parse_type(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
 
 FuPathItem *FuParser_parse_path_item(FuParser *p);
 FuPath *FuParser_parse_path(FuParser *p);
+FuPat *FuParser_parse_pat(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 FuBlock *FuParser_parse_block(FuParser *p);
 FuExpr *FuParser_parse_block_expr(FuParser *p);
@@ -933,46 +935,39 @@ struct FuPat {
     FuSpan *sp;
     fu_pat_k kd;
     union {
-        FuLit *_lit;
+        FuExpr *_expr;
+        FuLit *_index;
+        FuIdent *_field;
+        FuPat *_repeat;
+        FuExpr *_base;
         struct {
-            FuAnnoSelf *anno;
-            FuPath *path;
-        } _path;
-        FuExpr *_range;
+            fu_bool_t is_ref;
+            FuIdent *ident;
+            FuPat *pat;
+        } _bind;
         struct {
             FuVec *pats;
         } _or;
         struct {
             FuVec *pats;
-        } _tuple;
-        struct {
-            FuVec *pats;
         } _slice;
         struct {
-            FuExpr *path;
-            FuVec *fields;
-        } _struct;
+            FuVec *pats;
+        } _tuple;
         struct {
-            FuIdent *ident;
-            FuPat *pat;
-        } _field;
+            FuExpr *path;
+            FuVec *pats;
+        } _struct;
         struct {
             FuExpr *path;
             FuVec *pats;
         } _tuple_struct;
-        struct {
-            FuExpr *expr;
-        } _repeat;
-        struct {
-            FuExpr *expr;
-        } _base;
-        struct {
-            fu_bool_t is_ref;
-            FuIdent *ident;
-            FuPat *pat;
-        } _binding;
     };
 };
+
+FuPat *FuPat_new(FuSpan *sp, fu_pat_k kd);
+void FuPat_drop(FuPat *pat);
+FuStr *FuPat_display(FuPat *pat, fu_size_t indent);
 
 struct FuNode {
     FuSpan *sp;
