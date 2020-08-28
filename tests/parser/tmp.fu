@@ -1,6 +1,5 @@
 static p1: i8 = {
-    i = 1;
-    while i < 10 {
-        i *= 5;
+    if let (x, y) = (1, 2) {
+        print(x, y);
     }
 };

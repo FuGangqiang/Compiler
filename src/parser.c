@@ -850,7 +850,12 @@ static FuPat *FuParser_parse_dot_pat(FuParser *p) {
 
 static FuPat *FuParser_parse_repeat_pat(FuParser *p, FuPat *left) {
     FuToken tok = FuParser_expect_token(p, TOK_DOT_DOT_DOT);
-    FuSpan *sp = FuSpan_join(tok.sp, left->sp);
+    FuSpan *sp;
+    if (left) {
+        sp = FuSpan_join(tok.sp, left->sp);
+    } else {
+        sp = tok.sp;
+    }
     FuPat *pat = FuPat_new(sp, PAT_REPEAT);
     pat->_repeat = left;
     return pat;
@@ -1351,6 +1356,18 @@ static FuExpr *FuParser_parse_suffix_expr(FuParser *p, FuExpr *left, fu_op_k op)
     return NULL;
 }
 
+static FuExpr *FuParser_parse_let_cond_expr(FuParser *p) {
+    FuToken tok = FuParser_expect_keyword(p, KW_LET);
+    FuPat *pat = FuParser_parse_pat(p, 0, FU_TRUE);
+    FuParser_expect_token(p, TOK_EQ);
+    FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
+    FuSpan *sp = FuSpan_join(tok.sp, expr->sp);
+    FuExpr *cond = FuExpr_new(sp, EXPR_LET_COND);
+    cond->_let_cond.pat = pat;
+    cond->_let_cond.expr = expr;
+    return cond;
+}
+
 static FuExpr *FuParser_parse_group_or_tuple_expr(FuParser *p) {
     FuToken open_tok = FuParser_expect_token(p, TOK_OPEN_PAREN);
     FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
@@ -1765,6 +1782,9 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
     }
     if (tok.sym == KW_IF) {
         return FuParser_parse_if_expr(p);
+    }
+    if (tok.sym == KW_LET) {
+        return FuParser_parse_let_cond_expr(p);
     }
     if (FuParser_check_block(p)) {
         return FuParser_parse_block_expr(p);

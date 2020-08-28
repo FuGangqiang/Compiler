@@ -648,6 +648,10 @@ void FuExpr_drop(FuExpr *expr) {
         FuVec_drop_with_ptrs(expr->_closure.params, (FuDropFn)FuFnParam_drop);
         FuExpr_drop(expr->_closure.body);
         break;
+    case EXPR_LET_COND:
+        FuPat_drop(expr->_let_cond.pat);
+        FuExpr_drop(expr->_let_cond.expr);
+        break;
     case EXPR_IF:
         FuExpr_drop(expr->_if.cond);
         FuBlock_drop(expr->_if.block);
@@ -873,6 +877,14 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "body:\n");
         FuStr_append(str, FuExpr_display(expr->_closure.body, indent + 1));
+        break;
+    case EXPR_LET_COND:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "pat:\n");
+        FuStr_append(str, FuPat_display(expr->_let_cond.pat, indent + 1));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "expr:\n");
+        FuStr_append(str, FuExpr_display(expr->_let_cond.expr, indent + 1));
         break;
     case EXPR_IF:
         FuStr_push_indent(str, indent);

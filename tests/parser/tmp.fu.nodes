@@ -1,7 +1,7 @@
-nid: 4
+nid: 3
 kd: ND_PKG
 items:
-  nid: 3
+  nid: 2
   kd: ND_STATIC
   ident: p1
   ty: i8
@@ -11,40 +11,50 @@ items:
     is_unsafe: 0
     block:
       items:
-        nid: 0
-        kd: ND_ASSIGN
-        op: OP_ASSIGN
-        lexpr:
-          kd: EXPR_PATH
-          path: i
-        rexpr:
-          kd: EXPR_LIT
-          lit:
-            kd: LIT_INT
-            size: 0, is_signed: 0, v: 1
-        nid: 2
-        kd: ND_WHILE
-        cond:
-          kd: EXPR_BINARY
-          op: OP_LT
-          lexpr:
-            kd: EXPR_PATH
-            path: i
-          rexpr:
-            kd: EXPR_LIT
-            lit:
-              kd: LIT_INT
-              size: 0, is_signed: 0, v: 10
-        block:
-          items:
-            nid: 1
-            kd: ND_ASSIGN
-            op: OP_MUL_ASSIGN
-            lexpr:
-              kd: EXPR_PATH
-              path: i
-            rexpr:
-              kd: EXPR_LIT
-              lit:
-                kd: LIT_INT
-                size: 0, is_signed: 0, v: 5
+        nid: 1
+        kd: ND_EXPR
+        end_semi: 0
+        expr:
+          kd: EXPR_IF
+          cond:
+            kd: EXPR_LET_COND
+            pat:
+              kd: PAT_TUPLE
+              len: 2
+              pats:
+                kd: PAT_EXPR
+                expr:
+                  kd: EXPR_PATH
+                  path: x
+                kd: PAT_EXPR
+                expr:
+                  kd: EXPR_PATH
+                  path: y
+            expr:
+              kd: EXPR_TUPLE
+              len: 2
+              items:
+                kd: EXPR_LIT
+                lit:
+                  kd: LIT_INT
+                  size: 0, is_signed: 0, v: 1
+                kd: EXPR_LIT
+                lit:
+                  kd: LIT_INT
+                  size: 0, is_signed: 0, v: 2
+          block:
+            items:
+              nid: 0
+              kd: ND_EXPR
+              end_semi: 1
+              expr:
+                kd: EXPR_CALL
+                fn:
+                  kd: EXPR_PATH
+                  path: print
+                args len: 2
+                args:
+                  kd: EXPR_PATH
+                  path: x
+                  kd: EXPR_PATH
+                  path: y
