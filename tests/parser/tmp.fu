@@ -1,8 +1,11 @@
 static p1: i8 = {
-    for i in ..10 {
-        print(i);
-    }
-    for (x, y) in (1..).zip(2..11) {
-        print(x, y);
+    try {
+        something();
+    } catch OsError::(code, msg) {
+        print("linux os err")
+    } catch err {
+        print(err);
+    } finally {
+        print("finally");
     }
 };

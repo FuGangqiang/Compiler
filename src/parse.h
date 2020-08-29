@@ -487,6 +487,7 @@ FuNode *FuParser_parse_item_for(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_loop(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_if(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_match(FuParser *p, FuVec *attrs);
+FuNode *FuParser_parse_item_try(FuParser *p, FuVec *attrs);
 
 FuNode *FuParser_parse_mod_item(FuParser *p);
 FuVec *FuParser_parse_mod_items(FuParser *p);
@@ -684,7 +685,14 @@ struct FuArm {
     FuVec *attrs;
     FuPat *pat;
     FuExpr *guard;
-    FuExpr *body;
+    union {
+        struct {
+            FuExpr *body;
+        } _match;
+        struct {
+            FuBlock *body;
+        } _catch;
+    };
 };
 
 FuArm *FuArm_new(FuSpan *sp, fu_arm_k kd);
@@ -1056,10 +1064,10 @@ struct FuNode {
             FuBlock *block;
         } _for;
         struct {
-            FuExpr *block;
-            /* FuNode._arm */
+            FuBlock *block;
+            /* FuArm */
             FuVec *arms;
-            FuExpr *finally;
+            FuBlock *finally;
         } _try;
         struct {
             FuIdent *ident;

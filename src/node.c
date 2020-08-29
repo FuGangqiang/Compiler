@@ -261,7 +261,17 @@ void FuArm_drop(FuArm *arm) {
     FuVec_drop(arm->attrs);
     FuPat_drop(arm->pat);
     FuExpr_drop(arm->guard);
-    FuExpr_drop(arm->body);
+    switch (arm->kd) {
+    case ARM_MATCH:
+        FuExpr_drop(arm->_match.body);
+        break;
+    case ARM_CATCH:
+        FuBlock_drop(arm->_catch.body);
+        break;
+    default:
+        FATAL(arm->sp, "can not be here");
+        break;
+    }
     FuMem_free(arm);
 }
 
@@ -279,7 +289,17 @@ FuStr *FuArm_display(FuArm *arm, fu_size_t indent) {
     }
     FuStr_push_indent(str, indent);
     FuStr_push_utf8_cstr(str, "body:\n");
-    FuStr_append(str, FuExpr_display(arm->body, indent + 1));
+    switch (arm->kd) {
+    case ARM_MATCH:
+        FuStr_append(str, FuExpr_display(arm->_match.body, indent + 1));
+        break;
+    case ARM_CATCH:
+        FuStr_append(str, FuBlock_display(arm->_catch.body, indent + 1));
+        break;
+    default:
+        FATAL(arm->sp, "can not be here");
+        break;
+    }
     return str;
 }
 
@@ -1037,6 +1057,11 @@ void FuNode_drop(FuNode *nd) {
         FuExpr_drop(nd->_for.expr);
         FuBlock_drop(nd->_for.block);
         break;
+    case ND_TRY:
+        FuBlock_drop(nd->_try.block);
+        FuVec_drop_with_ptrs(nd->_try.arms, (FuDropFn)FuArm_drop);
+        FuBlock_drop(nd->_try.finally);
+        break;
     case ND_PKG:
         FuScope_drop(nd->_pkg.globals);
         FuScope_drop(nd->_pkg.builtins);
@@ -1210,6 +1235,29 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         FuStr_push_utf8_cstr(str, "block:\n");
         FuStr_append(str, FuBlock_display(nd->_for.block, indent + 1));
         break;
+    case ND_TRY: {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "block:\n");
+        FuStr_append(str, FuBlock_display(nd->_try.block, indent + 1));
+        fu_size_t len = FuVec_len(nd->_try.arms);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "arms len: %d\n", len);
+        if (len > 0) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "arms:\n");
+            fu_size_t i;
+            for (i = 0; i < len; i++) {
+                FuArm *item = FuVec_get_ptr(nd->_try.arms, i);
+                FuStr_append(str, FuArm_display(item, indent + 1));
+            }
+        }
+        if (nd->_try.finally) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "finally:\n");
+            FuStr_append(str, FuBlock_display(nd->_try.finally, indent + 1));
+        }
+        break;
+    }
     case ND_PKG:
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "items:\n");

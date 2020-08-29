@@ -1390,7 +1390,7 @@ static FuExpr *FuParser_parse_match_expr(FuParser *p) {
         arm->attrs = attrs;
         arm->pat = pat;
         arm->guard = guard;
-        arm->body = body;
+        arm->_match.body = body;
 
         FuVec_push_ptr(arms, arm);
         if (FuParser_check_token(p, TOK_COMMA)) {
@@ -1535,6 +1535,9 @@ static FuNode *FuParser_parse_item_block_keyword(FuParser *p, FuVec *attrs, fu_v
         break;
     case KW_MATCH:
         return FuParser_parse_item_match(p, attrs);
+    case KW_TRY:
+        return FuParser_parse_item_try(p, attrs);
+        break;
     default:
         FATAL1(tok.sp, "unimplement item: `%s`", FuKind_keyword_cstr(tok.sym));
         break;
@@ -2173,6 +2176,51 @@ FuNode *FuParser_parse_item_match(FuParser *p, FuVec *attrs) {
     FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
     nd->attrs = attrs;
     nd->_expr.expr = expr;
+    return nd;
+}
+
+FuNode *FuParser_parse_item_try(FuParser *p, FuVec *attrs) {
+    FuSpan *lo = FuParser_current_span(p);
+    FuParser_expect_keyword(p, KW_TRY);
+    FuBlock *block = FuParser_parse_block(p);
+    FuVec *arms = FuVec_new(sizeof(FuArm *));
+    FuSpan *last_arm_sp = block->sp;
+    while (1) {
+        if (!FuParser_check_keyword(p, KW_CATCH)) {
+            break;
+        }
+        FuVec *arm_attrs = FuVec_new(sizeof(FuArm *));
+        /* todo: parse attrs */
+        FuToken tok = FuParser_expect_keyword(p, KW_CATCH);
+        FuPat *arm_pat = FuParser_parse_pat(p, 0, FU_FALSE);
+        FuExpr *arm_guard = NULL;
+        if (FuParser_check_keyword(p, KW_IF)) {
+            arm_guard = FuParser_parse_expr(p, 0, FU_TRUE);
+        }
+        FuBlock *arm_block = FuParser_parse_block(p);
+        FuSpan *arm_sp = FuSpan_join(tok.sp, arm_block->sp);
+        FuArm *arm = FuArm_new(arm_sp, ARM_CATCH);
+        arm->attrs = arm_attrs;
+        arm->pat = arm_pat;
+        arm->guard = arm_guard;
+        arm->_catch.body = arm_block;
+        FuVec_push_ptr(arms, arm);
+        last_arm_sp = arm_sp;
+    }
+    FuSpan *sp;
+    FuBlock *finally = NULL;
+    if (FuParser_check_keyword(p, KW_FINALLY)) {
+        FuParser_expect_keyword(p, KW_FINALLY);
+        finally = FuParser_parse_block(p);
+        sp = FuSpan_join(lo, finally->sp);
+    } else {
+        sp = FuSpan_join(lo, last_arm_sp);
+    }
+    FuNode *nd = FuNode_new(p->ctx, sp, ND_TRY);
+    nd->attrs = attrs;
+    nd->_try.block = block;
+    nd->_try.arms = arms;
+    nd->_try.finally = finally;
     return nd;
 }
 
