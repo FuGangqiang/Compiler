@@ -1,11 +1,5 @@
 static p1: i8 = {
-    try {
-        something();
-    } catch OsError::(code, msg) {
-        print("linux os err")
-    } catch err {
-        print(err);
-    } finally {
-        print("finally");
-    }
+    let i;
+    let i = 1i8;
+    let i: i8 = 2;
 };

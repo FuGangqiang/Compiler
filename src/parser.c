@@ -1497,6 +1497,9 @@ static FuNode *FuParser_parse_item_block_keyword(FuParser *p, FuVec *attrs, fu_v
     case KW_CONST:
         return FuParser_parse_item_const(p, attrs, vis);
         break;
+    case KW_LET:
+        return FuParser_parse_item_let(p, attrs);
+        break;
     case KW_BREAK:
         return FuParser_parse_item_break(p, attrs);
         break;
@@ -1996,6 +1999,30 @@ FuNode *FuParser_parse_item_const(FuParser *p, FuVec *attrs, fu_vis_k vis) {
     nd->_const.ident = ident;
     nd->_const.ty = ty;
     nd->_const.init_expr = expr;
+    return nd;
+}
+
+FuNode *FuParser_parse_item_let(FuParser *p, FuVec *attrs) {
+    FuSpan *lo = FuParser_current_span(p);
+    FuParser_expect_keyword(p, KW_LET);
+    FuPat *pat = FuParser_parse_pat(p, 0, FU_TRUE);
+    FuType *ty = NULL;
+    if (FuParser_check_token(p, TOK_COLON)) {
+        FuParser_bump(p);
+        ty = FuParser_parse_type(p, 0, FU_TRUE);
+    }
+    FuExpr *expr = NULL;
+    if (FuParser_check_token(p, TOK_EQ)) {
+        FuParser_bump(p);
+        expr = FuParser_parse_expr(p, 0, FU_TRUE);
+    }
+    FuToken end_tok = FuParser_expect_token(p, TOK_SEMI);
+    FuSpan *sp = FuSpan_join(lo, end_tok.sp);
+    FuNode *nd = FuNode_new(p->ctx, sp, ND_LET);
+    nd->attrs = attrs;
+    nd->_let.pat = pat;
+    nd->_let.ty = ty;
+    nd->_let.init = expr;
     return nd;
 }
 

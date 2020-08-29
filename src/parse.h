@@ -474,6 +474,7 @@ FuExpr *FuParser_parse_block_expr(FuParser *p);
 fu_vis_k FuParser_parse_visibility(FuParser *p);
 FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_const(FuParser *p, FuVec *attrs, fu_vis_k vis);
+FuNode *FuParser_parse_item_let(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_assign(FuParser *p, FuVec *attts, FuExpr *lexpr);
 FuNode *FuParser_parse_item_break(FuParser *p, FuVec *attts);
 FuNode *FuParser_parse_item_continue(FuParser *p, FuVec *attts);
@@ -1025,7 +1026,7 @@ struct FuNode {
         struct {
             FuPat *pat;
             FuType *ty;
-            FuExpr *init_expr;
+            FuExpr *init;
         } _let;
         struct {
             fu_op_k op;
