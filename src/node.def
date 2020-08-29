@@ -22,7 +22,6 @@ NODE(ND_BREAK, "node break")
 NODE(ND_CONTINUE, "node continue")
 NODE(ND_YIELD, "node yield")
 NODE(ND_THROW, "node throw")
-NODE(ND_AWAIT, "node await")
 NODE(ND_RETURN, "node return")
 /* `while expr { block }` */
 NODE(ND_WHILE, "node while")

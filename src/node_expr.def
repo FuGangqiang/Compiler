@@ -39,6 +39,7 @@ EXPR(EXPR_METHOD_CALL, "expr method call")
 EXPR(EXPR_UNARY, "expr unary")
 /* `a + b` */
 EXPR(EXPR_BINARY, "expr binary")
+EXPR(EXPR_AWAIT, "expr await")
 /* `{ block }` */
 EXPR(EXPR_BLOCK, "expr block")
 EXPR(EXPR_CLOSURE, "expr closure")

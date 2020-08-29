@@ -306,6 +306,13 @@ fu_bool_t FuToken_to_assign_op(FuToken tok, fu_op_k *op) {
 
 fu_bool_t FuToken_to_prefix_op(FuToken tok, fu_op_k *op) {
     switch (tok.kd) {
+    case TOK_KEYWORD: {
+        if (tok.sym == KW_AWAIT) {
+            *op = OP_AWAIT;
+            return FU_TRUE;
+        }
+        break;
+    }
         BIND(TOK_STAR, OP_DEREF)
         BIND(TOK_NOT, OP_NOT)
         BIND(TOK_MINUS, OP_NEG)

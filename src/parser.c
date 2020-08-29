@@ -1805,6 +1805,16 @@ static FuExpr *FuParser_parse_if_expr(FuParser *p) {
     return expr;
 }
 
+static FuExpr *FuParser_parse_await_expr(FuParser *p) {
+    FuSpan *sp;
+    FuToken tok = FuParser_expect_keyword(p, KW_AWAIT);
+    FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
+    sp = FuSpan_join(tok.sp, expr->sp);
+    FuExpr *await = FuExpr_new(sp, EXPR_AWAIT);
+    await->_await.expr = expr;
+    return await;
+}
+
 static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
     FuExpr *expr;
     FuToken tok = FuParser_nth_token(p, 0);
@@ -1815,6 +1825,9 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
         FuLit *lit = FuParser_parse_lit(p);
         expr = FuExpr_new_lit(lit);
         return expr;
+    }
+    if (tok.sym == KW_AWAIT) {
+        return FuParser_parse_await_expr(p);
     }
     if (tok.sym == KW_IF) {
         return FuParser_parse_if_expr(p);
@@ -2107,14 +2120,13 @@ FuNode *FuParser_parse_item_throw(FuParser *p, FuVec *attrs) {
 }
 
 FuNode *FuParser_parse_item_await(FuParser *p, FuVec *attrs) {
-    FuSpan *sp;
-    FuToken tok = FuParser_expect_keyword(p, KW_AWAIT);
-    FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
-    sp = FuSpan_join(tok.sp, expr->sp);
-    FuParser_expect_token(p, TOK_SEMI);
-    FuNode *nd = FuNode_new(p->ctx, sp, ND_AWAIT);
+    FuExpr *expr = FuParser_parse_await_expr(p);
+    if (FuParser_check_token(p, TOK_SEMI)) {
+        FuParser_bump(p);
+    }
+    FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
     nd->attrs = attrs;
-    nd->_await.expr = expr;
+    nd->_expr.expr = expr;
     return nd;
 }
 

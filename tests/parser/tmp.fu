@@ -1,5 +1,4 @@
-static p1: i8 = {
-    let i;
-    let i = 1i8;
-    let i: i8 = 2;
+static p1: i8 = async {
+    let i = await future1;
+    await future2;
 };

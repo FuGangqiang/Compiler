@@ -13,69 +13,62 @@
  /*
  * - expr.macro!
  */
-OP(OP_DOT,   150, OP_LR, OP_INFIX, ".")   /* field, method call, suffix macro, tuple struct constructor */
-OP(OP_CALL,    150, OP_LR, OP_INFIX, "(")
-OP(OP_INDEX,   150, OP_LR, OP_INFIX, "[")
-OP(OP_STRUCT,  150, OP_LR, OP_INFIX, "::")
+OP(OP_DOT,     160, OP_LR, OP_INFIX, ".")   /* field, method call, suffix macro, tuple struct constructor */
+OP(OP_CALL,    160, OP_LR, OP_INFIX, "(")
+OP(OP_INDEX,   160, OP_LR, OP_INFIX, "[")
+OP(OP_STRUCT,  160, OP_LR, OP_INFIX, "::")
 
-OP(OP_CATCH,   140, OP_PP, OP_SUFFIX, "?")
+OP(OP_CATCH,   150, OP_PP, OP_SUFFIX, "?")
 
-OP(OP_DEREF,   130, OP_PP, OP_PREFIX, "*")
-OP(OP_NOT,     130, OP_PP, OP_PREFIX, "!")   /* logical inversion, bitwise not */
-OP(OP_NEG,     130, OP_PP, OP_PREFIX, "-")
-OP(OP_ADDRESS, 130, OP_PP, OP_PREFIX, "&")
+OP(OP_DEREF,   140, OP_PP, OP_PREFIX, "*")
+OP(OP_NOT,     140, OP_PP, OP_PREFIX, "!")   /* logical inversion, bitwise not */
+OP(OP_NEG,     140, OP_PP, OP_PREFIX, "-")
+OP(OP_ADDRESS, 140, OP_PP, OP_PREFIX, "&")
 
-OP(OP_CAST,      120, OP_LR, OP_INFIX, "as")
+OP(OP_CAST,    130, OP_LR, OP_INFIX, "as")
 
-OP(OP_MUL,     110, OP_LR, OP_INFIX, "*")
-OP(OP_DIV,     110, OP_LR, OP_INFIX, "/")
-OP(OP_REM,     110, OP_LR, OP_INFIX, "%")
+OP(OP_MUL,     120, OP_LR, OP_INFIX, "*")
+OP(OP_DIV,     120, OP_LR, OP_INFIX, "/")
+OP(OP_REM,     120, OP_LR, OP_INFIX, "%")
 
-OP(OP_ADD,     100, OP_LR, OP_INFIX, "+")
-OP(OP_SUB,     100, OP_LR, OP_INFIX, "-")
+OP(OP_ADD,     110, OP_LR, OP_INFIX, "+")
+OP(OP_SUB,     110, OP_LR, OP_INFIX, "-")
 
-OP(OP_SHL,     90, OP_LR, OP_INFIX, "<<")
-OP(OP_SHR,     90, OP_LR, OP_INFIX, ">>")
+OP(OP_SHL,     100, OP_LR, OP_INFIX, "<<")
+OP(OP_SHR,     100, OP_LR, OP_INFIX, ">>")
 
-OP(OP_BIT_AND, 80, OP_LR, OP_INFIX, "&")
+OP(OP_BIT_AND, 90, OP_LR, OP_INFIX, "&")
 
-OP(OP_BIT_XOR, 70, OP_LR, OP_INFIX, "^")
+OP(OP_BIT_XOR, 80, OP_LR, OP_INFIX, "^")
 
-OP(OP_BIT_OR,  60, OP_LR, OP_INFIX, "|")
+OP(OP_BIT_OR,  70, OP_LR, OP_INFIX, "|")
 
-OP(OP_EQ,      50, OP_PP, OP_INFIX, "==")
-OP(OP_NE,      50, OP_PP, OP_INFIX, "!=")
-OP(OP_LT,      50, OP_PP, OP_INFIX, "<")
-OP(OP_LE,      50, OP_PP, OP_INFIX, "<=")
-OP(OP_GT,      50, OP_PP, OP_INFIX, ">")
-OP(OP_GE,      50, OP_PP, OP_INFIX, ">=")
+OP(OP_EQ,      60, OP_PP, OP_INFIX, "==")
+OP(OP_NE,      60, OP_PP, OP_INFIX, "!=")
+OP(OP_LT,      60, OP_PP, OP_INFIX, "<")
+OP(OP_LE,      60, OP_PP, OP_INFIX, "<=")
+OP(OP_GT,      60, OP_PP, OP_INFIX, ">")
+OP(OP_GE,      60, OP_PP, OP_INFIX, ">=")
 
-OP(OP_AND,     40, OP_LR, OP_INFIX, "&&")
+OP(OP_AND,     50, OP_LR, OP_INFIX, "&&")
 
-OP(OP_OR,      30, OP_LR, OP_INFIX, "||")
+OP(OP_OR,      40, OP_LR, OP_INFIX, "||")
 
 /* `m..n` */
-OP(OP_RANGE,          20, OP_PP, OP_ALLFIX, "..")
+OP(OP_RANGE,          30, OP_PP, OP_ALLFIX, "..")
 /* `m..=n` */
-OP(OP_RANGE_EQ,       20, OP_PP, OP_ALLFIX, "..=")
+OP(OP_RANGE_EQ,       30, OP_PP, OP_ALLFIX, "..=")
 
-OP(OP_ASSIGN,         10, OP_RL, OP_INFIX, "=")
-OP(OP_ADD_ASSIGN,     10, OP_RL, OP_INFIX, "+=")
-OP(OP_SUB_ASSIGN,     10, OP_RL, OP_INFIX, "-=")
-OP(OP_MUL_ASSIGN,     10, OP_RL, OP_INFIX, "*=")
-OP(OP_DIV_ASSIGN,     10, OP_RL, OP_INFIX, "/=")
-OP(OP_REM_ASSIGN,     10, OP_RL, OP_INFIX, "%=")
-OP(OP_BIT_AND_ASSIGN, 10, OP_RL, OP_INFIX, "&=")
-OP(OP_BIT_OR_ASSIGN,  10, OP_RL, OP_INFIX, "|=")
-OP(OP_BIT_XOR_ASSIGN, 10, OP_RL, OP_INFIX, "^=")
-OP(OP_SHL_ASSIGN,     10, OP_RL, OP_INFIX, "<<=")
-OP(OP_SHR_ASSIGN,     10, OP_RL, OP_INFIX, ">>=")
+OP(OP_ASSIGN,         20, OP_RL, OP_INFIX, "=")
+OP(OP_ADD_ASSIGN,     20, OP_RL, OP_INFIX, "+=")
+OP(OP_SUB_ASSIGN,     20, OP_RL, OP_INFIX, "-=")
+OP(OP_MUL_ASSIGN,     20, OP_RL, OP_INFIX, "*=")
+OP(OP_DIV_ASSIGN,     20, OP_RL, OP_INFIX, "/=")
+OP(OP_REM_ASSIGN,     20, OP_RL, OP_INFIX, "%=")
+OP(OP_BIT_AND_ASSIGN, 20, OP_RL, OP_INFIX, "&=")
+OP(OP_BIT_OR_ASSIGN,  20, OP_RL, OP_INFIX, "|=")
+OP(OP_BIT_XOR_ASSIGN, 20, OP_RL, OP_INFIX, "^=")
+OP(OP_SHL_ASSIGN,     20, OP_RL, OP_INFIX, "<<=")
+OP(OP_SHR_ASSIGN,     20, OP_RL, OP_INFIX, ">>=")
 
-/*
- * - return
- * - break
- * - continue
- * - yield
- * - await
- * - throw
- */
+OP(OP_AWAIT,          10, OP_RL, OP_PREFIX, "await")

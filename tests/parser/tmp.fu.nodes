@@ -1,13 +1,13 @@
-nid: 4
+nid: 3
 kd: ND_PKG
 items:
-  nid: 3
+  nid: 2
   kd: ND_STATIC
   ident: p1
   ty: i8
   init:
     kd: EXPR_BLOCK
-    is_async: 0
+    is_async: 1
     is_unsafe: 0
     block:
       items:
@@ -19,28 +19,15 @@ items:
             kd: EXPR_PATH
             path: i
         init:
+          kd: EXPR_AWAIT
+          expr:
+            kd: EXPR_PATH
+            path: future1
         nid: 1
-        kd: ND_LET
-        pat:
-          kd: PAT_EXPR
+        kd: ND_EXPR
+        end_semi: 0
+        expr:
+          kd: EXPR_AWAIT
           expr:
             kd: EXPR_PATH
-            path: i
-        init:
-          kd: EXPR_LIT
-          lit:
-            kd: LIT_INT
-            size: 8, is_signed: 1, v: 1
-        nid: 2
-        kd: ND_LET
-        pat:
-          kd: PAT_EXPR
-          expr:
-            kd: EXPR_PATH
-            path: i
-        ty: i8
-        init:
-          kd: EXPR_LIT
-          lit:
-            kd: LIT_INT
-            size: 0, is_signed: 0, v: 2
+            path: future2
