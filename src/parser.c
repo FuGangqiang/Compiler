@@ -1488,14 +1488,14 @@ static fu_bool_t FuParser_check_loop(FuParser *p, fu_keyword_k keyword) {
     return FU_FALSE;
 }
 
-static FuNode *FuParser_parse_item_block_keyword(FuParser *p, FuVec *attrs, fu_vis_k vis) {
+static FuNode *FuParser_parse_item_block_keyword(FuParser *p, FuVec *attrs) {
     FuToken tok = FuParser_nth_token(p, 0);
     switch (tok.sym) {
     case KW_STATIC:
-        return FuParser_parse_item_static(p, attrs, vis);
+        return FuParser_parse_item_static(p, attrs, VIS_PRIV);
         break;
     case KW_CONST:
-        return FuParser_parse_item_const(p, attrs, vis);
+        return FuParser_parse_item_const(p, attrs, VIS_PRIV);
         break;
     case KW_LET:
         return FuParser_parse_item_let(p, attrs);
@@ -1554,7 +1554,7 @@ static FuNode *FuParser_parse_block_item(FuParser *p) {
     FuToken tok = FuParser_nth_token(p, 0);
     switch (tok.kd) {
     case TOK_KEYWORD:
-        return FuParser_parse_item_block_keyword(p, attrs, VIS_PRIV);
+        return FuParser_parse_item_block_keyword(p, attrs);
         break;
     case TOK_LABEL:
     case TOK_OPEN_BRACE:
