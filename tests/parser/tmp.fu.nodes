@@ -1,7 +1,7 @@
-nid: 2
+nid: 5
 kd: ND_PKG
 items:
-  nid: 1
+  nid: 4
   kd: ND_STATIC
   ident: p1
   ty: i8
@@ -11,233 +11,83 @@ items:
     is_unsafe: 0
     block:
       items:
-        nid: 0
-        kd: ND_EXPR
-        end_semi: 0
-        expr:
-          kd: EXPR_MATCH
-          cond:
+        nid: 1
+        kd: ND_FOR
+        pat:
+          kd: PAT_EXPR
+          expr:
             kd: EXPR_PATH
-            path: x
-          arms len: 10
-          arms:
-            kd: ARM_MATCH
-            pat:
-              kd: PAT_EXPR
-              expr:
-                kd: EXPR_LIT
-                lit:
-                  kd: LIT_NIL
-                  v: nil
-            body:
-              kd: EXPR_LIT
-              lit:
-                kd: LIT_INT
-                size: 0, is_signed: 0, v: 0
-            kd: ARM_MATCH
-            pat:
-              kd: PAT_EXPR
-              expr:
-                kd: EXPR_LIT
-                lit:
-                  kd: LIT_BOOL
-                  v: 0
-            body:
+            path: i
+        expr:
+          kd: EXPR_RANGE
+          end:
+            kd: EXPR_LIT
+            lit:
+              kd: LIT_INT
+              size: 0, is_signed: 0, v: 10
+        block:
+          items:
+            nid: 0
+            kd: ND_EXPR
+            end_semi: 1
+            expr:
+              kd: EXPR_CALL
+              fn:
+                kd: EXPR_PATH
+                path: print
+              args len: 1
+              args:
+                kd: EXPR_PATH
+                path: i
+        nid: 3
+        kd: ND_FOR
+        pat:
+          kd: PAT_TUPLE
+          len: 2
+          pats:
+            kd: PAT_EXPR
+            expr:
+              kd: EXPR_PATH
+              path: x
+            kd: PAT_EXPR
+            expr:
+              kd: EXPR_PATH
+              path: y
+        expr:
+          kd: EXPR_METHOD_CALL
+          method: zip
+          args len: 2
+          args:
+            kd: EXPR_RANGE
+            start:
               kd: EXPR_LIT
               lit:
                 kd: LIT_INT
                 size: 0, is_signed: 0, v: 1
-            kd: ARM_MATCH
-            pat:
-              kd: PAT_EXPR
-              expr:
-                kd: EXPR_PATH
-                path: Foo::Bar
-            body:
+            kd: EXPR_RANGE
+            start:
               kd: EXPR_LIT
               lit:
                 kd: LIT_INT
                 size: 0, is_signed: 0, v: 2
-            kd: ARM_MATCH
-            pat:
-              kd: PAT_BIND
-              is_ref: 0
-              ident: x
-              pat:
-                kd: PAT_OR
-                len: 3
-                pats:
-                  kd: PAT_EXPR
-                  expr:
-                    kd: EXPR_LIT
-                    lit:
-                      kd: LIT_INT
-                      size: 0, is_signed: 0, v: 1
-                  kd: PAT_EXPR
-                  expr:
-                    kd: EXPR_LIT
-                    lit:
-                      kd: LIT_INT
-                      size: 0, is_signed: 0, v: 2
-                  kd: PAT_EXPR
-                  expr:
-                    kd: EXPR_LIT
-                    lit:
-                      kd: LIT_INT
-                      size: 0, is_signed: 0, v: 3
-            body:
+            end:
               kd: EXPR_LIT
               lit:
                 kd: LIT_INT
-                size: 0, is_signed: 0, v: 3
-            kd: ARM_MATCH
-            pat:
-              kd: PAT_SLICE
-              len: 5
-              pats:
-                kd: PAT_EXPR
-                expr:
-                  kd: EXPR_LIT
-                  lit:
-                    kd: LIT_INT
-                    size: 0, is_signed: 0, v: 1
-                kd: PAT_WILD
-                kd: PAT_BIND
-                is_ref: 1
-                ident: mid
-                pat:
-                  kd: PAT_REPEAT
-                kd: PAT_REPEAT
-                repeat:
-                  kd: PAT_WILD
-                kd: PAT_EXPR
-                expr:
-                  kd: EXPR_LIT
-                  lit:
-                    kd: LIT_INT
-                    size: 0, is_signed: 0, v: 9
-            body:
-              kd: EXPR_LIT
-              lit:
-                kd: LIT_INT
-                size: 0, is_signed: 0, v: 4
-            kd: ARM_MATCH
-            pat:
-              kd: PAT_TUPLE_STRUCT
-              path:
+                size: 0, is_signed: 0, v: 11
+        block:
+          items:
+            nid: 2
+            kd: ND_EXPR
+            end_semi: 1
+            expr:
+              kd: EXPR_CALL
+              fn:
                 kd: EXPR_PATH
-                path: Foo
-              len: 3
-              pats:
-                kd: PAT_EXPR
-                expr:
-                  kd: EXPR_LIT
-                  lit:
-                    kd: LIT_INT
-                    size: 0, is_signed: 0, v: 1
-                kd: PAT_WILD
-                kd: PAT_REPEAT
-                repeat:
-                  kd: PAT_EXPR
-                  expr:
-                    kd: EXPR_LIT
-                    lit:
-                      kd: LIT_INT
-                      size: 0, is_signed: 0, v: 0
-            body:
-              kd: EXPR_LIT
-              lit:
-                kd: LIT_INT
-                size: 0, is_signed: 0, v: 5
-            kd: ARM_MATCH
-            pat:
-              kd: PAT_STRUCT
-              path:
+                path: print
+              args len: 2
+              args:
                 kd: EXPR_PATH
-                path: Bar
-              len: 2
-              pats:
-                kd: PAT_EXPR
-                expr:
-                  kd: EXPR_PATH
-                  path: x
-                kd: PAT_EXPR
-                expr:
-                  kd: EXPR_PATH
-                  path: y
-            body:
-              kd: EXPR_LIT
-              lit:
-                kd: LIT_INT
-                size: 0, is_signed: 0, v: 6
-            kd: ARM_MATCH
-            pat:
-              kd: PAT_STRUCT
-              path:
+                path: x
                 kd: EXPR_PATH
-                path: Foo::Bar
-              len: 3
-              pats:
-                kd: PAT_BIND
-                is_ref: 0
-                ident: x1
-                pat:
-                  kd: PAT_FIELD
-                  field: x
-                kd: PAT_BIND
-                is_ref: 0
-                ident: y1
-                pat:
-                  kd: PAT_FIELD
-                  field: y
-                kd: PAT_BASE
-                base:
-                  kd: EXPR_PATH
-                  path: base
-            body:
-              kd: EXPR_LIT
-              lit:
-                kd: LIT_INT
-                size: 0, is_signed: 0, v: 7
-            kd: ARM_MATCH
-            pat:
-              kd: PAT_TUPLE
-              len: 3
-              pats:
-                kd: PAT_BIND
-                is_ref: 0
-                ident: x
-                pat:
-                  kd: PAT_INDEX
-                  indent:
-                    kd: LIT_INT
-                    size: 0, is_signed: 0, v: 1
-                kd: PAT_BIND
-                is_ref: 0
-                ident: y
-                pat:
-                  kd: PAT_INDEX
-                  indent:
-                    kd: LIT_INT
-                    size: 0, is_signed: 0, v: 5
-                kd: PAT_REPEAT
-                repeat:
-                  kd: PAT_EXPR
-                  expr:
-                    kd: EXPR_LIT
-                    lit:
-                      kd: LIT_INT
-                      size: 0, is_signed: 0, v: 0
-            body:
-              kd: EXPR_LIT
-              lit:
-                kd: LIT_INT
-                size: 0, is_signed: 0, v: 8
-            kd: ARM_MATCH
-            pat:
-              kd: PAT_WILD
-            body:
-              kd: EXPR_LIT
-              lit:
-                kd: LIT_INT
-                size: 0, is_signed: 0, v: 9
+                path: y

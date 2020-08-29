@@ -28,7 +28,6 @@ NODE(ND_RETURN, "node return")
 NODE(ND_WHILE, "node while")
 /* `for pat in expr { block }` */
 NODE(ND_FOR, "node for")
-/* `loop { block }` */
 /*
  * try {
  *     block
@@ -62,7 +61,5 @@ NODE(ND_PKG, "node package")
  * pat => expr
  * pat if guard_expr => expr
  */
-NODE(ND_ARM, "node arm")
-NODE(ND_PAT, "node pat")
 NODE(ND_FIELD_DEF, "node field def")
 NODE(ND_VARIANT, "node variant")

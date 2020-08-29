@@ -1,14 +1,8 @@
 static p1: i8 = {
-    match x {
-        nil => 0,
-        false => 1,
-        Foo::Bar => 2,
-        x @ 1 | 2 | 3 => 3,
-        [1, _, *mid @ ..., _..., 9] => 4,
-        Foo::(1, _, 0...) => 5,
-        Bar::{x, y} => 6,
-        Foo::Bar::{x1@.x, y1@.y, ...base} => 7,
-        (x@.1, y@.5, 0...) => 8,
-        _ => 9
+    for i in ..10 {
+        print(i);
+    }
+    for (x, y) in (1..).zip(2..11) {
+        print(x, y);
     }
 };
