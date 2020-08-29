@@ -1097,7 +1097,7 @@ static FuExpr *FuParser_parse_field_expr(FuParser *p, FuExpr *left) {
     return expr;
 }
 
-static FuExpr *FuParser_parser_dot_expr(FuParser *p, FuExpr *left) {
+static FuExpr *FuParser_parse_dot_expr(FuParser *p, FuExpr *left) {
     FuParser_expect_token(p, TOK_DOT);
     FuToken tok0 = FuParser_nth_token(p, 0);
     FuToken tok1 = FuParser_nth_token(p, 1);
@@ -1226,7 +1226,7 @@ static FuExpr *FuParser_parse_struct_expr(FuParser *p, FuExpr *left) {
     return NULL;
 }
 
-static FuExpr *FuParser_parser_array_expr(FuParser *p) {
+static FuExpr *FuParser_parse_array_expr(FuParser *p) {
     FuToken open_tok = FuParser_expect_token(p, TOK_OPEN_BRACKET);
     FuVec *inits = FuParser_parse_field_inits(p);
     FuToken close_tok = FuParser_expect_token(p, TOK_CLOSE_BRACKET);
@@ -1295,7 +1295,7 @@ static FuExpr *FuParser_parse_infix_expr(FuParser *p, FuExpr *left, fu_op_k op, 
     switch (op) {
         /* todo: macro */
     case OP_DOT:
-        return FuParser_parser_dot_expr(p, left);
+        return FuParser_parse_dot_expr(p, left);
         break;
     case OP_CALL:
         return FuParser_parse_call_expr(p, left);
@@ -1879,7 +1879,7 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
         break;
     }
     case TOK_OPEN_BRACKET:
-        prefix_expr = FuParser_parser_array_expr(p);
+        prefix_expr = FuParser_parse_array_expr(p);
         break;
     case TOK_LT:
         /* check first invoke, begin expr */
