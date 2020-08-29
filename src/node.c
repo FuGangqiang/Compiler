@@ -247,6 +247,42 @@ FuStr *FuFnSig_display(FuFnSig *sig) {
     return str;
 }
 
+FuArm *FuArm_new(FuSpan *sp, fu_arm_k kd) {
+    FuArm *arm = FuMem_new(FuArm);
+    arm->sp = sp;
+    arm->kd = kd;
+    return arm;
+}
+
+void FuArm_drop(FuArm *arm) {
+    if (!arm) {
+        return;
+    }
+    FuVec_drop(arm->attrs);
+    FuPat_drop(arm->pat);
+    FuExpr_drop(arm->guard);
+    FuExpr_drop(arm->body);
+    FuMem_free(arm);
+}
+
+FuStr *FuArm_display(FuArm *arm, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "kd: %s\n", FuKind_arm_cstr(arm->kd));
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_cstr(str, "pat:\n");
+    FuStr_append(str, FuPat_display(arm->pat, indent + 1));
+    if (arm->guard) {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "guard:\n");
+        FuStr_append(str, FuExpr_display(arm->guard, indent + 1));
+    }
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_cstr(str, "body:\n");
+    FuStr_append(str, FuExpr_display(arm->body, indent + 1));
+    return str;
+}
+
 FuLit *FuLit_new(FuSpan *sp, fu_lit_k kind) {
     FuLit *lit = FuMem_new(FuLit);
     lit->sp = sp;
@@ -657,6 +693,10 @@ void FuExpr_drop(FuExpr *expr) {
         FuBlock_drop(expr->_if.block);
         FuExpr_drop(expr->_if.next_if);
         break;
+    case EXPR_MATCH:
+        FuExpr_drop(expr->_match.cond);
+        FuVec_drop_with_ptrs(expr->_match.arms, (FuDropFn)FuArm_drop);
+        break;
     case EXPR_LOOP:
         FuLabel_drop(expr->_loop.label);
         FuBlock_drop(expr->_loop.block);
@@ -903,6 +943,24 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
             FuStr_append(str, FuExpr_display(expr->_if.next_if, indent + 1));
         }
         break;
+    case EXPR_MATCH: {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "cond:\n");
+        FuStr_append(str, FuExpr_display(expr->_match.cond, indent + 1));
+        fu_size_t len = FuVec_len(expr->_match.arms);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "arms len: %d\n", len);
+        FuStr_push_indent(str, indent);
+        if (len > 0) {
+            FuStr_push_utf8_cstr(str, "arms:\n");
+            fu_size_t i;
+            for (i = 0; i < len; i++) {
+                FuArm *item = FuVec_get_ptr(expr->_match.arms, i);
+                FuStr_append(str, FuArm_display(item, indent + 1));
+            }
+        }
+        break;
+    }
     case EXPR_LOOP:
         if (expr->_loop.label) {
             FuStr_push_indent(str, indent);

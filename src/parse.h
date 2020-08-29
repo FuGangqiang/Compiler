@@ -53,6 +53,7 @@ typedef struct FuNode FuNode;
 typedef struct FuType FuType;
 
 typedef struct FuAnnoSelf FuAnnoSelf;
+typedef struct FuArm FuArm;
 typedef struct FuAttr FuAttr;
 typedef struct FuBlock FuBlock;
 typedef struct FuFieldInit FuFieldInit;
@@ -484,6 +485,7 @@ FuNode *FuParser_parse_item_block(FuParser *p, FuVec *attts);
 FuNode *FuParser_parse_item_while(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_loop(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_if(FuParser *p, FuVec *attrs);
+FuNode *FuParser_parse_item_match(FuParser *p, FuVec *attrs);
 
 FuNode *FuParser_parse_mod_item(FuParser *p);
 FuVec *FuParser_parse_mod_items(FuParser *p);
@@ -674,6 +676,19 @@ struct FuAnnoSelf {
     FuType *ty;
     fu_size_t idx;
 };
+
+struct FuArm {
+    fu_arm_k kd;
+    FuSpan *sp;
+    FuVec *attrs;
+    FuPat *pat;
+    FuExpr *guard;
+    FuExpr *body;
+};
+
+FuArm *FuArm_new(FuSpan *sp, fu_arm_k kd);
+void FuArm_drop(FuArm *arm);
+FuStr *FuArm_display(FuArm *arm, fu_size_t indent);
 
 struct FuFieldInit {
     fu_field_k kd;
@@ -915,8 +930,8 @@ struct FuExpr {
             FuBlock *block;
         } _loop;
         struct {
-            FuExpr *expr;
-            /* FuNode._arm */
+            FuExpr *cond;
+            /* FuArm */
             FuVec *arms;
         } _match;
         FuMacroCall *_macro_call;
@@ -1106,13 +1121,6 @@ struct FuNode {
             FuScope *builtins;
             FuScope *globals;
         } _pkg;
-        struct {
-            fu_arm_k kd;
-            FuPat *pat;
-            FuNode *guard_expr;
-            FuNode *body;
-        } _arm;
-        FuPat *_pat;
         struct {
             fu_vis_k vis;
             FuIdent *ident;

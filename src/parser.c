@@ -1368,6 +1368,47 @@ static FuExpr *FuParser_parse_let_cond_expr(FuParser *p) {
     return cond;
 }
 
+static FuExpr *FuParser_parse_match_expr(FuParser *p) {
+    FuToken start_tok = FuParser_expect_keyword(p, KW_MATCH);
+    FuExpr *cond = FuParser_parse_expr(p, 0, FU_TRUE);
+    FuParser_expect_token(p, TOK_OPEN_BRACE);
+    FuVec *arms = FuVec_new(sizeof(FuArm *));
+    while (1) {
+        FuVec *attrs = FuVec_new(sizeof(FuAttr *));
+        /* todo: parse attrs */
+        FuPat *pat = FuParser_parse_pat(p, 0, FU_TRUE);
+        FuExpr *guard = NULL;
+        if (FuParser_check_keyword(p, KW_IF)) {
+            FuParser_expect_keyword(p, KW_IF);
+            guard = FuParser_parse_expr(p, 0, FU_TRUE);
+        }
+        FuParser_expect_token(p, TOK_FAT_ARROW);
+        FuExpr *body = FuParser_parse_expr(p, 0, FU_TRUE);
+        FuSpan *arm_sp = FuSpan_join(pat->sp, body->sp);
+        FuArm *arm = FuArm_new(arm_sp, ARM_MATCH);
+        arm->sp = arm_sp;
+        arm->attrs = attrs;
+        arm->pat = pat;
+        arm->guard = guard;
+        arm->body = body;
+
+        FuVec_push_ptr(arms, arm);
+        if (FuParser_check_token(p, TOK_COMMA)) {
+            FuParser_expect_token(p, TOK_COMMA);
+        }
+        FuToken tok = FuParser_nth_token(p, 0);
+        if (tok.kd == TOK_CLOSE_BRACE) {
+            break;
+        }
+    }
+    FuToken close_tok = FuParser_expect_token(p, TOK_CLOSE_BRACE);
+    FuSpan *sp = FuSpan_join(start_tok.sp, close_tok.sp);
+    FuExpr *match = FuExpr_new(sp, EXPR_MATCH);
+    match->_match.cond = cond;
+    match->_match.arms = arms;
+    return match;
+}
+
 static FuExpr *FuParser_parse_group_or_tuple_expr(FuParser *p) {
     FuToken open_tok = FuParser_expect_token(p, TOK_OPEN_PAREN);
     FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
@@ -1508,6 +1549,8 @@ static FuNode *FuParser_parse_item_block_keyword(FuParser *p, FuVec *attrs, fu_v
     case KW_IF:
         return FuParser_parse_item_if(p, attrs);
         break;
+    case KW_MATCH:
+        return FuParser_parse_item_match(p, attrs);
     default:
         FATAL1(tok.sp, "unimplement item: `%s`", FuKind_keyword_cstr(tok.sym));
         break;
@@ -1785,6 +1828,9 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
     }
     if (tok.sym == KW_LET) {
         return FuParser_parse_let_cond_expr(p);
+    }
+    if (tok.sym == KW_MATCH) {
+        return FuParser_parse_match_expr(p);
     }
     if (FuParser_check_block(p)) {
         return FuParser_parse_block_expr(p);
@@ -2106,6 +2152,15 @@ FuNode *FuParser_parse_item_loop(FuParser *p, FuVec *attrs) {
 
 FuNode *FuParser_parse_item_if(FuParser *p, FuVec *attrs) {
     FuExpr *expr = FuParser_parse_if_expr(p);
+    /* todo: check if/else */
+    FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
+    nd->attrs = attrs;
+    nd->_expr.expr = expr;
+    return nd;
+}
+
+FuNode *FuParser_parse_item_match(FuParser *p, FuVec *attrs) {
+    FuExpr *expr = FuParser_parse_match_expr(p);
     /* todo: check if/else */
     FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
     nd->attrs = attrs;
