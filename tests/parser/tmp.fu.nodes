@@ -5,7 +5,7 @@ items:
   kd: ND_STATIC
   ident: p1
   ty: i8
-  init_expr:
+  init:
     kd: EXPR_BLOCK
     is_async: 0
     is_unsafe: 0

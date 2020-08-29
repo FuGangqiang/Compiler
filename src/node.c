@@ -1016,11 +1016,11 @@ void FuNode_drop(FuNode *nd) {
         FuExpr_drop(nd->_expr.expr);
         break;
     case ND_STATIC:
-        FuExpr_drop(nd->_static.init_expr);
+        FuExpr_drop(nd->_static.init);
         FuIdent_drop(nd->_static.ident);
         break;
     case ND_CONST:
-        FuExpr_drop(nd->_const.init_expr);
+        FuExpr_drop(nd->_const.init);
         FuIdent_drop(nd->_const.ident);
         break;
     case ND_LET:
@@ -1135,8 +1135,8 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         FuStr_append(str, FuType_display(nd->_static.ty));
         FuStr_push_utf8_cstr(str, "\n");
         FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "init_expr:\n");
-        FuStr_append(str, FuExpr_display(nd->_static.init_expr, indent + 1));
+        FuStr_push_utf8_cstr(str, "init:\n");
+        FuStr_append(str, FuExpr_display(nd->_static.init, indent + 1));
         break;
     case ND_CONST:
         FuStr_push_indent(str, indent);
@@ -1150,8 +1150,8 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
             FuStr_push_utf8_cstr(str, "\n");
         }
         FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "init_expr:\n");
-        FuStr_append(str, FuExpr_display(nd->_const.init_expr, indent + 1));
+        FuStr_push_utf8_cstr(str, "init:\n");
+        FuStr_append(str, FuExpr_display(nd->_const.init, indent + 1));
         break;
     case ND_LET:
         FuStr_push_indent(str, indent);

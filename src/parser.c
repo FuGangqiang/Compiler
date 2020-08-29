@@ -1974,7 +1974,7 @@ FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis) {
     nd->_static.vis = vis;
     nd->_static.ident = ident;
     nd->_static.ty = ty;
-    nd->_static.init_expr = expr;
+    nd->_static.init = expr;
     return nd;
 }
 
@@ -1998,7 +1998,7 @@ FuNode *FuParser_parse_item_const(FuParser *p, FuVec *attrs, fu_vis_k vis) {
     nd->_const.vis = vis;
     nd->_const.ident = ident;
     nd->_const.ty = ty;
-    nd->_const.init_expr = expr;
+    nd->_const.init = expr;
     return nd;
 }
 

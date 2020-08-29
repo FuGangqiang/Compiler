@@ -1015,13 +1015,13 @@ struct FuNode {
             fu_vis_k vis;
             FuIdent *ident;
             FuType *ty;
-            FuExpr *init_expr;
+            FuExpr *init;
         } _static;
         struct {
             fu_vis_k vis;
             FuIdent *ident;
             FuType *ty;
-            FuExpr *init_expr;
+            FuExpr *init;
         } _const;
         struct {
             FuPat *pat;
