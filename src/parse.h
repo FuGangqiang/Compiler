@@ -469,7 +469,6 @@ FuPath *FuParser_parse_path(FuParser *p);
 FuPat *FuParser_parse_pat(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 FuBlock *FuParser_parse_block(FuParser *p);
-FuExpr *FuParser_parse_block_expr(FuParser *p);
 
 fu_vis_k FuParser_parse_visibility(FuParser *p);
 FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis);
@@ -489,6 +488,7 @@ FuNode *FuParser_parse_item_loop(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_if(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_match(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_try(FuParser *p, FuVec *attrs);
+FuNode *FuParser_parse_item_fn(FuParser *p, FuVec *attrs, fu_vis_k vis);
 
 FuNode *FuParser_parse_mod_item(FuParser *p);
 FuVec *FuParser_parse_mod_items(FuParser *p);
@@ -729,11 +729,11 @@ FuStr *FuFieldInit_display(FuFieldInit *init, fu_size_t indent);
 struct FuFnParam {
     FuSpan *sp;
     FuVec *attrs;
-    FuIdent *ident;
+    FuPat *pat;
     FuType *ty;
 };
 
-FuFnParam *FuFnParam_new(FuSpan *sp, FuIdent *ident);
+FuFnParam *FuFnParam_new(FuSpan *sp, FuPat *pat);
 void FuFnParam_drop(FuFnParam *param);
 FuStr *FuFnParam_display(FuFnParam *param, fu_size_t indent);
 
@@ -751,6 +751,7 @@ struct FuFnSig {
 };
 
 FuFnSig *FuFnSig_new(FuGeneric *ge, FuVec *tys);
+FuFnSig *FuFnSig_from_params(FuCtx *ctx, FuGeneric *ge, FuVec *params, FuType *return_ty);
 void FuFnSig_drop(FuFnSig *sig);
 FuStr *FuFnSig_display(FuFnSig *sig);
 
@@ -1071,13 +1072,13 @@ struct FuNode {
             FuBlock *finally;
         } _try;
         struct {
+            fu_vis_k vis;
             FuIdent *ident;
             FuScope *scope;
-            FuType *ty;
             /* FuFnParam */
             FuVec *params;
-            /* FuNode */
-            FuVec *body;
+            FuFnSig *sig;
+            FuBlock *body;
         } _fn;
         FuType *_type;
         struct {

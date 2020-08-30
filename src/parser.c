@@ -1469,6 +1469,29 @@ static fu_bool_t FuParser_check_block(FuParser *p) {
     return FU_FALSE;
 }
 
+static fu_bool_t FuParser_check_fn(FuParser *p) {
+    FuToken tok;
+    fu_size_t i = 0;
+    while (1) {
+        tok = FuParser_nth_token(p, i);
+        if (tok.kd == TOK_EOF) {
+            return FU_FALSE;
+        }
+        if (tok.kd != TOK_KEYWORD) {
+            return FU_FALSE;
+        }
+        if (tok.sym == KW_FN) {
+            return FU_TRUE;
+        }
+        if (tok.sym == KW_ASYNC || tok.sym == KW_UNSAFE || tok.sym == KW_CONST) {
+            i++;
+            continue;
+        }
+        break;
+    }
+    return FU_FALSE;
+}
+
 static fu_bool_t FuParser_check_loop(FuParser *p, fu_keyword_k keyword) {
     FuToken tok, tok1;
     tok = FuParser_nth_token(p, 0);
@@ -1494,9 +1517,13 @@ static FuNode *FuParser_parse_item_block_keyword(FuParser *p, FuVec *attrs) {
     case KW_STATIC:
         return FuParser_parse_item_static(p, attrs, VIS_PRIV);
         break;
-    case KW_CONST:
+    case KW_CONST: {
+        if (FuParser_check_fn(p)) {
+            return FuParser_parse_item_fn(p, attrs, VIS_PRIV);
+        }
         return FuParser_parse_item_const(p, attrs, VIS_PRIV);
         break;
+    }
     case KW_LET:
         return FuParser_parse_item_let(p, attrs);
         break;
@@ -1520,6 +1547,9 @@ static FuNode *FuParser_parse_item_block_keyword(FuParser *p, FuVec *attrs) {
         break;
     case KW_UNSAFE:
     case KW_ASYNC:
+        if (FuParser_check_fn(p)) {
+            return FuParser_parse_item_fn(p, attrs, VIS_PRIV);
+        }
         if (FuParser_check_block(p)) {
             return FuParser_parse_item_block(p, attrs);
         }
@@ -1540,6 +1570,9 @@ static FuNode *FuParser_parse_item_block_keyword(FuParser *p, FuVec *attrs) {
         return FuParser_parse_item_match(p, attrs);
     case KW_TRY:
         return FuParser_parse_item_try(p, attrs);
+        break;
+    case KW_FN:
+        return FuParser_parse_item_fn(p, attrs, VIS_PRIV);
         break;
     default:
         FATAL1(tok.sp, "unimplement item: `%s`", FuKind_keyword_cstr(tok.sym));
@@ -1630,7 +1663,7 @@ FuBlock *FuParser_parse_block(FuParser *p) {
     return blk;
 }
 
-FuExpr *FuParser_parse_block_expr(FuParser *p) {
+static FuExpr *FuParser_parse_block_expr(FuParser *p) {
     FuSpan *lo = FuParser_current_span(p);
     fu_bool_t is_async = FuParser_eat_keyword(p, KW_ASYNC);
     fu_bool_t is_unsafe = FuParser_eat_keyword(p, KW_UNSAFE);
@@ -1648,24 +1681,29 @@ FuExpr *FuParser_parse_block_expr(FuParser *p) {
     return expr;
 }
 
-FuFnParam *FuParser_parse_fn_param(FuParser *p) {
+static FuFnParam *FuParser_parse_fn_param(FuParser *p, fu_bool_t check_ty) {
     FuVec *attrs = FuVec_new(sizeof(FuAttr *));
     /* todo: parse attrs */
-    FuIdent *ident = FuParser_parse_ident(p);
+    FuPat *pat = FuParser_parse_pat(p, 0, FU_TRUE);
     FuType *ty;
-    if (FuParser_check_token(p, TOK_COLON)) {
-        FuParser_bump(p);
+    if (check_ty) {
+        FuParser_expect_token(p, TOK_COLON);
         ty = FuParser_parse_type(p, 0, FU_TRUE);
     } else {
-        ty = FuType_from_keyword(p->ctx, ident->sp, KW_UNDERSCORE);
+        if (FuParser_check_token(p, TOK_COLON)) {
+            FuParser_bump(p);
+            ty = FuParser_parse_type(p, 0, FU_TRUE);
+        } else {
+            ty = FuType_from_keyword(p->ctx, pat->sp, KW_UNDERSCORE);
+        }
     }
-    FuFnParam *param = FuFnParam_new(ident->sp, ident);
+    FuFnParam *param = FuFnParam_new(pat->sp, pat);
     param->attrs = attrs;
     param->ty = ty;
     return param;
 }
 
-FuVec *FuParser_parse_fn_params(FuParser *p, fu_token_k close_kd) {
+static FuVec *FuParser_parse_fn_params(FuParser *p, fu_token_k close_kd, fu_bool_t check_ty) {
     /* todo: parse type */
     FuVec *params = FuVec_new(sizeof(FuFnParam));
     FuToken tok = FuParser_nth_token(p, 0);
@@ -1673,7 +1711,7 @@ FuVec *FuParser_parse_fn_params(FuParser *p, fu_token_k close_kd) {
         return params;
     }
     while (1) {
-        FuFnParam *param = FuParser_parse_fn_param(p);
+        FuFnParam *param = FuParser_parse_fn_param(p, check_ty);
         FuVec_push_ptr(params, param);
         FuToken tok = FuParser_nth_token(p, 0);
         if (tok.kd == TOK_COMMA) {
@@ -1705,7 +1743,7 @@ static fu_bool_t FuParser_check_closure(FuParser *p) {
     return FU_FALSE;
 }
 
-FuExpr *FuParser_parse_closure_expr(FuParser *p) {
+static FuExpr *FuParser_parse_closure_expr(FuParser *p) {
     FuSpan *lo = FuParser_current_span(p);
     fu_bool_t is_async = FuParser_eat_keyword(p, KW_ASYNC);
     fu_bool_t is_unsafe = FuParser_eat_keyword(p, KW_UNSAFE);
@@ -1719,7 +1757,7 @@ FuExpr *FuParser_parse_closure_expr(FuParser *p) {
     } else {
         /* `| param ... |` expr */
         FuParser_expect_token(p, TOK_OR);
-        params = FuParser_parse_fn_params(p, TOK_OR);
+        params = FuParser_parse_fn_params(p, TOK_OR, FU_FALSE);
         FuParser_expect_token(p, TOK_OR);
     }
     FuType *return_ty;
@@ -1728,22 +1766,9 @@ FuExpr *FuParser_parse_closure_expr(FuParser *p) {
     } else {
         return_ty = FuType_from_keyword(p->ctx, NULL, KW_UNDERSCORE);
     }
-
+    FuFnSig *sig = FuFnSig_from_params(p->ctx, NULL, params, return_ty);
     FuExpr *body = FuParser_parse_expr(p, 0, FU_TRUE);
     FuSpan *sp = FuSpan_join(lo, body->sp);
-
-    FuVec *sig_tys = FuVec_new(sizeof(FuType *));
-    fu_size_t len = FuVec_len(params);
-    fu_size_t i;
-    for (i = 0; i < len; i++) {
-        FuFnParam *param = FuVec_get_ptr(params, i);
-        FuVec_push_ptr(sig_tys, param->ty);
-    }
-    if (len == 0) {
-        FuVec_push_ptr(sig_tys, FuType_from_keyword(p->ctx, NULL, KW_NIL));
-    }
-    FuVec_push_ptr(sig_tys, return_ty);
-    FuFnSig *sig = FuFnSig_new(NULL, sig_tys);
 
     FuType *ty = FuType_new_fn_sig(p->ctx, sp, sig);
     FuExpr *expr = FuExpr_new(sp, EXPR_CLOSURE);
@@ -2263,6 +2288,57 @@ FuNode *FuParser_parse_item_try(FuParser *p, FuVec *attrs) {
     return nd;
 }
 
+FuNode *FuParser_parse_item_fn(FuParser *p, FuVec *attrs, fu_vis_k vis) {
+    FuSpan *lo = FuParser_current_span(p);
+    fu_bool_t is_const = FuParser_eat_keyword(p, KW_CONST);
+    fu_bool_t is_async = FuParser_eat_keyword(p, KW_ASYNC);
+    fu_bool_t is_unsafe = FuParser_eat_keyword(p, KW_UNSAFE);
+    if (is_const && is_async) {
+        ERROR(lo, "fn can not be `const` and `async` at the same time");
+    }
+    FuParser_expect_keyword(p, KW_FN);
+    FuIdent *ident = FuParser_parse_ident(p);
+
+    FuParser_expect_token(p, TOK_OPEN_PAREN);
+    FuVec *params = FuParser_parse_fn_params(p, TOK_CLOSE_PAREN, FU_TRUE);
+    FuParser_expect_token(p, TOK_CLOSE_PAREN);
+
+    FuType *return_ty;
+    if (FuParser_check_token(p, TOK_RARROW)) {
+        FuParser_expect_token(p, TOK_RARROW);
+        return_ty = FuParser_parse_type(p, 0, FU_TRUE);
+    } else {
+        return_ty = FuType_from_keyword(p->ctx, NULL, KW_NIL);
+    }
+    FuFnSig *sig = FuFnSig_from_params(p->ctx, NULL, params, return_ty);
+    sig->is_const = is_const;
+    sig->is_async = is_async;
+    sig->is_unsafe = is_unsafe;
+
+    FuSpan *hi;
+    FuBlock *body = NULL;
+    if (FuParser_check_token(p, TOK_SEMI)) {
+        FuToken tok = FuParser_expect_token(p, TOK_SEMI);
+        hi = tok.sp;
+    } else if (FuParser_check_token(p, TOK_OPEN_BRACE)) {
+        body = FuParser_parse_block(p);
+        hi = body->sp;
+    } else {
+        FuToken tok = FuParser_nth_token(p, 1);
+        FATAL1(tok.sp, "expect `{` or `;`, find: `%s`", FuToken_kind_csr(tok));
+    }
+
+    FuSpan *sp = FuSpan_join(lo, hi);
+    FuNode *nd = FuNode_new(p->ctx, sp, ND_FN);
+    nd->attrs = attrs;
+    nd->_fn.vis = vis;
+    nd->_fn.ident = ident;
+    nd->_fn.params = params;
+    nd->_fn.sig = sig;
+    nd->_fn.body = body;
+    return nd;
+}
+
 FuNode *FuParser_parse_mod_item(FuParser *p) {
     /* todo: parse attrs */
     FuVec *attrs = FuVec_new(sizeof(FuAttr *));
@@ -2279,12 +2355,21 @@ FuNode *FuParser_parse_mod_item(FuParser *p) {
         item = FuParser_parse_item_static(p, attrs, vis);
         break;
     case KW_CONST:
+        if (FuParser_check_fn(p)) {
+            item = FuParser_parse_item_fn(p, attrs, vis);
+            break;
+        }
         item = FuParser_parse_item_const(p, attrs, vis);
         break;
-    default:
+    default: {
+        if (FuParser_check_fn(p)) {
+            item = FuParser_parse_item_fn(p, attrs, vis);
+            break;
+        }
         FATAL1(tok.sp, "unimplement item: `%s`", FuKind_keyword_cstr(tok.sym));
         item = NULL;
         break;
+    }
     }
     return item;
 }

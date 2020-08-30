@@ -1,4 +1,20 @@
-static p1: i8 = async {
-    let i = await future1;
-    await future2;
-};
+pub const fn add(a: u8, b: u8) -> u8 {
+    a + b
+}
+
+fn main() {
+    const i = 1u8;
+    const j = 2u8;
+    const k = add(i, j);
+
+    fn fibnacci(i: u8) -> u8 {
+        if (i == 0) {
+           0
+        } else if (i == 1){
+            1
+        } else {
+            fibnacci(i-1) + fibnacci(i-2)
+        }
+    }
+    print(fibnacci(k));
+}

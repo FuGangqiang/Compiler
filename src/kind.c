@@ -367,9 +367,9 @@ char *FuKind_ty_op_cstr(fu_ty_op_k kd) {
 char *FuKind_type_cstr(fu_type_k kd) {
     switch (kd) {
 /* clang-format off */
-#define TYPE(kd, _doc) \
+#define TYPE(kd, doc) \
     case kd:           \
-        return #kd;    \
+        return doc;    \
         break;
 /* clang-format on */
 #include "type.def"

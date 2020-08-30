@@ -1,33 +1,202 @@
-nid: 3
+nid: 12
 kd: ND_PKG
 items:
-  nid: 2
-  kd: ND_STATIC
-  ident: p1
-  ty: i8
-  init:
-    kd: EXPR_BLOCK
-    is_async: 1
-    is_unsafe: 0
-    block:
-      items:
-        nid: 0
-        kd: ND_LET
+  nid: 1
+  kd: ND_FN
+  ident: add
+  vis: VIS_PUB
+  sig: u8 -> u8 -> u8
+  params len: 2
+    pat:
+      kd: PAT_EXPR
+      expr:
+        kd: EXPR_PATH
+        path: a
+    ty: u8
+    pat:
+      kd: PAT_EXPR
+      expr:
+        kd: EXPR_PATH
+        path: b
+    ty: u8
+  body:
+    items:
+      nid: 0
+      kd: ND_EXPR
+      end_semi: 0
+      expr:
+        kd: EXPR_BINARY
+        op: OP_ADD
+        lexpr:
+          kd: EXPR_PATH
+          path: a
+        rexpr:
+          kd: EXPR_PATH
+          path: b
+  nid: 11
+  kd: ND_FN
+  ident: main
+  vis: VIS_PRIV
+  sig: nil -> nil
+  params len: 0
+  body:
+    items:
+      nid: 2
+      kd: ND_CONST
+      ident: i
+      ty: _
+      init:
+        kd: EXPR_LIT
+        lit:
+          kd: LIT_INT
+          size: 8, is_signed: 0, v: 1
+      nid: 3
+      kd: ND_CONST
+      ident: j
+      ty: _
+      init:
+        kd: EXPR_LIT
+        lit:
+          kd: LIT_INT
+          size: 8, is_signed: 0, v: 2
+      nid: 4
+      kd: ND_CONST
+      ident: k
+      ty: _
+      init:
+        kd: EXPR_CALL
+        fn:
+          kd: EXPR_PATH
+          path: add
+        args len: 2
+        args:
+          kd: EXPR_PATH
+          path: i
+          kd: EXPR_PATH
+          path: j
+      nid: 9
+      kd: ND_FN
+      ident: fibnacci
+      vis: VIS_PRIV
+      sig: u8 -> u8
+      params len: 1
         pat:
           kd: PAT_EXPR
           expr:
             kd: EXPR_PATH
             path: i
-        init:
-          kd: EXPR_AWAIT
+        ty: u8
+      body:
+        items:
+          nid: 8
+          kd: ND_EXPR
+          end_semi: 0
           expr:
+            kd: EXPR_IF
+            cond:
+              kd: EXPR_BINARY
+              op: OP_EQ
+              lexpr:
+                kd: EXPR_PATH
+                path: i
+              rexpr:
+                kd: EXPR_LIT
+                lit:
+                  kd: LIT_INT
+                  size: 0, is_signed: 0, v: 0
+            block:
+              items:
+                nid: 5
+                kd: ND_EXPR
+                end_semi: 0
+                expr:
+                  kd: EXPR_LIT
+                  lit:
+                    kd: LIT_INT
+                    size: 0, is_signed: 0, v: 0
+            next_if:
+              kd: EXPR_IF
+              cond:
+                kd: EXPR_BINARY
+                op: OP_EQ
+                lexpr:
+                  kd: EXPR_PATH
+                  path: i
+                rexpr:
+                  kd: EXPR_LIT
+                  lit:
+                    kd: LIT_INT
+                    size: 0, is_signed: 0, v: 1
+              block:
+                items:
+                  nid: 6
+                  kd: ND_EXPR
+                  end_semi: 0
+                  expr:
+                    kd: EXPR_LIT
+                    lit:
+                      kd: LIT_INT
+                      size: 0, is_signed: 0, v: 1
+              next_if:
+                kd: EXPR_IF
+                cond: else
+                block:
+                  items:
+                    nid: 7
+                    kd: ND_EXPR
+                    end_semi: 0
+                    expr:
+                      kd: EXPR_BINARY
+                      op: OP_ADD
+                      lexpr:
+                        kd: EXPR_CALL
+                        fn:
+                          kd: EXPR_PATH
+                          path: fibnacci
+                        args len: 1
+                        args:
+                          kd: EXPR_BINARY
+                          op: OP_SUB
+                          lexpr:
+                            kd: EXPR_PATH
+                            path: i
+                          rexpr:
+                            kd: EXPR_LIT
+                            lit:
+                              kd: LIT_INT
+                              size: 0, is_signed: 0, v: 1
+                      rexpr:
+                        kd: EXPR_CALL
+                        fn:
+                          kd: EXPR_PATH
+                          path: fibnacci
+                        args len: 1
+                        args:
+                          kd: EXPR_BINARY
+                          op: OP_SUB
+                          lexpr:
+                            kd: EXPR_PATH
+                            path: i
+                          rexpr:
+                            kd: EXPR_LIT
+                            lit:
+                              kd: LIT_INT
+                              size: 0, is_signed: 0, v: 2
+      nid: 10
+      kd: ND_EXPR
+      end_semi: 1
+      expr:
+        kd: EXPR_CALL
+        fn:
+          kd: EXPR_PATH
+          path: print
+        args len: 1
+        args:
+          kd: EXPR_CALL
+          fn:
             kd: EXPR_PATH
-            path: future1
-        nid: 1
-        kd: ND_EXPR
-        end_semi: 0
-        expr:
-          kd: EXPR_AWAIT
-          expr:
+            path: fibnacci
+          args len: 1
+          args:
             kd: EXPR_PATH
-            path: future2
+            path: k

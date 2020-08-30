@@ -178,10 +178,10 @@ FuStr *FuFieldInit_display(FuFieldInit *init, fu_size_t indent) {
     return str;
 }
 
-FuFnParam *FuFnParam_new(FuSpan *sp, FuIdent *ident) {
+FuFnParam *FuFnParam_new(FuSpan *sp, FuPat *pat) {
     FuFnParam *param = FuMem_new(FuFnParam);
     param->sp = sp;
-    param->ident = ident;
+    param->pat = pat;
     return param;
 }
 
@@ -189,7 +189,7 @@ void FuFnParam_drop(FuFnParam *param) {
     if (!param) {
         return;
     }
-    FuIdent_drop(param->ident);
+    FuPat_drop(param->pat);
     FuVec_drop(param->attrs);
     FuMem_free(param);
 }
@@ -197,9 +197,8 @@ void FuFnParam_drop(FuFnParam *param) {
 FuStr *FuFnParam_display(FuFnParam *param, fu_size_t indent) {
     FuStr *str = FuStr_new();
     FuStr_push_indent(str, indent);
-    FuStr_push_utf8_format(str, "ident: ");
-    FuStr_append(str, FuIdent_display(param->ident));
-    FuStr_push_utf8_format(str, "\n");
+    FuStr_push_utf8_format(str, "pat:\n");
+    FuStr_append(str, FuPat_display(param->pat, indent + 1));
     if (param->ty) {
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_format(str, "ty: ");
@@ -213,6 +212,24 @@ FuFnSig *FuFnSig_new(FuGeneric *ge, FuVec *tys) {
     FuFnSig *sig = FuMem_new(FuFnSig);
     sig->ge = ge;
     sig->tys = tys;
+    return sig;
+}
+
+FuFnSig *FuFnSig_from_params(FuCtx *ctx, FuGeneric *ge, FuVec *params, FuType *return_ty) {
+    FuVec *sig_tys = FuVec_new(sizeof(FuType *));
+    fu_size_t len = FuVec_len(params);
+    fu_size_t i;
+    for (i = 0; i < len; i++) {
+        FuFnParam *param = FuVec_get_ptr(params, i);
+        FuVec_push_ptr(sig_tys, param->ty);
+    }
+    if (len == 0) {
+        FuVec_push_ptr(sig_tys, FuType_from_keyword(ctx, NULL, KW_NIL));
+    }
+    FuVec_push_ptr(sig_tys, return_ty);
+    FuFnSig *sig = FuMem_new(FuFnSig);
+    sig->ge = ge;
+    sig->tys = sig_tys;
     return sig;
 }
 
@@ -1071,6 +1088,13 @@ void FuNode_drop(FuNode *nd) {
         FuVec_drop_with_ptrs(nd->_try.arms, (FuDropFn)FuArm_drop);
         FuBlock_drop(nd->_try.finally);
         break;
+    case ND_FN:
+        FuIdent_drop(nd->_fn.ident);
+        FuScope_drop(nd->_fn.scope);
+        FuVec_drop_with_ptrs(nd->_fn.params, (FuDropFn)FuFnParam_drop);
+        FuFnSig_drop(nd->_fn.sig);
+        FuBlock_drop(nd->_fn.body);
+        break;
     case ND_PKG:
         FuScope_drop(nd->_pkg.globals);
         FuScope_drop(nd->_pkg.builtins);
@@ -1273,6 +1297,34 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
             FuStr_push_indent(str, indent);
             FuStr_push_utf8_cstr(str, "finally:\n");
             FuStr_append(str, FuBlock_display(nd->_try.finally, indent + 1));
+        }
+        break;
+    }
+    case ND_FN: {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "ident: ");
+        FuStr_append(str, FuIdent_display(nd->_fn.ident));
+        FuStr_push_utf8_cstr(str, "\n");
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(nd->_fn.vis));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "sig: ");
+        FuStr_append(str, FuFnSig_display(nd->_fn.sig));
+        FuStr_push_utf8_cstr(str, "\n");
+        fu_size_t len = FuVec_len(nd->_fn.params);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "params len: %d\n", len);
+        if (len > 0) {
+            fu_size_t i;
+            for (i = 0; i < len; i++) {
+                FuFnParam *item = FuVec_get_ptr(nd->_fn.params, i);
+                FuStr_append(str, FuFnParam_display(item, indent + 1));
+            }
+        }
+        if (nd->_fn.body) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "body:\n");
+            FuStr_append(str, FuBlock_display(nd->_fn.body, indent + 1));
         }
         break;
     }
