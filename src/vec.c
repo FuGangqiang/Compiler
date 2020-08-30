@@ -73,10 +73,10 @@ void FuVec_drop_with_ptrs(FuVec *vec, FuDropFn drop_fn) {
 }
 
 void FuVec_reserve(FuVec *vec, fu_size_t additional) {
-    if (vec->cap - vec->len > additional) {
+    fu_size_t new_cap = vec->len + additional;
+    if (vec->cap > new_cap) {
         return;
     }
-    fu_size_t new_cap = vec->len + additional;
     void *new_data = FuMem_alloc(new_cap * vec->item_size);
     memcpy(new_data, vec->data, vec->len * vec->item_size);
     FuMem_free(vec->data);
@@ -88,7 +88,6 @@ void FuVec_make_room(FuVec *vec) {
     if (vec->cap > vec->len) {
         return;
     }
-    /* vec->cap == vec->len */
     fu_size_t additional = vec->cap > 0 ? vec->cap : 4;
     FuVec_reserve(vec, additional);
 }

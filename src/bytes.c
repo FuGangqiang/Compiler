@@ -38,15 +38,23 @@ void FuBytes_drop(FuBytes *bytes) {
 }
 
 void FuBytes_reserve(FuBytes *bytes, fu_size_t additional) {
-    if (bytes->cap - bytes->len > additional) {
+    fu_size_t new_cap = bytes->len + additional;
+    if (bytes->cap > new_cap) {
         return;
     }
-    fu_size_t new_cap = bytes->len + additional;
     char *chars = (char *)FuMem_alloc(sizeof(char) * new_cap);
     memcpy(chars, bytes->chars, bytes->len * sizeof(char));
     FuMem_free(bytes->chars);
     bytes->cap = new_cap;
     bytes->chars = chars;
+}
+
+void FuBytes_make_room(FuBytes *bytes) {
+    if (bytes->cap > bytes->len) {
+        return;
+    }
+    fu_size_t additional = bytes->cap > 0 ? bytes->cap : 4;
+    FuBytes_reserve(bytes, additional);
 }
 
 void FuBytes_shrink_to_fit(FuBytes *bytes) {
@@ -59,20 +67,6 @@ void FuBytes_shrink_to_fit(FuBytes *bytes) {
     FuMem_free(bytes->chars);
     bytes->cap = new_cap;
     bytes->chars = chars;
-}
-
-void FuBytes_make_room(FuBytes *bytes) {
-    if (bytes->cap > bytes->len) {
-        return;
-    }
-    /* bytes->cap == bytes->len */
-    fu_size_t new_cap = bytes->cap > 0 ? bytes->cap * 2 : 4;
-    void *data = (void *)FuMem_alloc(sizeof(char) * new_cap);
-    memcpy(data, bytes->chars, bytes->len * sizeof(char));
-    FuMem_free(bytes->chars);
-
-    bytes->cap = new_cap;
-    bytes->chars = data;
 }
 
 FuBytes *FuBytes_clone(FuBytes *bytes) {

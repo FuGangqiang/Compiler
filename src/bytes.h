@@ -22,8 +22,8 @@ void FuBytes_deinit(FuBytes *bytes);
 void FuBytes_drop(FuBytes *bytes);
 
 void FuBytes_reserve(FuBytes *bytes, fu_size_t additional);
-void FuBytes_shrink_to_fit(FuBytes *bytes);
 void FuBytes_make_room(FuBytes *bytes);
+void FuBytes_shrink_to_fit(FuBytes *bytes);
 
 FuBytes *FuBytes_clone(FuBytes *bytes);
 FuBytes *FuBytes_from_slice(FuBytes *bytes, fu_size_t start, fu_size_t len);

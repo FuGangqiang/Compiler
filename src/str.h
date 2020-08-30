@@ -22,8 +22,8 @@ void FuStr_deinit(FuStr *str);
 void FuStr_drop(FuStr *str);
 
 void FuStr_reserve(FuStr *str, fu_size_t additional);
-void FuStr_shrink_to_fit(FuStr *str);
 void FuStr_make_room(FuStr *str);
+void FuStr_shrink_to_fit(FuStr *str);
 
 FuStr *FuStr_clone(FuStr *str);
 FuStr *FuStr_from_slice(FuStr *str, fu_size_t start, fu_size_t len);

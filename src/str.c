@@ -38,15 +38,23 @@ void FuStr_drop(FuStr *str) {
 }
 
 void FuStr_reserve(FuStr *str, fu_size_t additional) {
-    if (str->cap - str->len > additional) {
+    fu_size_t new_cap = str->len + additional;
+    if (str->cap > new_cap) {
         return;
     }
-    fu_size_t new_cap = str->len + additional;
     FuChar *chars = (FuChar *)FuMem_alloc(sizeof(FuChar) * new_cap);
     memcpy(chars, str->chars, str->len * sizeof(FuChar));
     FuMem_free(str->chars);
     str->cap = new_cap;
     str->chars = chars;
+}
+
+void FuStr_make_room(FuStr *str) {
+    if (str->cap > str->len) {
+        return;
+    }
+    fu_size_t additional = str->cap > 0 ? str->cap : 4;
+    FuStr_reserve(str, additional);
 }
 
 void FuStr_shrink_to_fit(FuStr *str) {
@@ -59,20 +67,6 @@ void FuStr_shrink_to_fit(FuStr *str) {
     FuMem_free(str->chars);
     str->cap = new_cap;
     str->chars = chars;
-}
-
-void FuStr_make_room(FuStr *str) {
-    if (str->cap > str->len) {
-        return;
-    }
-    /* str->cap == str->len */
-    fu_size_t new_cap = str->cap > 0 ? str->cap * 2 : 4;
-    void *data = (void *)FuMem_alloc(sizeof(FuChar) * new_cap);
-    memcpy(data, str->chars, str->len * sizeof(FuChar));
-    FuMem_free(str->chars);
-
-    str->cap = new_cap;
-    str->chars = data;
 }
 
 FuStr *FuStr_clone(FuStr *str) {
