@@ -497,7 +497,7 @@ FuIdent *FuParser_parse_ident(FuParser *p) {
     return ident;
 }
 
-FuPathItem *FuParser_parse_path_item(FuParser *p) {
+static FuPathItem *FuParser_parse_path_item(FuParser *p) {
     FuSpan *lo = FuParser_current_span(p);
     FuIdent *ident = FuParser_parse_ident(p);
     FuVec *ge_args = NULL;

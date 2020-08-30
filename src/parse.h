@@ -462,13 +462,11 @@ void FuParser_for_file(FuParser *p, char *fpath, fu_size_t len);
 FuLit *FuParser_parse_lit(FuParser *p);
 FuIdent *FuParser_parse_ident(FuParser *p);
 FuLabel *FuParser_parse_label(FuParser *p);
-FuType *FuParser_parse_type(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
-
-FuPathItem *FuParser_parse_path_item(FuParser *p);
 FuPath *FuParser_parse_path(FuParser *p);
-FuPat *FuParser_parse_pat(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
-FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 FuBlock *FuParser_parse_block(FuParser *p);
+FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
+FuPat *FuParser_parse_pat(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
+FuType *FuParser_parse_type(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 
 fu_vis_k FuParser_parse_visibility(FuParser *p);
 FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis);
