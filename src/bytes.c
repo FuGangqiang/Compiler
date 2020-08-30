@@ -8,7 +8,7 @@
 #include "log.h"
 
 FuBytes *FuBytes_new() {
-    FuBytes *bytes = (FuBytes *)FuMem_malloc(sizeof(FuBytes));
+    FuBytes *bytes = (FuBytes *)FuMem_alloc(sizeof(FuBytes));
     FuBytes_init(bytes);
     return bytes;
 }
@@ -26,9 +26,7 @@ void FuBytes_init(FuBytes *bytes) {
 }
 
 void FuBytes_deinit(FuBytes *bytes) {
-    if (bytes->chars != NULL) {
-        FuMem_free(bytes->chars);
-    }
+    FuMem_free(bytes->chars);
 }
 
 void FuBytes_drop(FuBytes *bytes) {
@@ -44,7 +42,7 @@ void FuBytes_reserve(FuBytes *bytes, fu_size_t additional) {
         return;
     }
     fu_size_t new_cap = bytes->len + additional;
-    char *chars = (char *)FuMem_malloc(sizeof(char) * new_cap);
+    char *chars = (char *)FuMem_alloc(sizeof(char) * new_cap);
     memcpy(chars, bytes->chars, bytes->len * sizeof(char));
     FuMem_free(bytes->chars);
     bytes->cap = new_cap;
@@ -56,7 +54,7 @@ void FuBytes_shrink_to_fit(FuBytes *bytes) {
         return;
     }
     fu_size_t new_cap = bytes->len;
-    char *chars = (char *)FuMem_malloc(sizeof(char) * new_cap);
+    char *chars = (char *)FuMem_alloc(sizeof(char) * new_cap);
     memcpy(chars, bytes->chars, bytes->len * sizeof(char));
     FuMem_free(bytes->chars);
     bytes->cap = new_cap;
@@ -69,7 +67,7 @@ void FuBytes_make_room(FuBytes *bytes) {
     }
     /* bytes->cap == bytes->len */
     fu_size_t new_cap = bytes->cap > 0 ? bytes->cap * 2 : 4;
-    void *data = (void *)FuMem_malloc(sizeof(char) * new_cap);
+    void *data = (void *)FuMem_alloc(sizeof(char) * new_cap);
     memcpy(data, bytes->chars, bytes->len * sizeof(char));
     FuMem_free(bytes->chars);
 

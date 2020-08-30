@@ -5,14 +5,14 @@
 #include "map.h"
 
 FuMap *FuMap_new(fu_size_t key_size, fu_size_t value_size, FuEqFn key_eq_fn, FuHashFn key_hash_fn) {
-    FuMap *map = FuMem_malloc(sizeof(FuMap));
+    FuMap *map = FuMem_alloc(sizeof(FuMap));
     FuMap_init(map, key_size, value_size, key_eq_fn, key_hash_fn);
     return map;
 }
 
 FuMap *FuMap_with_capacity(fu_size_t capacity, fu_size_t key_size, fu_size_t value_size, FuEqFn key_eq_fn,
                            FuHashFn key_hash_fn) {
-    FuMap *map = FuMem_malloc(sizeof(FuMap));
+    FuMap *map = FuMem_alloc(sizeof(FuMap));
     map->len = 0;
     map->cell_cap = capacity;
     map->item_cap = (fu_size_t)(capacity * 0.7f);
@@ -20,11 +20,11 @@ FuMap *FuMap_with_capacity(fu_size_t capacity, fu_size_t key_size, fu_size_t val
     map->value_size = value_size;
     map->key_eq_fn = key_eq_fn;
     map->key_hash_fn = key_hash_fn;
-    map->cells = FuMem_malloc(map->cell_cap * sizeof(fu_size_t));
-    map->cell_idxs = FuMem_malloc(map->item_cap * sizeof(fu_size_t));
-    map->hashes = FuMem_malloc(map->item_cap * sizeof(fu_size_t));
-    map->keys = FuMem_malloc(map->item_cap * map->key_size);
-    map->values = FuMem_malloc(map->item_cap * map->value_size);
+    map->cells = FuMem_alloc(map->cell_cap * sizeof(fu_size_t));
+    map->cell_idxs = FuMem_alloc(map->item_cap * sizeof(fu_size_t));
+    map->hashes = FuMem_alloc(map->item_cap * sizeof(fu_size_t));
+    map->keys = FuMem_alloc(map->item_cap * map->key_size);
+    map->values = FuMem_alloc(map->item_cap * map->value_size);
 
     fu_size_t i;
     for (i = 0; i < map->cell_cap; i++) {
@@ -49,21 +49,11 @@ void FuMap_init(FuMap *map, fu_size_t key_size, fu_size_t value_size, FuEqFn key
 }
 
 void FuMap_deinit(FuMap *map) {
-    if (map->cells) {
-        FuMem_free(map->cells);
-    }
-    if (map->cell_idxs) {
-        FuMem_free(map->cell_idxs);
-    }
-    if (map->hashes) {
-        FuMem_free(map->hashes);
-    }
-    if (map->keys) {
-        FuMem_free(map->keys);
-    }
-    if (map->values) {
-        FuMem_free(map->values);
-    }
+    FuMem_free(map->cells);
+    FuMem_free(map->cell_idxs);
+    FuMem_free(map->hashes);
+    FuMem_free(map->keys);
+    FuMem_free(map->values);
 }
 
 static void *FuMap_key_at(FuMap *map, fu_size_t idx) {

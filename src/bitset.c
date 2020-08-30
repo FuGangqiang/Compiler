@@ -4,7 +4,7 @@
 #include "bitset.h"
 
 FuBitSet *FuBitSet_new() {
-    FuBitSet *new = FuMem_malloc(sizeof(FuBitSet));
+    FuBitSet *new = FuMem_alloc(sizeof(FuBitSet));
     FuBitSet_init(new);
     return new;
 }
@@ -19,7 +19,7 @@ static void FuBitSet_make_room(FuBitSet *bs, fu_size_t n) {
     } else {
         new_len = (n - 1) / BITSET_CHUNK_SIZE + 1;
     }
-    fu_size_t *chunks = (fu_size_t *)FuMem_malloc(sizeof(fu_size_t) * new_len);
+    fu_size_t *chunks = (fu_size_t *)FuMem_alloc(sizeof(fu_size_t) * new_len);
     memcpy(chunks, bs->chunks, bs->len * sizeof(fu_size_t));
     memset((char *)chunks + bs->len * sizeof(fu_size_t), 0, (new_len - bs->len) * sizeof(fu_size_t));
     FuMem_free(bs->chunks);
@@ -28,7 +28,7 @@ static void FuBitSet_make_room(FuBitSet *bs, fu_size_t n) {
 }
 
 FuBitSet *FuBitSet_with_capacity(fu_size_t cap) {
-    FuBitSet *new = FuMem_malloc(sizeof(FuBitSet));
+    FuBitSet *new = FuMem_alloc(sizeof(FuBitSet));
     FuBitSet_init(new);
     FuBitSet_make_room(new, cap);
     return new;

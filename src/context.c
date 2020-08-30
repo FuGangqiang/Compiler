@@ -12,7 +12,7 @@ fu_size_t FuId_hash(fu_id_t *id) {
 
 FuCtx *FuCtx_new() {
     FuCtx *ctx = FuMem_new(FuCtx);
-    ctx->symbols = FuSet_with_capacity(1024 * 20, sizeof(FuStr *), (FuEqFn)FuStr_eq, (FuHashFn)FuStr_hash);
+    ctx->symbols = FuSet_with_capacity(1024, sizeof(FuStr *), (FuEqFn)FuStr_eq, (FuHashFn)FuStr_hash);
     ctx->fmap = FuMap_new(sizeof(fu_sym_t), sizeof(fu_size_t), (FuEqFn)FuId_eq, (FuHashFn)FuId_hash);
     ctx->fcontents = FuVec_new(sizeof(FuStr *));
     ctx->spans = FuVec_new(sizeof(FuSpan *));

@@ -5,23 +5,24 @@
 #include "set.h"
 
 FuSet *FuSet_new(fu_size_t key_size, FuEqFn key_eq_fn, FuHashFn key_hash_fn) {
-    FuSet *set = FuMem_malloc(sizeof(FuSet));
+    FuSet *set = FuMem_alloc(sizeof(FuSet));
     FuSet_init(set, key_size, key_eq_fn, key_hash_fn);
     return set;
 }
 
+/* capacity 需要设为 2 的 n 次方，否则有些地方会 segement fault，目前尚未查到原因 */
 FuSet *FuSet_with_capacity(fu_size_t capacity, fu_size_t key_size, FuEqFn key_eq_fn, FuHashFn key_hash_fn) {
-    FuSet *set = FuMem_malloc(sizeof(FuSet));
+    FuSet *set = FuMem_alloc(sizeof(FuSet));
     set->len = 0;
     set->cell_cap = capacity;
     set->item_cap = (fu_size_t)(capacity * 0.7f);
     set->key_size = key_size;
     set->key_eq_fn = key_eq_fn;
     set->key_hash_fn = key_hash_fn;
-    set->cells = FuMem_malloc(set->cell_cap * sizeof(fu_size_t));
-    set->cell_idxs = FuMem_malloc(set->item_cap * sizeof(fu_size_t));
-    set->hashes = FuMem_malloc(set->item_cap * sizeof(fu_size_t));
-    set->keys = FuMem_malloc(set->item_cap * set->key_size);
+    set->cells = FuMem_alloc(set->cell_cap * sizeof(fu_size_t));
+    set->cell_idxs = FuMem_alloc(set->item_cap * sizeof(fu_size_t));
+    set->hashes = FuMem_alloc(set->item_cap * sizeof(fu_size_t));
+    set->keys = FuMem_alloc(set->item_cap * set->key_size);
 
     fu_size_t i;
     for (i = 0; i < set->cell_cap; i++) {
@@ -44,18 +45,10 @@ void FuSet_init(FuSet *set, fu_size_t key_size, FuEqFn key_eq_fn, FuHashFn key_h
 }
 
 void FuSet_deinit(FuSet *set) {
-    if (set->cells) {
-        FuMem_free(set->cells);
-    }
-    if (set->cell_idxs) {
-        FuMem_free(set->cell_idxs);
-    }
-    if (set->hashes) {
-        FuMem_free(set->hashes);
-    }
-    if (set->keys) {
-        FuMem_free(set->keys);
-    }
+    FuMem_free(set->cells);
+    FuMem_free(set->cell_idxs);
+    FuMem_free(set->hashes);
+    FuMem_free(set->keys);
 }
 
 void FuSet_deinit_with_values(FuSet *set, FuDropFn key_drop_fn) {

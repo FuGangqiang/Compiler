@@ -3,7 +3,7 @@
 #include "parse.h"
 
 FuLexer *FuLexer_new(FuCtx *ctx) {
-    FuLexer *l = (FuLexer *)FuMem_malloc(sizeof(FuLexer));
+    FuLexer *l = (FuLexer *)FuMem_alloc(sizeof(FuLexer));
     l->ctx = ctx;
     l->fpath = 0;
     l->chars = NULL;

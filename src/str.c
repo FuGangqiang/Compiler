@@ -8,7 +8,7 @@
 #include "str.h"
 
 FuStr *FuStr_new() {
-    FuStr *str = (FuStr *)FuMem_malloc(sizeof(FuStr));
+    FuStr *str = (FuStr *)FuMem_alloc(sizeof(FuStr));
     FuStr_init(str);
     return str;
 }
@@ -26,9 +26,7 @@ void FuStr_init(FuStr *str) {
 }
 
 void FuStr_deinit(FuStr *str) {
-    if (str->chars != NULL) {
-        FuMem_free(str->chars);
-    }
+    FuMem_free(str->chars);
 }
 
 void FuStr_drop(FuStr *str) {
@@ -44,7 +42,7 @@ void FuStr_reserve(FuStr *str, fu_size_t additional) {
         return;
     }
     fu_size_t new_cap = str->len + additional;
-    FuChar *chars = (FuChar *)FuMem_malloc(sizeof(FuChar) * new_cap);
+    FuChar *chars = (FuChar *)FuMem_alloc(sizeof(FuChar) * new_cap);
     memcpy(chars, str->chars, str->len * sizeof(FuChar));
     FuMem_free(str->chars);
     str->cap = new_cap;
@@ -56,7 +54,7 @@ void FuStr_shrink_to_fit(FuStr *str) {
         return;
     }
     fu_size_t new_cap = str->len;
-    FuChar *chars = (FuChar *)FuMem_malloc(sizeof(FuChar) * new_cap);
+    FuChar *chars = (FuChar *)FuMem_alloc(sizeof(FuChar) * new_cap);
     memcpy(chars, str->chars, str->len * sizeof(FuChar));
     FuMem_free(str->chars);
     str->cap = new_cap;
@@ -69,7 +67,7 @@ void FuStr_make_room(FuStr *str) {
     }
     /* str->cap == str->len */
     fu_size_t new_cap = str->cap > 0 ? str->cap * 2 : 4;
-    void *data = (void *)FuMem_malloc(sizeof(FuChar) * new_cap);
+    void *data = (void *)FuMem_alloc(sizeof(FuChar) * new_cap);
     memcpy(data, str->chars, str->len * sizeof(FuChar));
     FuMem_free(str->chars);
 
@@ -264,7 +262,7 @@ void FuStr_read_file(FuStr *str, char *fpath, fu_size_t len) {
     long fsize = ftell(f);
     rewind(f);
     FuStr_reserve(str, fsize);
-    char *buf = (char *)FuMem_malloc(fsize);
+    char *buf = (char *)FuMem_alloc(fsize);
     fread(buf, 1, fsize, f);
     FuStr_push_utf8(str, buf, fsize);
     FuMem_free(buf);

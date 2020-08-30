@@ -6,7 +6,7 @@
 #include "vec.h"
 
 FuVec *FuVec_new(fu_size_t item_size) {
-    FuVec *vec = FuMem_malloc(sizeof(FuVec));
+    FuVec *vec = FuMem_alloc(sizeof(FuVec));
     FuVec_init(vec, item_size);
     return vec;
 }
@@ -77,7 +77,7 @@ void FuVec_reserve(FuVec *vec, fu_size_t additional) {
         return;
     }
     fu_size_t new_cap = vec->len + additional;
-    void *new_data = FuMem_malloc(new_cap * vec->item_size);
+    void *new_data = FuMem_alloc(new_cap * vec->item_size);
     memcpy(new_data, vec->data, vec->len * vec->item_size);
     FuMem_free(vec->data);
     vec->cap = new_cap;

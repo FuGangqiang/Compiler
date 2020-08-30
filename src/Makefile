@@ -58,7 +58,7 @@ else
   MEM_CHECK_CMD=
 endif
 
-test: char_test bytes_test str_test vec_test map_test set_test bitset_test context_test alloc_test \
+test: char_test bytes_test str_test vec_test map_test set_test bitset_test context_test \
 	  tokens_test parser_test
 test-mem: test
 
@@ -91,10 +91,6 @@ bitset_test: $(TEST_DIR)/bitset_test.c bitset.o $(DEP_OBJS)
 	$(MEM_CHECK_CMD) $(TEST_DIR)/$@.bin
 
 context_test: $(TEST_DIR)/context_test.c context.o $(DEP_OBJS)
-	$(FU_CC) -o $(TEST_DIR)/$@.bin $^
-	$(MEM_CHECK_CMD) $(TEST_DIR)/$@.bin
-
-alloc_test: $(TEST_DIR)/alloc_test.c $(DEP_OBJS)
 	$(FU_CC) -o $(TEST_DIR)/$@.bin $^
 	$(MEM_CHECK_CMD) $(TEST_DIR)/$@.bin
 
