@@ -7,7 +7,7 @@ use std::ops::IAdd;
 #<T>
 pub struct Point {
     x: T,
-    y: T
+    y: T,
 }
 
 #<T>
@@ -15,7 +15,7 @@ extention Point#<T> {
     /// create a new point
     #[inline]
     pub fn new(x: T, y: T) -> Self {
-        Self{x, y}
+        Self::{x, y}
     }
 
     /// get x
@@ -61,6 +61,6 @@ mod tests {
     fn point_add() {
         let p1 = Point::new(1, 0);
         let p2 = Point::new(2, 3);
-        assert_eq!(p1 + p2, Point{.x=3, .y=3});
+        assert_eq!(p1 + p2, Point::{.x=3, .y=3});
     }
 }
