@@ -46,11 +46,7 @@ EXPR(EXPR_CLOSURE, "expr closure")
 /* `let pat = expr` in `if` / `while` cond expressions */
 EXPR(EXPR_LET_COND, "expr let cond")
 /* `if expr { block } else { expr }` */
-EXPR(EXPR_IF, "expr if")
-/* `match expr { arms }` */
-EXPR(EXPR_MATCH, "expr match")
-/* `loop { block }` */
-EXPR(EXPR_LOOP, "expr loop")
 EXPR(EXPR_CATCH, "expr ?")
+EXPR(EXPR_IF, "expr if")
 /* `foo!(xxx)`, `foo![xxx]`, `foo!{xxx}` */
 EXPR(EXPR_MACRO_CALL, "expr macro call")

@@ -310,6 +310,9 @@ fu_bool_t FuToken_to_prefix_op(FuToken tok, fu_op_k *op) {
         if (tok.sym == KW_AWAIT) {
             *op = OP_AWAIT;
             return FU_TRUE;
+        } else if (tok.sym == KW_IF) {
+            *op = OP_IF;
+            return FU_TRUE;
         }
         break;
     }

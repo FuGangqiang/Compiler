@@ -1,20 +1,35 @@
-pub const fn add(a: u8, b: u8) -> u8 {
-    a + b
+pub const fn max(a: u8, b: u8) -> u8 {
+    return if a > b { a } else { b };
 }
 
 fn main() {
+    static a: i8 = 10;
     const i = 1u8;
     const j = 2u8;
-    const k = add(i, j);
+    const k = max(i, j) + 3 * 4;
 
     fn fibnacci(i: u8) -> u8 {
         if (i == 0) {
-           0
+           return 0;
         } else if (i == 1){
-            1
+            return 1;
         } else {
-            fibnacci(i-1) + fibnacci(i-2)
+            return fibnacci(i-1) + fibnacci(i-2);
         }
     }
-    print(fibnacci(k));
+
+    match fibnacci(k) {
+        0 => print("0");
+        1 => print("1");
+        _ => print(">1");
+    }
+    for i in 0..a {
+        print(i);
+    }
+    loop {
+        if a > 100 {
+            break;
+        }
+        a *= 2;
+    }
 }

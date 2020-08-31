@@ -471,6 +471,7 @@ FuType *FuParser_parse_type(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
 fu_vis_k FuParser_parse_visibility(FuParser *p);
 FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_const(FuParser *p, FuVec *attrs, fu_vis_k vis);
+FuNode *FuParser_parse_item_fn(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_let(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_assign(FuParser *p, FuVec *attrs, FuExpr *lexpr);
 FuNode *FuParser_parse_item_break(FuParser *p, FuVec *attrs);
@@ -478,13 +479,17 @@ FuNode *FuParser_parse_item_continue(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_yield(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_throw(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_return(FuParser *p, FuVec *attrs);
+FuNode *FuParser_parse_item_block(FuParser *p, FuVec *attrs);
+FuNode *FuParser_parse_item_if(FuParser *p, FuVec *attrs);
+FuNode *FuParser_parse_item_match(FuParser *p, FuVec *attrs);
+FuNode *FuParser_parse_item_loop(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_while(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_for(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_try(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_expr(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_fn(FuParser *p, FuVec *attrs, fu_vis_k vis);
 
+FuNode *FuParser_parse_block_item(FuParser *p);
 FuNode *FuParser_parse_mod_item(FuParser *p);
+
 FuVec *FuParser_parse_mod_items(FuParser *p);
 
 FuNode *FuParser_parse_pkg(FuParser *p);
@@ -682,7 +687,7 @@ struct FuArm {
     FuExpr *guard;
     union {
         struct {
-            FuExpr *body;
+            FuNode *body;
         } _match;
         struct {
             FuBlock *body;
@@ -913,12 +918,6 @@ struct FuExpr {
         struct {
             fu_bool_t is_async;
             fu_bool_t is_unsafe;
-            FuLabel *label;
-            FuBlock *block;
-        } _block;
-        struct {
-            fu_bool_t is_async;
-            fu_bool_t is_unsafe;
             FuScope *scope;
             /* FuFnParam */
             FuVec *params;
@@ -930,18 +929,9 @@ struct FuExpr {
         } _let_cond;
         struct {
             FuExpr *cond;
-            FuBlock *block;
-            FuExpr *next_if;
+            FuExpr *on_true;
+            FuExpr *on_false;
         } _if;
-        struct {
-            FuLabel *label;
-            FuBlock *block;
-        } _loop;
-        struct {
-            FuExpr *cond;
-            /* FuArm */
-            FuVec *arms;
-        } _match;
         FuMacroCall *_macro_call;
     };
 };
@@ -1003,7 +993,6 @@ struct FuNode {
         struct {
             FuType *ty;
             FuExpr *expr;
-            fu_bool_t end_semi;
         } _expr;
         struct {
             fu_vis_k vis;
@@ -1034,7 +1023,6 @@ struct FuNode {
         } _assign;
         struct {
             FuLabel *label;
-            FuExpr *expr;
         } _break;
         struct {
             FuLabel *label;
@@ -1048,6 +1036,24 @@ struct FuNode {
         struct {
             FuExpr *expr;
         } _return;
+        struct {
+            fu_bool_t is_unsafe;
+            FuBlock *block;
+        } _block;
+        struct {
+            FuExpr *cond;
+            FuBlock *block;
+            FuNode *next_if;
+        } _if;
+        struct {
+            FuExpr *cond;
+            /* FuArm */
+            FuVec *arms;
+        } _match;
+        struct {
+            FuLabel *label;
+            FuBlock *block;
+        } _loop;
         struct {
             FuLabel *label;
             FuExpr *cond;
@@ -1068,11 +1074,11 @@ struct FuNode {
         struct {
             fu_vis_k vis;
             FuIdent *ident;
-            FuScope *scope;
             /* FuFnParam */
             FuVec *params;
             FuFnSig *sig;
             FuBlock *body;
+            FuScope *scope;
         } _fn;
         FuType *_type;
         struct {
