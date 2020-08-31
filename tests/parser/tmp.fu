@@ -1,3 +1,11 @@
+use std::file::File;
+use std::println!;
+use std::vec::{Vec, vec!};
+
+use super::Foo;
+pub use a::b::{self, c::{ d, e! }};
+use a::b::{self as ab, c as abc, m! as abm!};
+
 pub const fn max(a: u8, b: u8) -> u8 {
     return if a > b { a } else { b };
 }

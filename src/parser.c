@@ -484,10 +484,6 @@ FuLit *FuParser_parse_lit(FuParser *p) {
     return lit;
 }
 
-/*
-  关键字 nil, true, false 的 kd 属于 TOK_IDENT，
-  这样在宏里面这些关键字可以统一作为 TOK_IDENT 类型
- */
 FuIdent *FuParser_parse_ident(FuParser *p) {
     FuSpan *sp = FuParser_current_span(p);
     FuToken tok = FuParser_expect_token_fn(p, FuToken_is_ident, "expect ident");
@@ -543,6 +539,15 @@ FuLabel *FuParser_parse_label(FuParser *p) {
     return FuLabel_new(tok.sp, tok.sym);
 }
 
+static FuType *FuParser_parse_path_type(FuParser *p) {
+    FuToken tok = FuParser_nth_token(p, 0);
+    if (!FuParser_check_token_fn(p, FuToken_is_ident)) {
+        FATAL1(tok.sp, "expect ident, find: `%s`", FuToken_kind_csr(tok));
+    }
+    FuPath *path = FuParser_parse_path(p);
+    return FuType_new_path(p->ctx, path);
+}
+
 static FuType *FuParser_parse_keyword_type(FuParser *p) {
     FuToken tok = FuParser_nth_token(p, 0);
     if (tok.kd != TOK_KEYWORD) {
@@ -554,20 +559,15 @@ static FuType *FuParser_parse_keyword_type(FuParser *p) {
         FuParser_bump(p);
         return FuType_from_keyword(p->ctx, tok.sp, tok.sym);
         break;
+    case KW_SELF_UPPER:
+    case KW_SELF_LOWER:
+        return FuParser_parse_path_type(p);
+        break;
     default:
         FATAL1(tok.sp, "invalid type: `%s`", FuToken_kind_csr(tok));
         break;
     }
     return NULL;
-}
-
-static FuType *FuParser_parse_path_type(FuParser *p) {
-    FuToken tok = FuParser_nth_token(p, 0);
-    if (!FuParser_check_token_fn(p, FuToken_is_ident)) {
-        FATAL1(tok.sp, "expect ident, find: `%s`", FuToken_kind_csr(tok));
-    }
-    FuPath *path = FuParser_parse_path(p);
-    return FuType_new_path(p->ctx, path);
 }
 
 static FuType *FuParser_parse_pointer_type(FuParser *p, fu_op_prec_t prec) {
@@ -1476,6 +1476,9 @@ FuNode *FuParser_parse_block_item(FuParser *p) {
     FuToken tok = FuParser_nth_token(p, 0);
     if (tok.kd == TOK_KEYWORD) {
         switch (tok.sym) {
+        case KW_USE:
+            return FuParser_parse_item_use(p, attrs, VIS_PRIV);
+            break;
         case KW_STATIC:
             return FuParser_parse_item_static(p, attrs, VIS_PRIV);
             break;
@@ -1699,6 +1702,10 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
         expr = FuExpr_new_lit(lit);
         return expr;
     }
+    if (tok.sym == KW_SELF_LOWER || tok.sym == KW_SELF_UPPER) {
+        FuPath *path = FuParser_parse_path(p);
+        return FuExpr_new_path(NULL, path);
+    }
     if (tok.sym == KW_AWAIT) {
         return FuParser_parse_await_expr(p);
     }
@@ -1823,6 +1830,117 @@ fu_vis_k FuParser_parse_visibility(FuParser *p) {
         return VIS_PRIV;
         break;
     }
+}
+
+static fu_bool_t FuParser_check_use(FuParser *p) {
+    FuToken tok = FuParser_nth_token(p, 0);
+    if (tok.kd != TOK_KEYWORD) {
+        return FU_FALSE;
+    }
+    if (tok.sym == KW_PKG || tok.sym == KW_PUB) {
+        tok = FuParser_nth_token(p, 1);
+    }
+    if (tok.kd == TOK_KEYWORD && tok.sym == KW_USE) {
+        return FU_TRUE;
+    }
+    return FU_FALSE;
+};
+
+static FuUse *FuParser_parse_use_tree(FuParser *p) {
+    FuUse *use;
+    FuSpan *sp;
+    FuSpan *last_sp;
+    FuSpan *lo = FuParser_current_span(p);
+    last_sp = lo;
+    FuToken tok = FuParser_nth_token(p, 0);
+    FuPath *prefix = NULL;
+    if (FuToken_is_ident(tok)) {
+        prefix = FuParser_parse_path(p);
+        last_sp = prefix->sp;
+    }
+    tok = FuParser_nth_token(p, 0);
+    if (tok.kd == TOK_SEMI || tok.kd == TOK_COMMA || FuParser_check_keyword(p, KW_AS)) {
+        FuIdent *alias = NULL;
+        if (FuParser_check_keyword(p, KW_AS)) {
+            FuParser_expect_keyword(p, KW_AS);
+            alias = FuParser_parse_ident(p);
+            last_sp = alias->sp;
+        }
+        sp = FuSpan_join(lo, last_sp);
+        use = FuUse_new(prefix->sp, USE_SIMPLE, prefix);
+        use->_simple.alias = alias;
+        return use;
+    }
+    if (prefix) {
+        FuParser_expect_token(p, TOK_MOD_SEP);
+    }
+    tok = FuParser_nth_token(p, 0);
+    if (tok.kd == TOK_MACRO) {
+        last_sp = tok.sp;
+        FuToken macro_tok = FuParser_expect_token(p, TOK_MACRO);
+        FuIdent *macro_name = FuIdent_new(macro_tok.sp, macro_tok.sym);
+        last_sp = macro_name->sp;
+        FuIdent *alias = NULL;
+        if (FuParser_check_keyword(p, KW_AS)) {
+            FuParser_expect_keyword(p, KW_AS);
+            FuToken alias_tok = FuParser_expect_token(p, TOK_MACRO);
+            alias = FuIdent_new(alias_tok.sp, alias_tok.sym);
+            last_sp = alias->sp;
+        }
+        sp = FuSpan_join(lo, last_sp);
+        use = FuUse_new(sp, USE_MACRO, prefix);
+        use->_macro.name = macro_name;
+        use->_macro.alias = alias;
+        return use;
+    }
+    if (tok.kd == TOK_STAR) {
+        last_sp = tok.sp;
+        FuParser_expect_token(p, TOK_STAR);
+        tok = FuParser_nth_token(p, 0);
+        if (tok.kd == TOK_NOT) {
+            sp = FuSpan_join(lo, tok.sp);
+            use = FuUse_new(sp, USE_GLOB_MACRO, prefix);
+            return use;
+        }
+        sp = FuSpan_join(lo, last_sp);
+        use = FuUse_new(sp, USE_GLOB, prefix);
+        return use;
+    }
+    if (tok.kd != TOK_OPEN_BRACE) {
+        FATAL1(tok.sp, "invalid use item token: `%s`", FuToken_kind_csr(tok));
+    }
+    if (!prefix) {
+        FATAL(tok.sp, "nested use tree must have prefix");
+    }
+    FuParser_expect_token(p, TOK_OPEN_BRACE);
+    FuVec *nested = FuVec_new(sizeof(FuVec *));
+    while (1) {
+        FuUse *item = FuParser_parse_use_tree(p);
+        FuVec_push_ptr(nested, item);
+        tok = FuParser_nth_token(p, 0);
+        if (tok.kd == TOK_CLOSE_BRACE) {
+            break;
+        }
+        FuParser_expect_token(p, TOK_COMMA);
+    }
+    tok = FuParser_expect_token(p, TOK_CLOSE_BRACE);
+    sp = FuSpan_join(lo, tok.sp);
+    use = FuUse_new(sp, USE_NESTED, prefix);
+    use->_nested = nested;
+    return use;
+}
+
+FuNode *FuParser_parse_item_use(FuParser *p, FuVec *attrs, fu_vis_k vis) {
+    FuSpan *lo = FuParser_current_span(p);
+    FuParser_expect_keyword(p, KW_USE);
+    FuUse *tree = FuParser_parse_use_tree(p);
+    FuToken end_tok = FuParser_expect_token(p, TOK_SEMI);
+    FuSpan *sp = FuSpan_join(lo, end_tok.sp);
+    FuNode *nd = FuNode_new(p->ctx, sp, ND_USE);
+    nd->attrs = attrs;
+    nd->_use.vis = vis;
+    nd->_use.tree = tree;
+    return nd;
 }
 
 FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis) {
@@ -2249,6 +2367,10 @@ FuNode *FuParser_parse_mod_item(FuParser *p) {
     default: {
         if (FuParser_check_fn(p)) {
             item = FuParser_parse_item_fn(p, attrs, vis);
+            break;
+        }
+        if (FuParser_check_use(p)) {
+            item = FuParser_parse_item_use(p, attrs, vis);
             break;
         }
         FATAL1(tok.sp, "unimplement item: `%s`", FuKind_keyword_cstr(tok.sym));

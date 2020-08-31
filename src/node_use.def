@@ -2,17 +2,13 @@
 #error "You must define USE macro before include this file"
 #endif
 
-/* `use foo::bar` */
-USE(USE_NULL, "null use")
-/* `use foo::bar!` */
-USE(USE_NULL_MACRO, "null macro use")
+/* `use foo::bar`, `use foo::bar as foo_bar` */
+USE(USE_SIMPLE, "simple use")
+/* `use foo::bar!`, `use foo::bar! as foo_bar!`  */
+USE(USE_MACRO, "macro use")
 /* `*` in `use foo::*` */
 USE(USE_GLOB, "glob use")
 /* `*!` in `use foo::*!` */
-USE(USE_GLOB_MACRO, "glob macro use")
-/* `FooBar` in `use foo::bar as FooBar` */
-USE(USE_ALIAS, "alias use")
-/* `FooBar!` in `use foo::bar! as FooBar!` */
-USE(USE_ALIAS_MACRO, "alias macro")
-/* `{bar, baz as FooBaz}` in `use foo::{bar, baz as FooBaz}` */
+USE(USE_GLOB_MACRO, "macro glob use")
+/* `{bar, baz as FooBaz}` in `use foo::{bar, baz as foo_baz}` */
 USE(USE_NESTED, "nested use")

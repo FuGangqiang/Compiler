@@ -103,11 +103,19 @@ fu_bool_t FuToken_is_eof(FuToken tok) {
     return tok.kd == TOK_EOF;
 }
 
+/*
+  关键字 super, self, Self, pkg 属于 TOK_IDENT，
+  这样在 path 里面这些关键字可以统一作为 TOK_IDENT 类型
+ */
 fu_bool_t FuToken_is_ident(FuToken tok) {
     if (tok.kd == TOK_RAW_IDENT) {
         return FU_TRUE;
     }
     if (tok.kd == TOK_IDENT && tok.sym >= _KW_LAST_UNUSED) {
+        return FU_TRUE;
+    }
+    if (tok.kd == TOK_KEYWORD &&
+        (tok.sym == KW_SELF_LOWER || tok.sym == KW_SELF_UPPER || tok.sym == KW_SUPER || tok.sym == KW_PKG)) {
         return FU_TRUE;
     }
     return FU_FALSE;

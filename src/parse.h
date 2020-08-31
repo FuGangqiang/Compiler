@@ -469,6 +469,7 @@ FuPat *FuParser_parse_pat(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 FuType *FuParser_parse_type(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 
 fu_vis_k FuParser_parse_visibility(FuParser *p);
+FuNode *FuParser_parse_item_use(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_const(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_fn(FuParser *p, FuVec *attrs, fu_vis_k vis);
@@ -628,14 +629,24 @@ FuStr *FuBlock_display(FuBlock *blk, fu_size_t indent);
 
 struct FuUse {
     FuSpan *sp;
-    FuStr *prefix;
     fu_use_k kd;
+    FuPath *prefix;
     union {
-        FuNode *_alias;
+        struct {
+            FuIdent *alias;
+        } _simple;
+        struct {
+            FuIdent *name;
+            FuIdent *alias;
+        } _macro;
         /* FuUse */
         FuVec *_nested;
     };
 };
+
+FuUse *FuUse_new(FuSpan *sp, fu_use_k kd, FuPath *prefix);
+void FuUse_drop(FuUse *use);
+FuStr *FuUse_display(FuUse *use, fu_size_t indent);
 
 /* `std`, `Vec#<T>` */
 struct FuPathItem {

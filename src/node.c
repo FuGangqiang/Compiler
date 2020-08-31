@@ -618,6 +618,86 @@ FuStr *FuBlock_display(FuBlock *blk, fu_size_t indent) {
     return str;
 }
 
+FuUse *FuUse_new(FuSpan *sp, fu_use_k kd, FuPath *prefix) {
+    FuUse *use = FuMem_new(FuUse);
+    use->sp = sp;
+    use->kd = kd;
+    use->prefix = prefix;
+    return use;
+}
+
+void FuUse_drop(FuUse *use) {
+    if (!use) {
+        return;
+    }
+    FuPath_drop(use->prefix);
+    switch (use->kd) {
+    case USE_SIMPLE:
+        FuIdent_drop(use->_simple.alias);
+        break;
+    case USE_MACRO:
+        FuIdent_drop(use->_macro.name);
+        FuIdent_drop(use->_macro.alias);
+        break;
+    case USE_NESTED:
+        FuVec_drop_with_ptrs(use->_nested, (FuDropFn)FuUse_drop);
+        break;
+    default:
+        break;
+    }
+    FuMem_free(use);
+}
+
+FuStr *FuUse_display(FuUse *use, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "kd: %s\n", FuKind_use_cstr(use->kd));
+    if (use->prefix) {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "prefix: ");
+        FuStr_append(str, FuPath_display(use->prefix));
+        FuStr_push_utf8_cstr(str, "\n");
+    }
+    switch (use->kd) {
+    case USE_SIMPLE:
+        if (use->_simple.alias) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "alias: ");
+            FuStr_append(str, FuIdent_display(use->_simple.alias));
+            FuStr_push_utf8_cstr(str, "\n");
+        }
+        break;
+    case USE_MACRO:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "macro: ");
+        FuStr_append(str, FuIdent_display(use->_macro.name));
+        FuStr_push_utf8_cstr(str, "\n");
+        if (use->_macro.alias) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "alias: ");
+            FuStr_append(str, FuIdent_display(use->_macro.alias));
+            FuStr_push_utf8_cstr(str, "\n");
+        }
+        break;
+    case USE_NESTED: {
+        fu_size_t len = FuVec_len(use->_nested);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "nested len: %d\n", len);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "nested:\n");
+        fu_size_t i;
+        for (i = 0; i < len; i++) {
+            FuUse *item = FuVec_get_ptr(use->_nested, i);
+            FuStr_append(str, FuUse_display(item, indent + 1));
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    return str;
+}
+
 FuExpr *FuExpr_new(FuSpan *sp, fu_expr_k kd) {
     FuExpr *expr = FuMem_new(FuExpr);
     expr->sp = sp;
@@ -976,6 +1056,9 @@ void FuNode_drop(FuNode *nd) {
     case ND_EXPR:
         FuExpr_drop(nd->_expr.expr);
         break;
+    case ND_USE:
+        FuUse_drop(nd->_use.tree);
+        break;
     case ND_STATIC:
         FuExpr_drop(nd->_static.init);
         FuIdent_drop(nd->_static.ident);
@@ -1102,7 +1185,14 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         FuStr_push_utf8_cstr(str, "expr:\n");
         FuStr_append(str, FuExpr_display(nd->_expr.expr, indent + 1));
         break;
+    case ND_USE:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(nd->_use.vis));
+        FuStr_append(str, FuUse_display(nd->_use.tree, indent + 1));
+        break;
     case ND_STATIC:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(nd->_static.vis));
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "ident: ");
         FuStr_append(str, FuIdent_display(nd->_static.ident));
@@ -1116,6 +1206,8 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         FuStr_append(str, FuExpr_display(nd->_static.init, indent + 1));
         break;
     case ND_CONST:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(nd->_const.vis));
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "ident: ");
         FuStr_append(str, FuIdent_display(nd->_const.ident));
@@ -1297,6 +1389,8 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         break;
     }
     case ND_FN: {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(nd->_fn.vis));
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "ident: ");
         FuStr_append(str, FuIdent_display(nd->_fn.ident));

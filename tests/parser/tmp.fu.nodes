@@ -1,8 +1,69 @@
-nid: 24
+nid: 30
 kd: ND_PKG
 items:
+  nid: 0
+  kd: ND_USE
+  vis: VIS_PRIV
+    kd: USE_SIMPLE
+    prefix: std::file::File
   nid: 1
+  kd: ND_USE
+  vis: VIS_PRIV
+    kd: USE_MACRO
+    prefix: std
+    macro: println!
+  nid: 2
+  kd: ND_USE
+  vis: VIS_PRIV
+    kd: USE_NESTED
+    prefix: std::vec
+    nested len: 2
+    nested:
+      kd: USE_SIMPLE
+      prefix: Vec
+      kd: USE_MACRO
+      macro: vec!
+  nid: 3
+  kd: ND_USE
+  vis: VIS_PRIV
+    kd: USE_SIMPLE
+    prefix: super::Foo
+  nid: 4
+  kd: ND_USE
+  vis: VIS_PUB
+    kd: USE_NESTED
+    prefix: a::b
+    nested len: 2
+    nested:
+      kd: USE_SIMPLE
+      prefix: self
+      kd: USE_NESTED
+      prefix: c
+      nested len: 2
+      nested:
+        kd: USE_SIMPLE
+        prefix: d
+        kd: USE_MACRO
+        macro: e!
+  nid: 5
+  kd: ND_USE
+  vis: VIS_PRIV
+    kd: USE_NESTED
+    prefix: a::b
+    nested len: 3
+    nested:
+      kd: USE_SIMPLE
+      prefix: self
+      alias: ab
+      kd: USE_SIMPLE
+      prefix: c
+      alias: abc
+      kd: USE_MACRO
+      macro: m!
+      alias: abm!
+  nid: 7
   kd: ND_FN
+  vis: VIS_PUB
   ident: max
   vis: VIS_PUB
   sig: u8 -> u8 -> u8
@@ -21,7 +82,7 @@ items:
     ty: u8
   body:
     items:
-      nid: 0
+      nid: 6
       kd: ND_RETURN
       expr:
         kd: EXPR_IF
@@ -40,16 +101,18 @@ items:
         on_false:
           kd: EXPR_PATH
           path: b
-  nid: 23
+  nid: 29
   kd: ND_FN
+  vis: VIS_PRIV
   ident: main
   vis: VIS_PRIV
   sig: nil -> nil
   params len: 0
   body:
     items:
-      nid: 2
+      nid: 8
       kd: ND_STATIC
+      vis: VIS_PRIV
       ident: a
       ty: i8
       init:
@@ -57,8 +120,9 @@ items:
         lit:
           kd: LIT_INT
           size: 0, is_signed: 0, v: 10
-      nid: 3
+      nid: 9
       kd: ND_CONST
+      vis: VIS_PRIV
       ident: i
       ty: _
       init:
@@ -66,8 +130,9 @@ items:
         lit:
           kd: LIT_INT
           size: 8, is_signed: 0, v: 1
-      nid: 4
+      nid: 10
       kd: ND_CONST
+      vis: VIS_PRIV
       ident: j
       ty: _
       init:
@@ -75,8 +140,9 @@ items:
         lit:
           kd: LIT_INT
           size: 8, is_signed: 0, v: 2
-      nid: 5
+      nid: 11
       kd: ND_CONST
+      vis: VIS_PRIV
       ident: k
       ty: _
       init:
@@ -106,8 +172,9 @@ items:
             lit:
               kd: LIT_INT
               size: 0, is_signed: 0, v: 4
-      nid: 12
+      nid: 18
       kd: ND_FN
+      vis: VIS_PRIV
       ident: fibnacci
       vis: VIS_PRIV
       sig: u8 -> u8
@@ -120,7 +187,7 @@ items:
         ty: u8
       body:
         items:
-          nid: 7
+          nid: 13
           kd: ND_IF
           cond:
             kd: EXPR_BINARY
@@ -135,7 +202,7 @@ items:
                 size: 0, is_signed: 0, v: 0
           block:
             items:
-              nid: 6
+              nid: 12
               kd: ND_RETURN
               expr:
                 kd: EXPR_LIT
@@ -143,7 +210,7 @@ items:
                   kd: LIT_INT
                   size: 0, is_signed: 0, v: 0
           next_if:
-            nid: 9
+            nid: 15
             kd: ND_IF
             cond:
               kd: EXPR_BINARY
@@ -158,7 +225,7 @@ items:
                   size: 0, is_signed: 0, v: 1
             block:
               items:
-                nid: 8
+                nid: 14
                 kd: ND_RETURN
                 expr:
                   kd: EXPR_LIT
@@ -166,12 +233,12 @@ items:
                     kd: LIT_INT
                     size: 0, is_signed: 0, v: 1
             next_if:
-              nid: 11
+              nid: 17
               kd: ND_IF
               cond: else
               block:
                 items:
-                  nid: 10
+                  nid: 16
                   kd: ND_RETURN
                   expr:
                     kd: EXPR_BINARY
@@ -210,7 +277,7 @@ items:
                           lit:
                             kd: LIT_INT
                             size: 0, is_signed: 0, v: 2
-      nid: 16
+      nid: 22
       kd: ND_MATCH
       cond:
         kd: EXPR_CALL
@@ -232,7 +299,7 @@ items:
               kd: LIT_INT
               size: 0, is_signed: 0, v: 0
         body:
-          nid: 13
+          nid: 19
           kd: ND_EXPR
           expr:
             kd: EXPR_CALL
@@ -254,7 +321,7 @@ items:
               kd: LIT_INT
               size: 0, is_signed: 0, v: 1
         body:
-          nid: 14
+          nid: 20
           kd: ND_EXPR
           expr:
             kd: EXPR_CALL
@@ -271,7 +338,7 @@ items:
         pat:
           kd: PAT_WILD
         body:
-          nid: 15
+          nid: 21
           kd: ND_EXPR
           expr:
             kd: EXPR_CALL
@@ -284,7 +351,7 @@ items:
               lit:
                 kd: LIT_STR
                 len: 2, v: >1
-      nid: 18
+      nid: 24
       kd: ND_FOR
       pat:
         kd: PAT_EXPR
@@ -303,7 +370,7 @@ items:
           path: a
       block:
         items:
-          nid: 17
+          nid: 23
           kd: ND_EXPR
           expr:
             kd: EXPR_CALL
@@ -314,11 +381,11 @@ items:
             args:
               kd: EXPR_PATH
               path: i
-      nid: 22
+      nid: 28
       kd: ND_LOOP
       block:
         items:
-          nid: 20
+          nid: 26
           kd: ND_IF
           cond:
             kd: EXPR_BINARY
@@ -333,9 +400,9 @@ items:
                 size: 0, is_signed: 0, v: 100
           block:
             items:
-              nid: 19
+              nid: 25
               kd: ND_BREAK
-          nid: 21
+          nid: 27
           kd: ND_ASSIGN
           op: OP_MUL_ASSIGN
           lexpr:
