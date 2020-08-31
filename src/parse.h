@@ -477,15 +477,11 @@ FuNode *FuParser_parse_item_break(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_continue(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_yield(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_throw(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_await(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_return(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_block(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_while(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_for(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_loop(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_if(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_match(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_try(FuParser *p, FuVec *attrs);
+FuNode *FuParser_parse_item_expr(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_fn(FuParser *p, FuVec *attrs, fu_vis_k vis);
 
 FuNode *FuParser_parse_mod_item(FuParser *p);

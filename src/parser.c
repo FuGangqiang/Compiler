@@ -1511,122 +1511,79 @@ static fu_bool_t FuParser_check_loop(FuParser *p, fu_keyword_k keyword) {
     return FU_FALSE;
 }
 
-static FuNode *FuParser_parse_item_block_keyword(FuParser *p, FuVec *attrs) {
-    FuToken tok = FuParser_nth_token(p, 0);
-    switch (tok.sym) {
-    case KW_STATIC:
-        return FuParser_parse_item_static(p, attrs, VIS_PRIV);
-        break;
-    case KW_CONST: {
-        if (FuParser_check_fn(p)) {
-            return FuParser_parse_item_fn(p, attrs, VIS_PRIV);
-        }
-        return FuParser_parse_item_const(p, attrs, VIS_PRIV);
-        break;
-    }
-    case KW_LET:
-        return FuParser_parse_item_let(p, attrs);
-        break;
-    case KW_BREAK:
-        return FuParser_parse_item_break(p, attrs);
-        break;
-    case KW_CONTINUE:
-        return FuParser_parse_item_continue(p, attrs);
-        break;
-    case KW_YIELD:
-        return FuParser_parse_item_yield(p, attrs);
-        break;
-    case KW_THROW:
-        return FuParser_parse_item_throw(p, attrs);
-        break;
-    case KW_AWAIT:
-        return FuParser_parse_item_await(p, attrs);
-        break;
-    case KW_RETURN:
-        return FuParser_parse_item_return(p, attrs);
-        break;
-    case KW_UNSAFE:
-    case KW_ASYNC:
-        if (FuParser_check_fn(p)) {
-            return FuParser_parse_item_fn(p, attrs, VIS_PRIV);
-        }
-        if (FuParser_check_block(p)) {
-            return FuParser_parse_item_block(p, attrs);
-        }
-        break;
-    case KW_WHILE:
-        return FuParser_parse_item_while(p, attrs);
-        break;
-    case KW_FOR:
-        return FuParser_parse_item_for(p, attrs);
-        break;
-    case KW_LOOP:
-        return FuParser_parse_item_loop(p, attrs);
-        break;
-    case KW_IF:
-        return FuParser_parse_item_if(p, attrs);
-        break;
-    case KW_MATCH:
-        return FuParser_parse_item_match(p, attrs);
-    case KW_TRY:
-        return FuParser_parse_item_try(p, attrs);
-        break;
-    case KW_FN:
-        return FuParser_parse_item_fn(p, attrs, VIS_PRIV);
-        break;
-    default:
-        FATAL1(tok.sp, "unimplement item: `%s`", FuKind_keyword_cstr(tok.sym));
-        break;
-    }
-    return NULL;
-}
-
 static FuNode *FuParser_parse_block_item(FuParser *p) {
     FuVec *attrs = FuVec_new(sizeof(FuAttr *));
     /* todo: attrs */
     FuToken tok = FuParser_nth_token(p, 0);
     switch (tok.kd) {
-    case TOK_KEYWORD:
-        return FuParser_parse_item_block_keyword(p, attrs);
-        break;
     case TOK_LABEL:
     case TOK_OPEN_BRACE:
-        if (FuParser_check_block(p)) {
-            return FuParser_parse_item_block(p, attrs);
-        }
         if (FuParser_check_loop(p, KW_FOR)) {
             return FuParser_parse_item_for(p, attrs);
         }
         if (FuParser_check_loop(p, KW_WHILE)) {
             return FuParser_parse_item_while(p, attrs);
         }
-        if (FuParser_check_loop(p, KW_LOOP)) {
-            return FuParser_parse_item_loop(p, attrs);
-        }
-        FATAL1(tok.sp, "umimplement block item: `%s`", FuToken_kind_csr(tok));
         break;
-    default: {
-        FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
-        if (FuParser_check_token_fn(p, FuToken_is_assign)) {
-            return FuParser_parse_item_assign(p, attrs, expr);
-        }
-        FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
-        nd->attrs = attrs;
-        nd->_expr.expr = expr;
-        tok = FuParser_nth_token(p, 0);
-        if (tok.kd == TOK_SEMI) {
-            if (FuExpr_can_endwith_semi(expr)) {
-                nd->_expr.end_semi = FU_TRUE;
-                FuParser_bump(p);
-            } else {
-                FATAL(tok.sp, "can not insert semicolon after this expression");
+    case TOK_KEYWORD: {
+        switch (tok.sym) {
+        case KW_STATIC:
+            return FuParser_parse_item_static(p, attrs, VIS_PRIV);
+            break;
+        case KW_CONST: {
+            if (FuParser_check_fn(p)) {
+                return FuParser_parse_item_fn(p, attrs, VIS_PRIV);
             }
+            return FuParser_parse_item_const(p, attrs, VIS_PRIV);
+            break;
         }
-        return nd;
+        case KW_LET:
+            return FuParser_parse_item_let(p, attrs);
+            break;
+        case KW_BREAK:
+            return FuParser_parse_item_break(p, attrs);
+            break;
+        case KW_CONTINUE:
+            return FuParser_parse_item_continue(p, attrs);
+            break;
+        case KW_YIELD:
+            return FuParser_parse_item_yield(p, attrs);
+            break;
+        case KW_THROW:
+            return FuParser_parse_item_throw(p, attrs);
+            break;
+        case KW_RETURN:
+            return FuParser_parse_item_return(p, attrs);
+            break;
+        case KW_UNSAFE:
+        case KW_ASYNC:
+            if (FuParser_check_fn(p)) {
+                return FuParser_parse_item_fn(p, attrs, VIS_PRIV);
+            }
+            return FuParser_parse_item_expr(p, attrs);
+            break;
+        case KW_WHILE:
+            return FuParser_parse_item_while(p, attrs);
+            break;
+        case KW_FOR:
+            return FuParser_parse_item_for(p, attrs);
+            break;
+        case KW_TRY:
+            return FuParser_parse_item_try(p, attrs);
+            break;
+        case KW_FN:
+            return FuParser_parse_item_fn(p, attrs, VIS_PRIV);
+            break;
+        default:
+            break;
+        }
+        break;
+    }
+    default: {
         break;
     }
     }
-    return NULL;
+    return FuParser_parse_item_expr(p, attrs);
 }
 
 FuBlock *FuParser_parse_block(FuParser *p) {
@@ -2144,17 +2101,6 @@ FuNode *FuParser_parse_item_throw(FuParser *p, FuVec *attrs) {
     return nd;
 }
 
-FuNode *FuParser_parse_item_await(FuParser *p, FuVec *attrs) {
-    FuExpr *expr = FuParser_parse_await_expr(p);
-    if (FuParser_check_token(p, TOK_SEMI)) {
-        FuParser_bump(p);
-    }
-    FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
-    nd->attrs = attrs;
-    nd->_expr.expr = expr;
-    return nd;
-}
-
 FuNode *FuParser_parse_item_return(FuParser *p, FuVec *attrs) {
     FuToken tok = FuParser_expect_keyword(p, KW_RETURN);
     FuSpan *sp;
@@ -2168,14 +2114,6 @@ FuNode *FuParser_parse_item_return(FuParser *p, FuVec *attrs) {
     FuNode *nd = FuNode_new(p->ctx, sp, ND_RETURN);
     nd->attrs = attrs;
     nd->_return.expr = expr;
-    return nd;
-}
-
-FuNode *FuParser_parse_item_block(FuParser *p, FuVec *attrs) {
-    FuExpr *expr = FuParser_parse_block_expr(p);
-    FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
-    nd->attrs = attrs;
-    nd->_expr.expr = expr;
     return nd;
 }
 
@@ -2214,32 +2152,6 @@ FuNode *FuParser_parse_item_for(FuParser *p, FuVec *attrs) {
     nd->_for.pat = pat;
     nd->_for.expr = expr;
     nd->_for.block = block;
-    return nd;
-}
-
-FuNode *FuParser_parse_item_loop(FuParser *p, FuVec *attrs) {
-    FuExpr *expr = FuParser_parse_loop_expr(p);
-    FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
-    nd->attrs = attrs;
-    nd->_expr.expr = expr;
-    return nd;
-}
-
-FuNode *FuParser_parse_item_if(FuParser *p, FuVec *attrs) {
-    FuExpr *expr = FuParser_parse_if_expr(p);
-    /* todo: check if/else */
-    FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
-    nd->attrs = attrs;
-    nd->_expr.expr = expr;
-    return nd;
-}
-
-FuNode *FuParser_parse_item_match(FuParser *p, FuVec *attrs) {
-    FuExpr *expr = FuParser_parse_match_expr(p);
-    /* todo: check if/else */
-    FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
-    nd->attrs = attrs;
-    nd->_expr.expr = expr;
     return nd;
 }
 
@@ -2285,6 +2197,26 @@ FuNode *FuParser_parse_item_try(FuParser *p, FuVec *attrs) {
     nd->_try.block = block;
     nd->_try.arms = arms;
     nd->_try.finally = finally;
+    return nd;
+}
+
+FuNode *FuParser_parse_item_expr(FuParser *p, FuVec *attrs) {
+    FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
+    if (FuParser_check_token_fn(p, FuToken_is_assign)) {
+        return FuParser_parse_item_assign(p, attrs, expr);
+    }
+    FuNode *nd = FuNode_new(p->ctx, expr->sp, ND_EXPR);
+    nd->attrs = attrs;
+    nd->_expr.expr = expr;
+    FuToken tok = FuParser_nth_token(p, 0);
+    if (tok.kd == TOK_SEMI) {
+        if (FuExpr_can_endwith_semi(expr)) {
+            nd->_expr.end_semi = FU_TRUE;
+            FuParser_bump(p);
+        } else {
+            FATAL(tok.sp, "can not insert semicolon after this expression");
+        }
+    }
     return nd;
 }
 
