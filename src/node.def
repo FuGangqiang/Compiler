@@ -45,7 +45,12 @@ NODE(ND_FOR, "node for")
 NODE(ND_TRY, "expr try")
 /* `fn foo(bar: usize) -> usize { ... }` */
 NODE(ND_FN, "node function")
-NODE(ND_TYPE, "node type")
+NODE(ND_STRUCT, "struct")
+NODE(ND_TUPLE_STRUCT, "tuple struct")
+NODE(ND_ENUM, "enum")
+NODE(ND_UNION, "union")
+NODE(ND_INTERFACE, "interface")
+NODE(ND_ALIAS, "alias")
 /* `extern { ... }` */
 NODE(ND_EXTERN, "node extern")
 /* `extension Foo { ... }` or `extension IInterface for Foo { .. }` */
@@ -60,9 +65,3 @@ NODE(ND_MACRO_CALL, "node macro call")
  */
 NODE(ND_MOD, "node module")
 NODE(ND_PKG, "node package")
-/*
- * pat => expr
- * pat if guard_expr => expr
- */
-NODE(ND_FIELD_DEF, "node field def")
-NODE(ND_VARIANT, "node variant")

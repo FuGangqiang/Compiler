@@ -56,6 +56,7 @@ typedef struct FuAnnoSelf FuAnnoSelf;
 typedef struct FuArm FuArm;
 typedef struct FuAttr FuAttr;
 typedef struct FuBlock FuBlock;
+typedef struct FuFieldDef FuFieldDef;
 typedef struct FuFieldInit FuFieldInit;
 typedef struct FuFnParam FuFnParam;
 typedef struct FuFnSig FuFnSig;
@@ -71,6 +72,7 @@ typedef struct FuPathItem FuPathItem;
 typedef struct FuPkg FuPkg;
 typedef struct FuTokTree FuTokTree;
 typedef struct FuUse FuUse;
+typedef struct FuVariant FuVariant;
 
 fu_bool_t FuId_eq(fu_id_t *id1, fu_id_t *id2);
 fu_size_t FuId_hash(fu_id_t *id);
@@ -472,7 +474,6 @@ fu_vis_k FuParser_parse_visibility(FuParser *p);
 FuNode *FuParser_parse_item_use(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_const(FuParser *p, FuVec *attrs, fu_vis_k vis);
-FuNode *FuParser_parse_item_fn(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_let(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_assign(FuParser *p, FuVec *attrs, FuExpr *lexpr);
 FuNode *FuParser_parse_item_break(FuParser *p, FuVec *attrs);
@@ -487,6 +488,7 @@ FuNode *FuParser_parse_item_loop(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_while(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_for(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_try(FuParser *p, FuVec *attrs);
+FuNode *FuParser_parse_item_fn(FuParser *p, FuVec *attrs, fu_vis_k vis);
 
 FuNode *FuParser_parse_block_item(FuParser *p);
 FuNode *FuParser_parse_mod_item(FuParser *p);
@@ -519,43 +521,6 @@ struct FuType {
         FuType *_slice;
         FuVec *_tuple;
         FuFnSig *_fn_sig;
-
-        struct {
-            FuGeneric *ge;
-            FuIdent *ident;
-            /* FuNode._field_def */
-            FuVec *items;
-        } _struct;
-        struct {
-            FuGeneric *ge;
-            FuIdent *ident;
-            /* FuType */
-            FuVec *items;
-        } _tuple_struct;
-        struct {
-            FuGeneric *ge;
-            FuIdent *ident;
-            /* FuNode._variant */
-            FuVec *items;
-        } _enum;
-        struct {
-            FuGeneric *ge;
-            FuIdent *ident;
-            /* FuNode._field_def */
-            FuVec *items;
-        } _union;
-        struct {
-            FuGeneric *ge;
-            fu_bool_t is_unsafe;
-            FuIdent *ident;
-            /* FuNode._... */
-            FuVec *assocs;
-        } _interface;
-        struct {
-            FuGeneric *ge;
-            FuIdent *ident;
-            FuType *ty;
-        } _alias;
     };
 };
 
@@ -710,6 +675,18 @@ FuArm *FuArm_new(FuSpan *sp, fu_arm_k kd);
 void FuArm_drop(FuArm *arm);
 FuStr *FuArm_display(FuArm *arm, fu_size_t indent);
 
+struct FuFieldDef {
+    FuSpan *sp;
+    FuVec *attrs;
+    fu_vis_k vis;
+    FuIdent *ident;
+    FuType *ty;
+};
+
+FuFieldDef *FuFieldDef_new(FuSpan *sp, FuVec *attrs, fu_vis_k vis);
+void FuFieldDef_drop(FuFieldDef *def);
+FuStr *FuFieldDef_display(FuFieldDef *def, fu_size_t indent);
+
 struct FuFieldInit {
     fu_field_k kd;
     FuSpan *sp;
@@ -734,6 +711,31 @@ struct FuFieldInit {
 FuFieldInit *FuFieldInit_new(FuSpan *sp, fu_field_k kd, FuVec *attrs);
 void FuFieldInit_drop(FuFieldInit *init);
 FuStr *FuFieldInit_display(FuFieldInit *init, fu_size_t indent);
+
+struct FuVariant {
+    FuSpan *sp;
+    fu_variant_k kd;
+    fu_vis_k vis;
+    FuVec *attrs;
+    FuIdent *ident;
+    union {
+        struct {
+            FuLit *init;
+        } _unit;
+        struct {
+            /* FuFieldDef */
+            FuVec *fields;
+        } _struct;
+        struct {
+            /* FuFieldDef */
+            FuVec *fields;
+        } _tuple;
+    };
+};
+
+FuVariant *FuVariant_new(FuSpan *sp, FuVec *attrs, fu_vis_k vis, fu_variant_k kd);
+void FuVariant_drop(FuVariant *va);
+FuStr *FuVariant_display(FuVariant *va, fu_size_t indent);
 
 /* `i: i32` */
 struct FuFnParam {
@@ -1091,7 +1093,38 @@ struct FuNode {
             FuBlock *body;
             FuScope *scope;
         } _fn;
-        FuType *_type;
+        struct {
+            FuGeneric *ge;
+            FuVariant *va;
+        } _struct;
+        struct {
+            FuGeneric *ge;
+            FuVariant *va;
+        } _tuple_struct;
+        struct {
+            FuGeneric *ge;
+            FuIdent *ident;
+            /* FuVariant */
+            FuVec *items;
+        } _enum;
+        struct {
+            FuGeneric *ge;
+            FuIdent *ident;
+            /* FuVariant */
+            FuVec *items;
+        } _union;
+        struct {
+            FuGeneric *ge;
+            fu_bool_t is_unsafe;
+            FuIdent *ident;
+            /* FuNode._... */
+            FuVec *assocs;
+        } _interface;
+        struct {
+            FuGeneric *ge;
+            FuIdent *ident;
+            FuType *ty;
+        } _alias;
         struct {
             /* FuNode
              *     - _static
@@ -1144,18 +1177,6 @@ struct FuNode {
             FuScope *builtins;
             FuScope *globals;
         } _pkg;
-        struct {
-            fu_vis_k vis;
-            FuIdent *ident;
-            FuType *ty;
-        } _field_def;
-        struct {
-            fu_variant_k kd;
-            fu_vis_k vis;
-            FuIdent *ident;
-            /* `name: int` */
-            FuVec *fields;
-        } _variant;
     };
 };
 

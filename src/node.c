@@ -87,6 +87,36 @@ FuStr *FuPath_display(FuPath *path) {
     return str;
 }
 
+FuFieldDef *FuFieldDef_new(FuSpan *sp, FuVec *attrs) {
+    FuFieldDef *def = FuMem_new(FuFieldDef);
+    def->sp = sp;
+    def->attrs = attrs;
+    return def;
+}
+
+void FuFieldDef_drop(FuFieldDef *def) {
+    if (!def) {
+        return;
+    }
+    FuVec_drop(def->attrs);
+    FuIdent_drop(def->ident);
+    FuMem_free(def);
+}
+
+FuStr *FuFieldDef_display(FuFieldDef *def, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(def->vis));
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_cstr(str, "ident: ");
+    FuStr_append(str, FuIdent_display(def->ident));
+    FuStr_push_utf8_cstr(str, "\n");
+    FuStr_push_utf8_cstr(str, "ty: ");
+    FuStr_append(str, FuType_display(def->ty));
+    FuStr_push_utf8_cstr(str, "\n");
+    return str;
+}
+
 FuFieldInit *FuFieldInit_new(FuSpan *sp, fu_field_k kd, FuVec *attrs) {
     FuFieldInit *init = FuMem_new(FuFieldInit);
     init->kd = kd;
@@ -173,6 +203,81 @@ FuStr *FuFieldInit_display(FuFieldInit *init, fu_size_t indent) {
         break;
     default:
         FATAL(NULL, "can not be here");
+        break;
+    }
+    return str;
+}
+
+FuVariant *FuVariant_new(FuSpan *sp, FuVec *attrs, fu_vis_k vis, fu_variant_k kd) {
+    FuVariant *va = FuMem_new(FuVariant);
+    va->sp = sp;
+    va->attrs = attrs;
+    va->vis = vis;
+    va->kd = kd;
+    return va;
+}
+
+void FuVariant_drop(FuVariant *va) {
+    if (!va) {
+        return;
+    }
+    FuVec_drop(va->attrs);
+    FuIdent_drop(va->ident);
+    switch (va->kd) {
+    case VA_UNIT:
+        FuLit_drop(va->_unit.init);
+        break;
+    case VA_STRUCT:
+        FuVec_drop_with_ptrs(va->_struct.fields, (FuDropFn)FuFieldDef_drop);
+        break;
+    case VA_TUPLE:
+        FuVec_drop_with_ptrs(va->_tuple.fields, (FuDropFn)FuFieldDef_drop);
+        break;
+    default:
+        break;
+    }
+    FuMem_free(va);
+}
+
+FuStr *FuVariant_display(FuVariant *va, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "kd: %s\n", FuKind_variant_cstr(va->kd));
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(va->vis));
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "ident: ");
+    FuStr_append(str, FuIdent_display(va->ident));
+    FuStr_push_utf8_format(str, "\n");
+    switch (va->kd) {
+    case VA_UNIT:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "init:\n");
+        FuStr_append(str, FuLit_display(va->_unit.init, indent + 1));
+        break;
+    case VA_STRUCT: {
+        FuStr_push_indent(str, indent);
+        fu_size_t len = FuVec_len(va->_struct.fields);
+        FuStr_push_utf8_format(str, "struct len: %d\n", len);
+        fu_size_t i;
+        for (i = 0; i < len; i++) {
+            FuFieldDef *item = FuVec_get_ptr(va->_struct.fields, i);
+            FuStr_append(str, FuFieldDef_display(item, indent + 1));
+        }
+        break;
+    }
+    case VA_TUPLE: {
+        FuStr_push_indent(str, indent);
+        fu_size_t len = FuVec_len(va->_tuple.fields);
+        FuStr_push_utf8_format(str, "tuple len: %d\n", len);
+        fu_size_t i;
+        for (i = 0; i < len; i++) {
+            FuFieldDef *item = FuVec_get_ptr(va->_tuple.fields, i);
+            FuStr_append(str, FuFieldDef_display(item, indent + 1));
+        }
+        break;
+    }
+    default:
         break;
     }
     return str;

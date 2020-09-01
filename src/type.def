@@ -38,13 +38,6 @@ TYPE(TY_SLICE, "slice")
 TYPE(TY_TUPLE, "tuple")
 TYPE(TY_FN_SIG, "function signature")
 
-TYPE(TY_STRUCT, "struct")
-TYPE(TY_TUPLE_STRUCT, "tuple struct")
-TYPE(TY_ENUM, "enum")
-TYPE(TY_UNION, "union")
-TYPE(TY_INTERFACE, "interface")
-TYPE(TY_ALIAS, "alias")
-
 TYPE(TY_GENERIC, "generic")
 TYPE(TY_PARAM, "param")
 
