@@ -489,6 +489,7 @@ FuNode *FuParser_parse_item_while(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_for(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_try(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_fn(FuParser *p, FuVec *attrs, fu_vis_k vis);
+FuNode *FuParser_parse_item_struct(FuParser *p, FuVec *attrs, fu_vis_k vis);
 
 FuNode *FuParser_parse_block_item(FuParser *p);
 FuNode *FuParser_parse_mod_item(FuParser *p);

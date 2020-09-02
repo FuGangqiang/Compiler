@@ -87,10 +87,11 @@ FuStr *FuPath_display(FuPath *path) {
     return str;
 }
 
-FuFieldDef *FuFieldDef_new(FuSpan *sp, FuVec *attrs) {
+FuFieldDef *FuFieldDef_new(FuSpan *sp, FuVec *attrs, fu_vis_k vis) {
     FuFieldDef *def = FuMem_new(FuFieldDef);
     def->sp = sp;
     def->attrs = attrs;
+    def->vis = vis;
     return def;
 }
 
@@ -111,6 +112,7 @@ FuStr *FuFieldDef_display(FuFieldDef *def, fu_size_t indent) {
     FuStr_push_utf8_cstr(str, "ident: ");
     FuStr_append(str, FuIdent_display(def->ident));
     FuStr_push_utf8_cstr(str, "\n");
+    FuStr_push_indent(str, indent);
     FuStr_push_utf8_cstr(str, "ty: ");
     FuStr_append(str, FuType_display(def->ty));
     FuStr_push_utf8_cstr(str, "\n");
@@ -1233,6 +1235,9 @@ void FuNode_drop(FuNode *nd) {
         FuFnSig_drop(nd->_fn.sig);
         FuBlock_drop(nd->_fn.body);
         break;
+    case ND_STRUCT:
+        FuVariant_drop(nd->_struct.va);
+        break;
     case ND_PKG:
         FuScope_drop(nd->_pkg.globals);
         FuScope_drop(nd->_pkg.builtins);
@@ -1523,6 +1528,9 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         }
         break;
     }
+    case ND_STRUCT:
+        FuStr_append(str, FuVariant_display(nd->_struct.va, indent + 1));
+        break;
     case ND_PKG:
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "items:\n");
