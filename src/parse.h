@@ -558,6 +558,7 @@ struct FuIdent {
 };
 
 FuIdent *FuIdent_new(FuSpan *sp, fu_sym_t sym);
+FuIdent *FuIdent_from_idx(FuCtx *ctx, FuSpan *sp, fu_size_t i);
 void FuIdent_drop(FuIdent *ident);
 FuStr *FuIdent_display(FuIdent *ident);
 
@@ -685,6 +686,7 @@ struct FuFieldDef {
 };
 
 FuFieldDef *FuFieldDef_new(FuSpan *sp, FuVec *attrs, fu_vis_k vis);
+FuFieldDef *FuFieldDef_from_idx_type(FuVec *attrs, FuIdent *ident, FuType *ty);
 void FuFieldDef_drop(FuFieldDef *def);
 FuStr *FuFieldDef_display(FuFieldDef *def, fu_size_t indent);
 
@@ -1098,10 +1100,6 @@ struct FuNode {
             FuGeneric *ge;
             FuVariant *va;
         } _struct;
-        struct {
-            FuGeneric *ge;
-            FuVariant *va;
-        } _tuple_struct;
         struct {
             FuGeneric *ge;
             FuIdent *ident;

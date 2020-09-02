@@ -1,5 +1,1 @@
-pub struct Point {
-    pub x: i8,
-    pub y: i8,
-    z: i8,
-}
+pub struct Point(i8, i8, i8);

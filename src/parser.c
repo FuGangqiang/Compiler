@@ -2357,9 +2357,8 @@ static FuFieldDef *FuParser_parse_field_def(FuParser *p) {
     return def;
 }
 
-static FuVariant *FuParser_parse_struct_variant(FuParser *p, FuVec *attrs, fu_vis_k vis) {
+static FuVariant *FuParser_parse_struct_variant(FuParser *p, FuVec *attrs, fu_vis_k vis, FuIdent *ident) {
     FuSpan *lo = FuParser_current_span(p);
-    FuIdent *ident = FuParser_parse_ident(p);
     FuParser_expect_token(p, TOK_OPEN_BRACE);
     FuVec *fields = FuVec_new(sizeof(FuFieldDef *));
     while (1) {
@@ -2381,9 +2380,45 @@ static FuVariant *FuParser_parse_struct_variant(FuParser *p, FuVec *attrs, fu_vi
     return va;
 }
 
+static FuVariant *FuParser_parse_tuple_struct_variant(FuParser *p, FuVec *attrs, fu_vis_k vis, FuIdent *ident) {
+    FuSpan *lo = FuParser_current_span(p);
+    FuParser_expect_token(p, TOK_OPEN_PAREN);
+    fu_size_t i = 0;
+    FuVec *fields = FuVec_new(sizeof(FuFieldDef *));
+    while (1) {
+        FuVec *def_attrs = FuVec_new(sizeof(FuVec *));
+        /* todo: parse attrs */
+        FuType *ty = FuParser_parse_type(p, 0, FU_TRUE);
+        FuIdent *idx = FuIdent_from_idx(p->ctx, ty->sp, i);
+        FuFieldDef *def = FuFieldDef_from_idx_type(def_attrs, idx, ty);
+        FuVec_push_ptr(fields, def);
+        if (FuParser_check_token(p, TOK_CLOSE_PAREN)) {
+            break;
+        }
+        FuParser_expect_token(p, TOK_COMMA);
+        i++;
+    }
+    FuToken end_tok = FuParser_expect_token(p, TOK_CLOSE_PAREN);
+    FuSpan *sp = FuSpan_join(lo, end_tok.sp);
+    FuVariant *va = FuVariant_new(sp, attrs, vis, VA_TUPLE);
+    va->ident = ident;
+    va->_tuple.fields = fields;
+    return va;
+}
+
 FuNode *FuParser_parse_item_struct(FuParser *p, FuVec *attrs, fu_vis_k vis) {
     FuToken start_tok = FuParser_expect_keyword(p, KW_STRUCT);
-    FuVariant *va = FuParser_parse_struct_variant(p, attrs, vis);
+    FuIdent *ident = FuParser_parse_ident(p);
+    FuVariant *va;
+    FuToken tok = FuParser_nth_token(p, 0);
+    if (tok.kd == TOK_OPEN_BRACE) {
+        va = FuParser_parse_struct_variant(p, attrs, vis, ident);
+    } else if (tok.kd == TOK_OPEN_PAREN) {
+        va = FuParser_parse_tuple_struct_variant(p, attrs, vis, ident);
+        FuParser_expect_token(p, TOK_SEMI);
+    } else {
+        FATAL1(tok.sp, "expect `{` or `(`, find: `%s`", FuToken_kind_csr(tok));
+    }
     FuSpan *sp = FuSpan_join(start_tok.sp, va->sp);
     FuNode *nd = FuNode_new(p->ctx, sp, ND_STRUCT);
     /* todo: generic */

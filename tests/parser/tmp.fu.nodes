@@ -3,16 +3,16 @@ kd: ND_PKG
 items:
   nid: 0
   kd: ND_STRUCT
-    kd: VA_STRUCT
+    kd: VA_TUPLE
     vis: VIS_PUB
     ident: Point
-    struct len: 3
+    tuple len: 3
       vis: VIS_PUB
-      ident: x
+      ident: 0
       ty: i8
       vis: VIS_PUB
-      ident: y
+      ident: 1
       ty: i8
-      vis: VIS_PRIV
-      ident: z
+      vis: VIS_PUB
+      ident: 2
       ty: i8

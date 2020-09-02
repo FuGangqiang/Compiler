@@ -16,6 +16,15 @@ FuIdent *FuIdent_new(FuSpan *sp, fu_sym_t name) {
     return ident;
 }
 
+FuIdent *FuIdent_from_idx(FuCtx *ctx, FuSpan *sp, fu_size_t i) {
+    FuStr *symbol = FuStr_new();
+    FuStr_push_utf8_format(symbol, "%d", i);
+    fu_sym_t sym = FuCtx_intern_symbol(ctx, symbol);
+    FuIdent *ident = FuIdent_new(NULL, sym);
+    ident->sp = sp;
+    return ident;
+}
+
 void FuIdent_drop(FuIdent *ident) {
     if (!ident) {
         return;
@@ -92,6 +101,16 @@ FuFieldDef *FuFieldDef_new(FuSpan *sp, FuVec *attrs, fu_vis_k vis) {
     def->sp = sp;
     def->attrs = attrs;
     def->vis = vis;
+    return def;
+}
+
+FuFieldDef *FuFieldDef_from_idx_type(FuVec *attrs, FuIdent *ident, FuType *ty) {
+    FuFieldDef *def = FuMem_new(FuFieldDef);
+    def->sp = ty->sp;
+    def->attrs = attrs;
+    def->vis = VIS_PUB;
+    def->ident = ident;
+    def->ty = ty;
     return def;
 }
 
