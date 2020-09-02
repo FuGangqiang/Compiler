@@ -272,9 +272,11 @@ FuStr *FuVariant_display(FuVariant *va, fu_size_t indent) {
     FuStr_push_utf8_format(str, "\n");
     switch (va->kd) {
     case VA_UNIT:
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_format(str, "init:\n");
-        FuStr_append(str, FuLit_display(va->_unit.init, indent + 1));
+        if (va->_unit.init) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_format(str, "init:\n");
+            FuStr_append(str, FuLit_display(va->_unit.init, indent + 1));
+        }
         break;
     case VA_STRUCT: {
         FuStr_push_indent(str, indent);
@@ -1257,6 +1259,10 @@ void FuNode_drop(FuNode *nd) {
     case ND_STRUCT:
         FuVariant_drop(nd->_struct.va);
         break;
+    case ND_ENUM:
+        FuIdent_drop(nd->_enum.ident);
+        FuVec_drop_with_ptrs(nd->_enum.items, (FuDropFn)FuVariant_drop);
+        break;
     case ND_PKG:
         FuScope_drop(nd->_pkg.globals);
         FuScope_drop(nd->_pkg.builtins);
@@ -1550,6 +1556,26 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
     case ND_STRUCT:
         FuStr_append(str, FuVariant_display(nd->_struct.va, indent + 1));
         break;
+    case ND_ENUM: {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(nd->_enum.vis));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "ident:");
+        FuStr_append(str, FuIdent_display(nd->_enum.ident));
+        FuStr_push_utf8_cstr(str, "\n");
+        fu_size_t len = FuVec_len(nd->_enum.items);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "items len: %d", len);
+        FuStr_push_utf8_cstr(str, "\n");
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "items:\n");
+        fu_size_t i;
+        for (i = 0; i < len; i++) {
+            FuVariant *item = FuVec_get_ptr(nd->_enum.items, i);
+            FuStr_append(str, FuVariant_display(item, indent + 1));
+        }
+        break;
+    }
     case ND_PKG:
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "items:\n");
