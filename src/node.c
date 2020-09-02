@@ -734,14 +734,15 @@ void FuBlock_drop(FuBlock *blk) {
 FuStr *FuBlock_display(FuBlock *blk, fu_size_t indent) {
     FuStr *str = FuStr_new();
     fu_size_t len = FuVec_len(blk->items);
-    if (len) {
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "items:\n");
-        fu_size_t i;
-        for (i = 0; i < len; i++) {
-            FuNode *item = FuVec_get_ptr(blk->items, i);
-            FuStr_append(str, FuNode_display(item, indent + 1));
-        }
+    if (len == 0) {
+        return str;
+    }
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_cstr(str, "items:\n");
+    fu_size_t i;
+    for (i = 0; i < len; i++) {
+        FuNode *item = FuVec_get_ptr(blk->items, i);
+        FuStr_append(str, FuNode_display(item, indent + 1));
     }
     return str;
 }
