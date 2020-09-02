@@ -2477,6 +2477,18 @@ FuNode *FuParser_parse_item_enum(FuParser *p, FuVec *attrs, fu_vis_k vis) {
     return nd;
 }
 
+FuNode *FuParser_parse_item_union(FuParser *p, FuVec *attrs, fu_vis_k vis) {
+    FuToken start_tok = FuParser_expect_keyword(p, KW_UNION);
+    FuIdent *ident = FuParser_parse_ident(p);
+    FuVariant *va = FuParser_parse_struct_variant(p, attrs, vis, ident);
+    FuSpan *sp = FuSpan_join(start_tok.sp, va->sp);
+    FuNode *nd = FuNode_new(p->ctx, sp, ND_UNION);
+    /* todo: generic */
+    nd->_union.ge = NULL;
+    nd->_union.va = va;
+    return nd;
+}
+
 FuNode *FuParser_parse_mod_item(FuParser *p) {
     /* todo: parse attrs */
     FuVec *attrs = FuVec_new(sizeof(FuAttr *));
@@ -2514,6 +2526,10 @@ FuNode *FuParser_parse_mod_item(FuParser *p) {
         }
         if (FuParser_check_item_declare(p, KW_ENUM)) {
             item = FuParser_parse_item_enum(p, attrs, vis);
+            break;
+        }
+        if (FuParser_check_item_declare(p, KW_UNION)) {
+            item = FuParser_parse_item_union(p, attrs, vis);
             break;
         }
         FATAL1(tok.sp, "unimplement item: `%s`", FuKind_keyword_cstr(tok.sym));

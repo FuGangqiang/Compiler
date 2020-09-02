@@ -1,11 +1,4 @@
-pub enum Color {
-    White,
-    Black,
-    Rgb(u8, u8, u8),
-    Cmyk {
-        cyan: u8,
-        magenta: u8,
-        yellow: u8,
-        key: u8,
-    }
+pub union num {
+    i: i8,
+    j: i32
 }

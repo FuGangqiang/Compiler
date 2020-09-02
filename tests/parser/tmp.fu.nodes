@@ -2,43 +2,14 @@ nid: 1
 kd: ND_PKG
 items:
   nid: 0
-  kd: ND_ENUM
-  vis: VIS_PUB
-  ident:Color
-  items len: 4
-  items:
-    kd: VA_UNIT
-    vis: VIS_INHERIT
-    ident: White
-    kd: VA_UNIT
-    vis: VIS_INHERIT
-    ident: Black
-    kd: VA_TUPLE
-    vis: VIS_INHERIT
-    ident: Rgb
-    tuple len: 3
-      vis: VIS_PUB
-      ident: 0
-      ty: u8
-      vis: VIS_PUB
-      ident: 1
-      ty: u8
-      vis: VIS_PUB
-      ident: 2
-      ty: u8
+  kd: ND_UNION
     kd: VA_STRUCT
-    vis: VIS_INHERIT
-    ident: Cmyk
-    struct len: 4
+    vis: VIS_PUB
+    ident: num
+    struct len: 2
       vis: VIS_PRIV
-      ident: cyan
-      ty: u8
+      ident: i
+      ty: i8
       vis: VIS_PRIV
-      ident: magenta
-      ty: u8
-      vis: VIS_PRIV
-      ident: yellow
-      ty: u8
-      vis: VIS_PRIV
-      ident: key
-      ty: u8
+      ident: j
+      ty: i32

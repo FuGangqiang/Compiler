@@ -1263,6 +1263,9 @@ void FuNode_drop(FuNode *nd) {
         FuIdent_drop(nd->_enum.ident);
         FuVec_drop_with_ptrs(nd->_enum.items, (FuDropFn)FuVariant_drop);
         break;
+    case ND_UNION:
+        FuVariant_drop(nd->_union.va);
+        break;
     case ND_PKG:
         FuScope_drop(nd->_pkg.globals);
         FuScope_drop(nd->_pkg.builtins);
@@ -1576,6 +1579,9 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         }
         break;
     }
+    case ND_UNION:
+        FuStr_append(str, FuVariant_display(nd->_union.va, indent + 1));
+        break;
     case ND_PKG:
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "items:\n");
