@@ -2412,7 +2412,9 @@ FuNode *FuParser_parse_item_struct(FuParser *p, FuVec *attrs, fu_vis_k vis) {
         va = FuParser_parse_tuple_struct_variant(p, attrs, vis, ident);
         FuParser_expect_token(p, TOK_SEMI);
     } else {
-        FATAL1(tok.sp, "expect `{` or `(`, find: `%s`", FuToken_kind_csr(tok));
+        va = FuVariant_new(ident->sp, attrs, vis, VA_UNIT);
+        va->ident = ident;
+        FuParser_expect_token(p, TOK_SEMI);
     }
     FuSpan *sp = FuSpan_join(start_tok.sp, va->sp);
     FuNode *nd = FuNode_new(p->ctx, sp, ND_STRUCT);

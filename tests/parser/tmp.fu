@@ -1,1 +1,9 @@
-pub type Point = (i8, i8);
+pub struct Unit;
+
+struct Point(f64, f64);
+
+struct Color {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+ }

@@ -1,8 +1,35 @@
-nid: 1
+nid: 3
 kd: ND_PKG
 items:
   nid: 0
-  kd: ND_ALIAS
-  vis: VIS_PUB
-  ident:Point
-  ty: (i8, i8)
+  kd: ND_STRUCT
+    kd: VA_UNIT
+    vis: VIS_PUB
+    ident: Unit
+  nid: 1
+  kd: ND_STRUCT
+    kd: VA_TUPLE
+    vis: VIS_PRIV
+    ident: Point
+    tuple len: 2
+      vis: VIS_PUB
+      ident: 0
+      ty: f64
+      vis: VIS_PUB
+      ident: 1
+      ty: f64
+  nid: 2
+  kd: ND_STRUCT
+    kd: VA_STRUCT
+    vis: VIS_PRIV
+    ident: Color
+    struct len: 3
+      vis: VIS_PUB
+      ident: r
+      ty: u8
+      vis: VIS_PUB
+      ident: g
+      ty: u8
+      vis: VIS_PUB
+      ident: b
+      ty: u8
