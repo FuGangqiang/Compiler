@@ -1,4 +1,1 @@
-pub union num {
-    i: i8,
-    j: i32
-}
+pub type Point = (i8, i8);

@@ -1267,6 +1267,9 @@ void FuNode_drop(FuNode *nd) {
     case ND_UNION:
         FuVariant_drop(nd->_union.va);
         break;
+    case ND_TY_ALIAS:
+        FuIdent_drop(nd->_ty_alias.ident);
+        break;
     case ND_PKG:
         FuScope_drop(nd->_pkg.globals);
         FuScope_drop(nd->_pkg.builtins);
@@ -1582,6 +1585,18 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
     }
     case ND_UNION:
         FuStr_append(str, FuVariant_display(nd->_union.va, indent + 1));
+        break;
+    case ND_TY_ALIAS:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(nd->_ty_alias.vis));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "ident:");
+        FuStr_append(str, FuIdent_display(nd->_ty_alias.ident));
+        FuStr_push_utf8_cstr(str, "\n");
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "ty: ");
+        FuStr_append(str, FuType_display(nd->_ty_alias.ty));
+        FuStr_push_utf8_cstr(str, "\n");
         break;
     case ND_PKG:
         FuStr_push_indent(str, indent);

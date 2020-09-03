@@ -2473,6 +2473,23 @@ FuNode *FuParser_parse_item_union(FuParser *p, FuVec *attrs, fu_vis_k vis) {
     return nd;
 }
 
+FuNode *FuParser_parse_item_alias(FuParser *p, FuVec *attrs, fu_vis_k vis) {
+    FuToken start_tok = FuParser_expect_keyword(p, KW_TYPE);
+    FuIdent *ident = FuParser_parse_ident(p);
+    FuParser_expect_token(p, TOK_EQ);
+    FuType *ty = FuParser_parse_type(p, 0, FU_TRUE);
+    FuParser_expect_token(p, TOK_SEMI);
+    FuSpan *sp = FuSpan_join(start_tok.sp, ty->sp);
+    FuNode *nd = FuNode_new(p->ctx, sp, ND_TY_ALIAS);
+    /* todo: generic */
+    nd->attrs = attrs;
+    nd->_ty_alias.ge = NULL;
+    nd->_ty_alias.vis = vis;
+    nd->_ty_alias.ident = ident;
+    nd->_ty_alias.ty = ty;
+    return nd;
+}
+
 FuNode *FuParser_parse_mod_item(FuParser *p) {
     /* todo: parse attrs */
     FuVec *attrs = FuVec_new(sizeof(FuAttr *));
@@ -2514,6 +2531,10 @@ FuNode *FuParser_parse_mod_item(FuParser *p) {
         }
         if (FuParser_check_item_declare(p, KW_UNION)) {
             item = FuParser_parse_item_union(p, attrs, vis);
+            break;
+        }
+        if (FuParser_check_item_declare(p, KW_TYPE)) {
+            item = FuParser_parse_item_alias(p, attrs, vis);
             break;
         }
         FATAL1(tok.sp, "unimplement item: `%s`", FuKind_keyword_cstr(tok.sym));

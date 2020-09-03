@@ -50,7 +50,7 @@ NODE(ND_TUPLE_STRUCT, "tuple struct")
 NODE(ND_ENUM, "enum")
 NODE(ND_UNION, "union")
 NODE(ND_INTERFACE, "interface")
-NODE(ND_ALIAS, "alias")
+NODE(ND_TY_ALIAS, "type alias")
 /* `extern { ... }` */
 NODE(ND_EXTERN, "node extern")
 /* `extension Foo { ... }` or `extension IInterface for Foo { .. }` */

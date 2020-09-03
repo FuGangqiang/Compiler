@@ -2,14 +2,7 @@ nid: 1
 kd: ND_PKG
 items:
   nid: 0
-  kd: ND_UNION
-    kd: VA_STRUCT
-    vis: VIS_PUB
-    ident: num
-    struct len: 2
-      vis: VIS_PRIV
-      ident: i
-      ty: i8
-      vis: VIS_PRIV
-      ident: j
-      ty: i32
+  kd: ND_ALIAS
+  vis: VIS_PUB
+  ident:Point
+  ty: (i8, i8)
