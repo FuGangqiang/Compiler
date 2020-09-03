@@ -22,6 +22,7 @@ typedef enum fu_op_k fu_op_k;
 typedef enum fu_ty_op_k fu_ty_op_k;
 
 typedef enum fu_arm_k fu_arm_k;
+typedef enum fu_assoc_k fu_assoc_k;
 typedef enum fu_attr_k fu_attr_k;
 typedef enum fu_expr_k fu_expr_k;
 typedef enum fu_field_k fu_field_k;
@@ -54,6 +55,7 @@ typedef struct FuType FuType;
 
 typedef struct FuAnnoSelf FuAnnoSelf;
 typedef struct FuArm FuArm;
+typedef struct FuAssoc FuAssoc;
 typedef struct FuAttr FuAttr;
 typedef struct FuBlock FuBlock;
 typedef struct FuFieldDef FuFieldDef;
@@ -129,6 +131,13 @@ enum fu_arm_k {
 #include "node_arm.def"
 #undef ARM
     _ARM_LAST_UNUSED
+};
+
+enum fu_assoc_k {
+#define ASSOC(kd, _doc) kd,
+#include "node_assoc.def"
+#undef ASSOC
+    _ASSOC_LAST_UNUSED
 };
 
 enum fu_attr_k {
@@ -230,6 +239,7 @@ enum fu_vis_k {
 };
 
 char *FuKind_arm_cstr(fu_arm_k kd);
+char *FuKind_assoc_cstr(fu_assoc_k kd);
 char *FuKind_attr_cstr(fu_attr_k kd);
 char *FuKind_expr_cstr(fu_expr_k kd);
 char *FuKind_field_cstr(fu_field_k kd);
@@ -679,6 +689,34 @@ struct FuArm {
 FuArm *FuArm_new(FuSpan *sp, fu_arm_k kd);
 void FuArm_drop(FuArm *arm);
 FuStr *FuArm_display(FuArm *arm, fu_size_t indent);
+
+struct FuAssoc {
+    FuSpan *sp;
+    fu_assoc_k kd;
+    fu_vis_k vis;
+    FuIdent *ident;
+    FuVec *attrs;
+    union {
+        struct {
+            FuType *ty;
+            FuLit *def;
+        } _const;
+        struct {
+            FuVec *bounds;
+        } _ty_alias;
+        struct {
+            /* FuFnParam */
+            FuVec *params;
+            FuFnSig *sig;
+            FuBlock *body;
+            FuScope *scope;
+        } _fn;
+    };
+};
+
+FuAssoc *FuAssoc_new(FuSpan *sp, fu_assoc_k kd);
+void FuAssoc_drop(FuAssoc *assoc);
+FuStr *FuAssoc_display(FuAssoc *assoc, fu_size_t indent);
 
 struct FuFieldDef {
     FuSpan *sp;

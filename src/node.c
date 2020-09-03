@@ -440,6 +440,104 @@ FuStr *FuArm_display(FuArm *arm, fu_size_t indent) {
     return str;
 }
 
+FuAssoc *FuAssoc_new(FuSpan *sp, fu_assoc_k kd) {
+    FuAssoc *assoc = FuMem_new(FuAssoc);
+    assoc->sp = sp;
+    assoc->kd = kd;
+    return assoc;
+}
+
+void FuAssoc_drop(FuAssoc *assoc) {
+    if (!assoc) {
+        return;
+    }
+    FuIdent_drop(assoc->ident);
+    switch (assoc->kd) {
+    case ASSOC_CONST:
+        FuLit_drop(assoc->_const.def);
+        break;
+    case ASSOC_TY_ALIAS:
+        FuVec_drop(assoc->_ty_alias.bounds);
+        break;
+    case ASSOC_FN:
+        FuVec_drop_with_ptrs(assoc->_fn.params, (FuDropFn)FuFnParam_drop);
+        FuFnSig_drop(assoc->_fn.sig);
+        FuBlock_drop(assoc->_fn.body);
+        break;
+    default:
+        break;
+    }
+    FuVec_drop(assoc->attrs);
+    FuMem_free(assoc);
+}
+
+FuStr *FuAssoc_display(FuAssoc *assoc, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "kd: %s\n", FuKind_assoc_cstr(assoc->kd));
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(assoc->vis));
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_cstr(str, "ident: ");
+    FuStr_append(str, FuIdent_display(assoc->ident));
+    FuStr_push_utf8_cstr(str, "\n");
+    switch (assoc->kd) {
+    case ASSOC_CONST:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "ty: ");
+        FuStr_append(str, FuType_display(assoc->_const.ty));
+        FuStr_push_utf8_cstr(str, "\n");
+        if (assoc->_const.def) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_format(str, "default:\n");
+            FuStr_append(str, FuLit_display(assoc->_const.def, indent + 1));
+        }
+        break;
+    case ASSOC_TY_ALIAS: {
+        fu_size_t len = FuVec_len(assoc->_ty_alias.bounds);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "bounds len: %d\n", len);
+        if (len) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "items:\n");
+            fu_size_t i;
+            for (i = 0; i < len; i++) {
+                FuStr_push_indent(str, indent + 1);
+                FuType *item = FuVec_get_ptr(assoc->_ty_alias.bounds, i);
+                FuStr_append(str, FuType_display(item));
+                FuStr_push_utf8_cstr(str, "\n");
+            }
+        }
+        break;
+    }
+    case ASSOC_FN: {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "sig: ");
+        FuStr_append(str, FuFnSig_display(assoc->_fn.sig));
+        FuStr_push_utf8_cstr(str, "\n");
+        fu_size_t len = FuVec_len(assoc->_fn.params);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "params len: %d\n", len);
+        if (len > 0) {
+            fu_size_t i;
+            for (i = 0; i < len; i++) {
+                FuFnParam *item = FuVec_get_ptr(assoc->_fn.params, i);
+                FuStr_append(str, FuFnParam_display(item, indent + 1));
+            }
+        }
+        if (assoc->_fn.body) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "body:\n");
+            FuStr_append(str, FuBlock_display(assoc->_fn.body, indent + 1));
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    return str;
+}
+
 FuLit *FuLit_new(FuSpan *sp, fu_lit_k kind) {
     FuLit *lit = FuMem_new(FuLit);
     lit->sp = sp;

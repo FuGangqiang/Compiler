@@ -35,6 +35,23 @@ char *FuKind_arm_cstr(fu_arm_k kd) {
     }
 }
 
+char *FuKind_assoc_cstr(fu_assoc_k kd) {
+    switch (kd) {
+/* clang-format off */
+#define ASSOC(kd, _doc) \
+    case kd:          \
+        return #kd;   \
+        break;
+/* clang-format on */
+#include "node_assoc.def"
+#undef ASSOC
+    default:
+        /* can not be here */
+        return "";
+        break;
+    }
+}
+
 char *FuKind_attr_cstr(fu_attr_k kd) {
     switch (kd) {
 /* clang-format off */

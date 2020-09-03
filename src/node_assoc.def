@@ -1,0 +1,15 @@
+#ifndef ASSOC
+#error "You must define ASSOC macro before include this file"
+#endif
+
+/* `const ID: i32`, `const ID: i32 = 32` */
+ASSOC(ASSOC_CONST, "assoc const")
+/* `type Item`, `type Item = i32` */
+ASSOC(ASSOC_TY_ALIAS, "assoc type alias")
+/*
+ * - `fn empty() -> Self`
+ * - `fn empty() -> Self {...}`
+ * - `fn draw(self)`
+ * - `fn draw(self) {...}`
+ */
+ASSOC(ASSOC_FN, "assoc fn")
