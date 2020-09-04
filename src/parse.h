@@ -503,6 +503,7 @@ FuNode *FuParser_parse_item_struct(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_enum(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_union(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_alias(FuParser *p, FuVec *attrs, fu_vis_k vis);
+FuNode *FuParser_parse_item_interface(FuParser *p, FuVec *attrs, fu_vis_k vis);
 
 FuNode *FuParser_parse_block_item(FuParser *p);
 FuNode *FuParser_parse_mod_item(FuParser *p);
@@ -1154,9 +1155,12 @@ struct FuNode {
         } _union;
         struct {
             FuGeneric *ge;
+            fu_vis_k vis;
             fu_bool_t is_unsafe;
             FuIdent *ident;
-            /* FuNode._... */
+            /* FuType */
+            FuVec *supers;
+            /* FuAssoc */
             FuVec *assocs;
         } _interface;
         struct {

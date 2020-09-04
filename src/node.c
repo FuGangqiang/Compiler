@@ -1365,6 +1365,11 @@ void FuNode_drop(FuNode *nd) {
     case ND_UNION:
         FuVariant_drop(nd->_union.va);
         break;
+    case ND_INTERFACE:
+        FuIdent_drop(nd->_interface.ident);
+        FuVec_drop(nd->_interface.supers);
+        FuVec_drop_with_ptrs(nd->_interface.assocs, (FuDropFn)FuAssoc_drop);
+        break;
     case ND_TY_ALIAS:
         FuIdent_drop(nd->_ty_alias.ident);
         break;
@@ -1684,6 +1689,34 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
     case ND_UNION:
         FuStr_append(str, FuVariant_display(nd->_union.va, indent + 1));
         break;
+    case ND_INTERFACE: {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(nd->_interface.vis));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "is_unsafe: %d\n", nd->_interface.is_unsafe);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "ident:");
+        FuStr_append(str, FuIdent_display(nd->_interface.ident));
+        FuStr_push_utf8_cstr(str, "\n");
+        fu_size_t super_len = FuVec_len(nd->_interface.supers);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "super len: %d\n", super_len);
+        fu_size_t i;
+        for (i = 0; i < super_len; i++) {
+            FuStr_push_indent(str, indent + 1);
+            FuType *item = FuVec_get_ptr(nd->_interface.supers, i);
+            FuStr_append(str, FuType_display(item));
+            FuStr_push_utf8_cstr(str, "\n");
+        }
+        fu_size_t assoc_len = FuVec_len(nd->_interface.assocs);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "assoc len: %d\n", super_len);
+        for (i = 0; i < assoc_len; i++) {
+            FuAssoc *item = FuVec_get_ptr(nd->_interface.assocs, i);
+            FuStr_append(str, FuAssoc_display(item, indent + 1));
+        }
+        break;
+    }
     case ND_TY_ALIAS:
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(nd->_ty_alias.vis));

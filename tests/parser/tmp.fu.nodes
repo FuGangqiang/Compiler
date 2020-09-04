@@ -2,34 +2,58 @@ nid: 3
 kd: ND_PKG
 items:
   nid: 0
-  kd: ND_STRUCT
-    kd: VA_UNIT
-    vis: VIS_PUB
-    ident: Unit
+  kd: ND_INTERFACE
+  vis: VIS_PUB
+  is_unsafe: 1
+  ident:ISend
+  super len: 0
+  assoc len: 0
   nid: 1
-  kd: ND_STRUCT
-    kd: VA_TUPLE
+  kd: ND_INTERFACE
+  vis: VIS_PRIV
+  is_unsafe: 0
+  ident:IWidget
+  super len: 2
+    IShape
+    IView
+  assoc len: 2
+    kd: ASSOC_CONST
     vis: VIS_PRIV
-    ident: Point
-    tuple len: 2
-      vis: VIS_PUB
-      ident: 0
-      ty: f64
-      vis: VIS_PUB
-      ident: 1
-      ty: f64
+    ident: WIDTH
+    ty: f32
+    default:
+      kd: LIT_INT
+      size: 0, is_signed: 0, v: 32
+    kd: ASSOC_FN
+    vis: VIS_PRIV
+    ident: draw
+    sig: Self -> nil
+    params len: 1
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: self
+      ty: Self
   nid: 2
-  kd: ND_STRUCT
-    kd: VA_STRUCT
+  kd: ND_INTERFACE
+  vis: VIS_PUB
+  is_unsafe: 0
+  ident:IIterator
+  super len: 0
+  assoc len: 0
+    kd: ASSOC_TY_ALIAS
     vis: VIS_PRIV
-    ident: Color
-    struct len: 3
-      vis: VIS_PUB
-      ident: r
-      ty: u8
-      vis: VIS_PUB
-      ident: g
-      ty: u8
-      vis: VIS_PUB
-      ident: b
-      ty: u8
+    ident: Item
+    bounds len: 0
+    kd: ASSOC_FN
+    vis: VIS_PRIV
+    ident: next
+    sig: *Self -> Self::Item?
+    params len: 1
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: self
+      ty: *Self

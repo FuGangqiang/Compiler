@@ -2275,7 +2275,8 @@ FuNode *FuParser_parse_item_try(FuParser *p, FuVec *attrs) {
     return nd;
 }
 
-FuNode *FuParser_parse_item_fn(FuParser *p, FuVec *attrs, fu_vis_k vis) {
+static void FuParser_parse_fn(FuParser *p, FuSpan **sp_p, FuIdent **ident_p, FuVec **params_p, FuFnSig **sig_p,
+                              FuBlock **body_p) {
     FuSpan *lo = FuParser_current_span(p);
     fu_bool_t is_const = FuParser_eat_keyword(p, KW_CONST);
     fu_bool_t is_async = FuParser_eat_keyword(p, KW_ASYNC);
@@ -2284,10 +2285,10 @@ FuNode *FuParser_parse_item_fn(FuParser *p, FuVec *attrs, fu_vis_k vis) {
         ERROR(lo, "fn can not be `const` and `async` at the same time");
     }
     FuParser_expect_keyword(p, KW_FN);
-    FuIdent *ident = FuParser_parse_ident(p);
+    *ident_p = FuParser_parse_ident(p);
 
     FuParser_expect_token(p, TOK_OPEN_PAREN);
-    FuVec *params = FuParser_parse_fn_params(p, TOK_CLOSE_PAREN, FU_TRUE);
+    *params_p = FuParser_parse_fn_params(p, TOK_CLOSE_PAREN, FU_TRUE);
     FuParser_expect_token(p, TOK_CLOSE_PAREN);
 
     FuType *return_ty;
@@ -2297,25 +2298,33 @@ FuNode *FuParser_parse_item_fn(FuParser *p, FuVec *attrs, fu_vis_k vis) {
     } else {
         return_ty = FuType_from_keyword(p->ctx, NULL, KW_NIL);
     }
-    FuFnSig *sig = FuFnSig_from_params(p->ctx, NULL, params, return_ty);
+    FuFnSig *sig = FuFnSig_from_params(p->ctx, NULL, *params_p, return_ty);
     sig->is_const = is_const;
     sig->is_async = is_async;
     sig->is_unsafe = is_unsafe;
-
+    *sig_p = sig;
     FuSpan *hi;
-    FuBlock *body = NULL;
+    *body_p = NULL;
     if (FuParser_check_token(p, TOK_SEMI)) {
         FuToken tok = FuParser_expect_token(p, TOK_SEMI);
         hi = tok.sp;
     } else if (FuParser_check_token(p, TOK_OPEN_BRACE)) {
-        body = FuParser_parse_block(p);
-        hi = body->sp;
+        *body_p = FuParser_parse_block(p);
+        hi = (*body_p)->sp;
     } else {
         FuToken tok = FuParser_nth_token(p, 1);
         FATAL1(tok.sp, "expect `{` or `;`, find: `%s`", FuToken_kind_csr(tok));
     }
+    *sp_p = FuSpan_join(lo, hi);
+}
 
-    FuSpan *sp = FuSpan_join(lo, hi);
+FuNode *FuParser_parse_item_fn(FuParser *p, FuVec *attrs, fu_vis_k vis) {
+    FuSpan *sp;
+    FuIdent *ident;
+    FuVec *params;
+    FuBlock *body;
+    FuFnSig *sig;
+    FuParser_parse_fn(p, &sp, &ident, &params, &sig, &body);
     FuNode *nd = FuNode_new(p->ctx, sp, ND_FN);
     nd->attrs = attrs;
     nd->_fn.vis = vis;
@@ -2475,6 +2484,148 @@ FuNode *FuParser_parse_item_union(FuParser *p, FuVec *attrs, fu_vis_k vis) {
     return nd;
 }
 
+static FuVec *FuParser_parse_type_param_bounds(FuParser *p) {
+    FuVec *bounds = FuVec_new(sizeof(FuType *));
+    while (1) {
+        FuType *ty = FuParser_parse_type(p, 0, FU_TRUE);
+        FuVec_push_ptr(bounds, ty);
+        if (FuParser_check_token(p, TOK_PLUS)) {
+            FuParser_expect_token(p, TOK_PLUS);
+            continue;
+        }
+        break;
+    }
+    return bounds;
+}
+
+static fu_bool_t FuParser_check_interface(FuParser *p) {
+    FuToken tok;
+    fu_size_t i = 0;
+    while (1) {
+        tok = FuParser_nth_token(p, i);
+        if (tok.kd == TOK_EOF) {
+            return FU_FALSE;
+        }
+        if (tok.kd != TOK_KEYWORD) {
+            return FU_FALSE;
+        }
+        if (tok.sym == KW_INTERFACE) {
+            return FU_TRUE;
+        }
+        if (tok.sym == KW_UNSAFE) {
+            i++;
+            continue;
+        }
+        break;
+    }
+    return FU_FALSE;
+}
+
+static FuAssoc *FuParser_parse_const_assoc(FuParser *p, FuVec *attrs, fu_vis_k vis) {
+    FuSpan *lo = FuParser_current_span(p);
+    FuParser_expect_keyword(p, KW_CONST);
+    FuIdent *ident = FuParser_parse_ident(p);
+    FuParser_expect_token(p, TOK_COLON);
+    FuType *ty = FuParser_parse_type(p, 0, FU_TRUE);
+    FuLit *def = NULL;
+    if (FuParser_check_token(p, TOK_EQ)) {
+        FuParser_expect_token(p, TOK_EQ);
+        def = FuParser_parse_lit(p);
+    }
+    FuToken end_tok = FuParser_expect_token(p, TOK_SEMI);
+    FuSpan *sp = FuSpan_join(lo, end_tok.sp);
+    FuAssoc *assoc = FuAssoc_new(sp, ASSOC_CONST);
+    assoc->attrs = attrs;
+    assoc->vis = vis;
+    assoc->ident = ident;
+    assoc->_const.ty = ty;
+    assoc->_const.def = def;
+    return assoc;
+}
+
+static FuAssoc *FuParser_parse_ty_alias_assoc(FuParser *p, FuVec *attrs, fu_vis_k vis) {
+    FuSpan *lo = FuParser_current_span(p);
+    FuParser_expect_keyword(p, KW_TYPE);
+    FuIdent *ident = FuParser_parse_ident(p);
+    FuVec *bounds;
+    if (FuParser_check_token(p, TOK_COLON)) {
+        bounds = FuParser_parse_type_param_bounds(p);
+    } else {
+        bounds = FuVec_new(sizeof(FuType *));
+    }
+    FuToken end_tok = FuParser_expect_token(p, TOK_SEMI);
+    FuSpan *sp = FuSpan_join(lo, end_tok.sp);
+    FuAssoc *assoc = FuAssoc_new(sp, ASSOC_TY_ALIAS);
+    assoc->attrs = attrs;
+    assoc->vis = vis;
+    assoc->ident = ident;
+    assoc->_ty_alias.bounds = bounds;
+    return assoc;
+}
+
+static FuAssoc *FuParser_parse_fn_assoc(FuParser *p, FuVec *attrs, fu_vis_k vis) {
+    FuSpan *sp;
+    FuIdent *ident;
+    FuVec *params;
+    FuBlock *body;
+    FuFnSig *sig;
+    FuParser_parse_fn(p, &sp, &ident, &params, &sig, &body);
+    FuAssoc *assoc = FuAssoc_new(sp, ASSOC_FN);
+    assoc->attrs = attrs;
+    assoc->vis = vis;
+    assoc->ident = ident;
+    assoc->_fn.params = params;
+    assoc->_fn.sig = sig;
+    assoc->_fn.body = body;
+    return assoc;
+}
+
+FuNode *FuParser_parse_item_interface(FuParser *p, FuVec *attrs, fu_vis_k vis) {
+    FuSpan *lo = FuParser_current_span(p);
+    fu_bool_t is_unsafe = FuParser_eat_keyword(p, KW_UNSAFE);
+    FuParser_expect_keyword(p, KW_INTERFACE);
+    FuIdent *ident = FuParser_parse_ident(p);
+    FuVec *supers;
+    if (FuParser_check_token(p, TOK_COLON)) {
+        FuParser_expect_token(p, TOK_COLON);
+        supers = FuParser_parse_type_param_bounds(p);
+    } else {
+        supers = FuVec_new(sizeof(FuType *));
+    }
+    /* todo: parse supers */
+    FuParser_expect_token(p, TOK_OPEN_BRACE);
+    FuVec *assocs = FuVec_new(sizeof(FuAssoc *));
+    while (1) {
+        if (FuParser_check_token(p, TOK_CLOSE_BRACE)) {
+            break;
+        }
+        FuVec *assoc_attrs = FuVec_new(sizeof(FuAttr *));
+        fu_vis_k assoc_vis = FuParser_parse_visibility(p, VIS_PRIV);
+        FuAssoc *assoc;
+        if (FuParser_check_keyword(p, KW_CONST)) {
+            assoc = FuParser_parse_const_assoc(p, assoc_attrs, assoc_vis);
+        } else if (FuParser_check_keyword(p, KW_TYPE)) {
+            assoc = FuParser_parse_ty_alias_assoc(p, assoc_attrs, assoc_vis);
+        } else if (FuParser_check_fn(p)) {
+            assoc = FuParser_parse_fn_assoc(p, assoc_attrs, assoc_vis);
+        } else {
+            FuToken tok = FuParser_nth_token(p, 0);
+            FATAL1(tok.sp, "invalid interface item prefix: `%s`", FuToken_kind_csr(tok));
+        }
+        FuVec_push_ptr(assocs, assoc);
+    }
+    FuToken close_tok = FuParser_expect_token(p, TOK_CLOSE_BRACE);
+    FuSpan *sp = FuSpan_join(lo, close_tok.sp);
+    FuNode *nd = FuNode_new(p->ctx, sp, ND_INTERFACE);
+    nd->attrs = attrs;
+    nd->_interface.vis = vis;
+    nd->_interface.is_unsafe = is_unsafe;
+    nd->_interface.ident = ident;
+    nd->_interface.supers = supers;
+    nd->_interface.assocs = assocs;
+    return nd;
+}
+
 FuNode *FuParser_parse_item_alias(FuParser *p, FuVec *attrs, fu_vis_k vis) {
     FuToken start_tok = FuParser_expect_keyword(p, KW_TYPE);
     FuIdent *ident = FuParser_parse_ident(p);
@@ -2537,6 +2688,10 @@ FuNode *FuParser_parse_mod_item(FuParser *p) {
         }
         if (FuParser_check_item_declare(p, KW_TYPE)) {
             item = FuParser_parse_item_alias(p, attrs, vis);
+            break;
+        }
+        if (FuParser_check_interface(p)) {
+            item = FuParser_parse_item_interface(p, attrs, vis);
             break;
         }
         FATAL1(tok.sp, "unimplement item: `%s`", FuKind_keyword_cstr(tok.sym));

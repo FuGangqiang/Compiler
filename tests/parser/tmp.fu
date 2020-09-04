@@ -1,9 +1,11 @@
-pub struct Unit;
+pub unsafe interface ISend {}
 
-struct Point(f64, f64);
+interface IWidget: IShape + IView {
+    const WIDTH: f32 = 32;
+    fn draw(self: Self);
+}
 
-struct Color {
-    pub r: u8,
-    pub g: u8,
-    pub b: u8,
- }
+pub interface IIterator {
+    type Item;
+    fn next(self: *Self) -> Self::Item?;
+}
