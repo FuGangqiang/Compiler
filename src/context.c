@@ -54,6 +54,11 @@ fu_sym_t FuCtx_intern_symbol(FuCtx *ctx, FuStr *symbol) {
     return sym;
 }
 
+fu_sym_t FuCtx_intern_cstr(FuCtx *ctx, char *cstr) {
+    FuStr *symbol = FuStr_from_utf8_cstr(cstr);
+    return FuCtx_intern_symbol(ctx, symbol);
+}
+
 FuStr *FuCtx_get_symbol(FuCtx *ctx, fu_sym_t sym) {
     return (FuStr *)FuSet_key_ptr_at(ctx->symbols, sym);
 }

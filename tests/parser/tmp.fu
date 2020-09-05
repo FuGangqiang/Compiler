@@ -2,10 +2,12 @@ pub unsafe interface ISend {}
 
 interface IWidget: IShape + IView {
     const WIDTH: f32 = 32;
-    fn draw(self: Self);
+
+    fn new(x: f32, y: f32) -> Self;
+    fn draw(self);
 }
 
 pub interface IIterator {
     type Item;
-    fn next(self: *Self) -> Self::Item?;
+    fn next(*self) -> Self::Item?;
 }

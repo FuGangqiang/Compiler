@@ -224,6 +224,16 @@ fu_bool_t FuToken_is_blank(FuToken tok) {
     }
 }
 
+fu_bool_t FuToken_check_keyword(FuToken tok, fu_keyword_k keyword) {
+    if (tok.kd != TOK_KEYWORD) {
+        return FU_FALSE;
+    }
+    if (tok.sym == keyword) {
+        return FU_TRUE;
+    }
+    return FU_FALSE;
+}
+
 /* token 真正内容从哪里开始 */
 fu_size_t FuToken_left_skip_count(FuToken tok) {
     fu_size_t count = 0;

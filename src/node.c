@@ -625,6 +625,25 @@ FuPat *FuPat_new(FuSpan *sp, fu_pat_k kd) {
     return pat;
 }
 
+FuPat *FuPat_new_path_from_tok(FuToken tok) {
+    FuIdent *ident = FuIdent_new(tok.sp, tok.sym);
+
+    FuPathItem *path_item = FuMem_new(FuPathItem);
+    path_item->sp = tok.sp;
+    path_item->ident = ident;
+    FuVec *items = FuVec_new(sizeof(FuPathItem *));
+    FuVec_push_ptr(items, path_item);
+
+    FuPath *path = FuMem_new(FuPath);
+    path->sp = tok.sp;
+    path->segments = items;
+    FuExpr *expr = FuExpr_new_path(NULL, path);
+
+    FuPat *pat = FuPat_new(tok.sp, PAT_EXPR);
+    pat->_expr = expr;
+    return pat;
+}
+
 void FuPat_drop(FuPat *pat) {
     if (!pat) {
         return;

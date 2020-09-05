@@ -308,6 +308,7 @@ void FuCtx_drop(FuCtx *ctx);
 
 /* intern symbol */
 fu_sym_t FuCtx_intern_symbol(FuCtx *ctx, FuStr *symbol);
+fu_sym_t FuCtx_intern_cstr(FuCtx *ctx, char *cstr);
 FuStr *FuCtx_get_symbol(FuCtx *ctx, fu_sym_t sym);
 
 /* intern file content */
@@ -383,6 +384,8 @@ fu_bool_t FuToken_is_assign(FuToken tok);
 fu_bool_t FuToken_is_lit(FuToken tok);
 fu_bool_t FuToken_is_outer_doc_comment(FuToken tok);
 fu_bool_t FuToken_is_blank(FuToken tok);
+
+fu_bool_t FuToken_check_keyword(FuToken tok, fu_keyword_k keyword);
 
 FuLit *FuToken_to_lit_nil(FuToken tok);
 FuLit *FuToken_to_lit_bool(FuToken tok);
@@ -1037,6 +1040,7 @@ struct FuPat {
 };
 
 FuPat *FuPat_new(FuSpan *sp, fu_pat_k kd);
+FuPat *FuPat_new_path_from_tok(FuToken tok);
 void FuPat_drop(FuPat *pat);
 FuStr *FuPat_display(FuPat *pat, fu_size_t indent);
 

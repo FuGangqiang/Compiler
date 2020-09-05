@@ -578,16 +578,10 @@ static FuType *FuParser_parse_keyword_type(FuParser *p) {
 }
 
 static FuType *FuParser_parse_pointer_type(FuParser *p, fu_op_prec_t prec) {
-    static fu_sym_t raw_sym = 0;
-    if (!raw_sym) {
-        FuStr *raw = FuStr_from_utf8_cstr("raw");
-        raw_sym = FuCtx_intern_symbol(p->ctx, raw);
-    }
-
     FuToken tok0 = FuParser_expect_token(p, TOK_STAR);
     FuToken tok1 = FuParser_nth_token(p, 0);
     fu_bool_t is_raw = FU_FALSE;
-    if (FuToken_is_ident(tok1) && tok1.sym == raw_sym) {
+    if (FuToken_is_ident(tok1) && tok1.sym == FuCtx_intern_cstr(p->ctx, "raw")) {
         FuParser_bump(p);
         is_raw = FU_TRUE;
     }
@@ -1557,17 +1551,72 @@ FuBlock *FuParser_parse_block(FuParser *p) {
     return blk;
 }
 
+static FuFnParam *FuParser_parse_self_fn_param(FuParser *p) {
+    FuToken tok0 = FuParser_nth_token(p, 0);
+    if (FuToken_check_keyword(tok0, KW_SELF_LOWER)) {
+        FuParser_bump(p);
+        /* `self` */
+        FuType *self_ty = FuType_from_keyword(p->ctx, tok0.sp, KW_SELF_UPPER);
+        FuPat *self_pat = FuPat_new_path_from_tok(tok0);
+        FuFnParam *param = FuFnParam_new(tok0.sp, self_pat);
+        param->ty = self_ty;
+        return param;
+    }
+    if (tok0.kd != TOK_STAR) {
+        return NULL;
+    }
+    FuToken tok1 = FuParser_nth_token(p, 1);
+    if (FuToken_check_keyword(tok1, KW_SELF_LOWER)) {
+        FuParser_bump(p);
+        FuParser_bump(p);
+        /* `*self` */
+        FuSpan *sp = FuSpan_join(tok0.sp, tok1.sp);
+
+        FuType *self_ty = FuType_from_keyword(p->ctx, tok1.sp, KW_SELF_UPPER);
+        FuType *ptr_self_ty = FuType_new(p->ctx, sp, TY_PTR);
+        ptr_self_ty->_ptr = self_ty;
+
+        FuPat *self_pat = FuPat_new_path_from_tok(tok1);
+        FuFnParam *param = FuFnParam_new(sp, self_pat);
+        param->ty = ptr_self_ty;
+        return param;
+    }
+    if (!(tok1.kd == TOK_IDENT && tok1.sym == FuCtx_intern_cstr(p->ctx, "raw"))) {
+        return NULL;
+    }
+    FuToken tok2 = FuParser_nth_token(p, 2);
+    if (FuToken_check_keyword(tok0, KW_SELF_LOWER)) {
+        FuParser_bump(p);
+        FuParser_bump(p);
+        FuParser_bump(p);
+        /* `*raw self` */
+        FuSpan *sp = FuSpan_join(tok0.sp, tok2.sp);
+
+        FuType *self_ty = FuType_from_keyword(p->ctx, tok2.sp, KW_SELF_UPPER);
+        FuType *raw_ptr_self_ty = FuType_new(p->ctx, sp, TY_RAW_PTR);
+        raw_ptr_self_ty->_ptr = self_ty;
+
+        FuPat *self_pat = FuPat_new_path_from_tok(tok2);
+        FuFnParam *param = FuFnParam_new(sp, self_pat);
+        param->ty = raw_ptr_self_ty;
+        return param;
+    }
+    return NULL;
+}
+
 static FuFnParam *FuParser_parse_fn_param(FuParser *p, fu_bool_t check_ty) {
     FuVec *attrs = FuVec_new(sizeof(FuAttr *));
     /* todo: parse attrs */
     FuPat *pat = FuParser_parse_pat(p, 0, FU_TRUE);
     FuType *ty;
     if (check_ty) {
+        /* parse fn or method params */
         FuParser_expect_token(p, TOK_COLON);
         ty = FuParser_parse_type(p, 0, FU_TRUE);
     } else {
+        /* parse closure params */
         if (FuParser_check_token(p, TOK_COLON)) {
-            FuParser_bump(p);
+            FuParser_expect_token(p, TOK_COLON);
             ty = FuParser_parse_type(p, 0, FU_TRUE);
         } else {
             ty = FuType_from_keyword(p->ctx, pat->sp, KW_UNDERSCORE);
@@ -1584,8 +1633,18 @@ static FuVec *FuParser_parse_fn_params(FuParser *p, fu_token_k close_kd, fu_bool
     if (FuParser_check_token(p, close_kd)) {
         return params;
     }
+    fu_bool_t is_first = FU_TRUE;
     while (1) {
-        FuFnParam *param = FuParser_parse_fn_param(p, check_ty);
+        FuFnParam *param;
+        if (is_first) {
+            param = FuParser_parse_self_fn_param(p);
+            if (!param) {
+                param = FuParser_parse_fn_param(p, check_ty);
+            }
+            is_first = FU_FALSE;
+        } else {
+            param = FuParser_parse_fn_param(p, check_ty);
+        }
         FuVec_push_ptr(params, param);
         if (FuParser_check_token(p, TOK_COMMA)) {
             FuParser_expect_token(p, TOK_COMMA);

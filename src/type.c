@@ -28,6 +28,9 @@ FuType *FuType_from_keyword(FuCtx *ctx, FuSpan *sp, fu_keyword_k keyword) {
     case KW_UNDERSCORE:
         ty = FuType_new(ctx, sp, TY_AUTO);
         break;
+    case KW_SELF_UPPER:
+        ty = FuType_new(ctx, sp, TY_SELF);
+        break;
     default:
         FATAL1(sp, "expect a type, find: `%s`", FuKind_keyword_cstr(keyword));
         break;
@@ -163,6 +166,9 @@ FuStr *FuType_display(FuType *ty) {
     case TY_FN_SIG:
         FuStr_append(str, FuFnSig_display(ty->_fn_sig));
         break;
+    case TY_SELF:
+        FuStr_push_utf8_cstr(str, "Self");
+        break;
     default:
         FATAL1(NULL, "unimplement type: `%s`", FuKind_type_cstr(ty->kd));
         break;
@@ -193,6 +199,7 @@ fu_op_prec_t FuType_precedence(FuType *ty) {
     case TY_AUTO:
     case TY_ERR:
     case TY_PATH:
+    case TY_SELF:
     case TY_TUPLE:
         return FuTyOp_precedence(TY_OP_PTR) + 10;
         break;
