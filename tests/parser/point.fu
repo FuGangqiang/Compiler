@@ -48,9 +48,9 @@ extention Point#<T>: IAdd {
     type Output = Self;
 
     pub add(self, other: Self) -> Self {
-        Self {
-            x: self.x() + other.y(),
-            y: self.x() + other.y()
+        Self::{
+            x = self.x() + other.x(),
+            y = self.y() + other.y()
         }
     }
 }
