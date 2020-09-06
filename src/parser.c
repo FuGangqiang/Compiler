@@ -2702,6 +2702,48 @@ FuNode *FuParser_parse_item_alias(FuParser *p, FuVec *attrs, fu_vis_k vis) {
     return nd;
 }
 
+FuNode *FuParser_parse_extern_item(FuParser *p) {
+    FuVec *attrs = FuVec_new(sizeof(FuAttr *));
+    /* todo: parse attrs */
+    fu_vis_k vis = FuParser_parse_visibility(p, VIS_PRIV);
+    if (FuParser_check_keyword(p, KW_STATIC)) {
+        return FuParser_parse_item_static(p, attrs, vis);
+    }
+    if (FuParser_check_fn(p)) {
+        return FuParser_parse_item_fn(p, attrs, vis);
+    }
+    if (FuParser_check_keyword(p, KW_TYPE)) {
+        return FuParser_parse_item_alias(p, attrs, vis);
+    }
+    FuToken tok = FuParser_nth_token(p, 0);
+    FATAL1(tok.sp, "expect extern item, find: `%s`", FuToken_kind_csr(tok));
+    return NULL;
+}
+
+FuNode *FuParser_parse_item_extern(FuParser *p, FuVec *attrs) {
+    FuToken start_tok = FuParser_expect_keyword(p, KW_EXTERN);
+    FuLit *abi = NULL;
+    if (!FuParser_check_token(p, TOK_OPEN_BRACE)) {
+        abi = FuParser_parse_lit(p);
+    }
+    FuParser_expect_token(p, TOK_OPEN_BRACE);
+    FuVec *declares = FuVec_new(sizeof(FuNode *));
+    while (1) {
+        FuNode *item = FuParser_parse_extern_item(p);
+        FuVec_push_ptr(declares, item);
+        if (FuParser_check_token(p, TOK_CLOSE_BRACE)) {
+            break;
+        }
+    }
+    FuToken end_tok = FuParser_expect_token(p, TOK_CLOSE_BRACE);
+    FuSpan *sp = FuSpan_join(start_tok.sp, end_tok.sp);
+    FuNode *nd = FuNode_new(p->ctx, sp, ND_EXTERN);
+    nd->attrs = attrs;
+    nd->_extern.abi = abi;
+    nd->_extern.declares = declares;
+    return nd;
+}
+
 FuNode *FuParser_parse_mod_item(FuParser *p) {
     /* todo: parse attrs */
     FuVec *attrs = FuVec_new(sizeof(FuAttr *));
@@ -2751,6 +2793,10 @@ FuNode *FuParser_parse_mod_item(FuParser *p) {
         }
         if (FuParser_check_interface(p)) {
             item = FuParser_parse_item_interface(p, attrs, vis);
+            break;
+        }
+        if (FuParser_check_item_declare(p, KW_EXTERN)) {
+            item = FuParser_parse_item_extern(p, attrs);
             break;
         }
         FATAL1(tok.sp, "unimplement item: `%s`", FuKind_keyword_cstr(tok.sym));

@@ -1,76 +1,41 @@
-nid: 3
+nid: 4
 kd: ND_PKG
 items:
-  nid: 0
-  kd: ND_INTERFACE
-  vis: VIS_PUB
-  is_unsafe: 1
-  ident:ISend
-  super len: 0
-  assoc len: 0
-  nid: 1
-  kd: ND_INTERFACE
-  vis: VIS_PRIV
-  is_unsafe: 0
-  ident:IWidget
-  super len: 2
-    IShape
-    IView
-  assoc len: 2
-    kd: ASSOC_CONST
+  nid: 3
+  kd: ND_EXTERN
+  declares len: 3
+    nid: 0
+    kd: ND_STATIC
     vis: VIS_PRIV
-    ident: WIDTH
-    ty: f32
-    default:
-      kd: LIT_INT
-      size: 0, is_signed: 0, v: 32
-    kd: ASSOC_FN
+    ident: buf
+    ty: *raw byte
+    nid: 1
+    kd: ND_FN
     vis: VIS_PRIV
-    ident: new
-    sig: f32 -> f32 -> Self
-    params len: 2
+    ident: read
+    vis: VIS_PRIV
+    sig: int -> *raw void -> uint -> uint
+    params len: 3
       pat:
         kd: PAT_EXPR
         expr:
           kd: EXPR_PATH
-          path: x
-      ty: f32
+          path: fd
+      ty: int
       pat:
         kd: PAT_EXPR
         expr:
           kd: EXPR_PATH
-          path: y
-      ty: f32
-    kd: ASSOC_FN
-    vis: VIS_PRIV
-    ident: draw
-    sig: Self -> nil
-    params len: 1
+          path: buf
+      ty: *raw void
       pat:
         kd: PAT_EXPR
         expr:
           kd: EXPR_PATH
-          path: self
-      ty: Self
-  nid: 2
-  kd: ND_INTERFACE
-  vis: VIS_PUB
-  is_unsafe: 0
-  ident:IIterator
-  super len: 0
-  assoc len: 0
-    kd: ASSOC_TY_ALIAS
+          path: count
+      ty: uint
+    nid: 2
+    kd: ND_TY_ALIAS
     vis: VIS_PRIV
-    ident: Item
-    bounds len: 0
-    kd: ASSOC_FN
-    vis: VIS_PRIV
-    ident: next
-    sig: *Self -> Self::Item?
-    params len: 1
-      pat:
-        kd: PAT_EXPR
-        expr:
-          kd: EXPR_PATH
-          path: self
-      ty: *Self
+    ident:size_t
+    ty: uint

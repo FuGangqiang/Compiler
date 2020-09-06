@@ -1,13 +1,5 @@
-pub unsafe interface ISend {}
-
-interface IWidget: IShape + IView {
-    const WIDTH: f32 = 32;
-
-    fn new(x: f32, y: f32) -> Self;
-    fn draw(self);
-}
-
-pub interface IIterator {
-    type Item;
-    fn next(*self) -> Self::Item?;
+extern {
+    static buf: *raw byte;
+    fn read(fd: int, buf: *raw void, count: uint) -> uint;
+    type size_t = uint;
 }

@@ -114,7 +114,7 @@ FuStr *FuType_display(FuType *ty) {
     }
     case TY_RAW_PTR: {
         fu_bool_t need_paren = FU_FALSE;
-        FuStr_push_utf8_cstr(str, "*raw");
+        FuStr_push_utf8_cstr(str, "*raw ");
         if (FuType_precedence(ty) > FuType_precedence(ty->_ptr)) {
             FuStr_push_utf8_cstr(str, "(");
             need_paren = FU_TRUE;

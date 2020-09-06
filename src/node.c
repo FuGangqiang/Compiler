@@ -1392,6 +1392,10 @@ void FuNode_drop(FuNode *nd) {
     case ND_TY_ALIAS:
         FuIdent_drop(nd->_ty_alias.ident);
         break;
+    case ND_EXTERN:
+        FuLit_drop(nd->_extern.abi);
+        FuVec_drop(nd->_extern.declares);
+        break;
     case ND_PKG:
         FuScope_drop(nd->_pkg.globals);
         FuScope_drop(nd->_pkg.builtins);
@@ -1465,9 +1469,11 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         FuStr_push_utf8_cstr(str, "ty: ");
         FuStr_append(str, FuType_display(nd->_static.ty));
         FuStr_push_utf8_cstr(str, "\n");
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "init:\n");
-        FuStr_append(str, FuExpr_display(nd->_static.init, indent + 1));
+        if (nd->_static.init) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "init:\n");
+            FuStr_append(str, FuExpr_display(nd->_static.init, indent + 1));
+        }
         break;
     case ND_CONST:
         FuStr_push_indent(str, indent);
@@ -1747,6 +1753,21 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         FuStr_push_utf8_cstr(str, "ty: ");
         FuStr_append(str, FuType_display(nd->_ty_alias.ty));
         FuStr_push_utf8_cstr(str, "\n");
+        break;
+    case ND_EXTERN:
+        if (nd->_extern.abi) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "abi:\n");
+            FuStr_append(str, FuLit_display(nd->_extern.abi, indent + 1));
+        }
+        fu_size_t len = FuVec_len(nd->_extern.declares);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "declares len: %d\n", len);
+        fu_size_t i;
+        for (i = 0; i < len; i++) {
+            FuNode *item = FuVec_get_ptr(nd->_extern.declares, i);
+            FuStr_append(str, FuNode_display(item, indent + 1));
+        }
         break;
     case ND_PKG:
         FuStr_push_indent(str, indent);
