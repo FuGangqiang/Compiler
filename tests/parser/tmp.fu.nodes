@@ -1,41 +1,203 @@
-nid: 4
+nid: 8
 kd: ND_PKG
 items:
-  nid: 3
-  kd: ND_EXTERN
-  declares len: 3
-    nid: 0
-    kd: ND_STATIC
+  nid: 0
+  kd: ND_INTERFACE
+  vis: VIS_PRIV
+  is_unsafe: 0
+  ident:IAdd
+  super len: 0
+  assoc len: 2
+    kd: ASSOC_TY_ALIAS
     vis: VIS_PRIV
-    ident: buf
-    ty: *raw byte
-    nid: 1
-    kd: ND_FN
+    ident: Output
+    bounds len: 0
+    kd: ASSOC_FN
     vis: VIS_PRIV
-    ident: read
-    vis: VIS_PRIV
-    sig: int -> *raw void -> uint -> uint
-    params len: 3
+    ident: add
+    sig: Self -> Self -> Self::Output
+    params len: 2
       pat:
         kd: PAT_EXPR
         expr:
           kd: EXPR_PATH
-          path: fd
+          path: self
+      ty: Self
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: rhs
+      ty: Self
+  nid: 1
+  kd: ND_STRUCT
+    kd: VA_STRUCT
+    vis: VIS_PUB
+    ident: Point
+    struct len: 2
+      vis: VIS_PRIV
+      ident: x
+      ty: int
+      vis: VIS_PRIV
+      ident: y
+      ty: int
+  nid: 5
+  kd: ND_EXTENSION
+  is_unsafe: 0
+  ty: Point
+  extension len: 3
+    kd: ASSOC_FN
+    vis: VIS_PUB
+    ident: new
+    sig: int -> int -> Self
+    params len: 2
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: x
       ty: int
       pat:
         kd: PAT_EXPR
         expr:
           kd: EXPR_PATH
-          path: buf
-      ty: *raw void
+          path: y
+      ty: int
+    body:
+      items:
+        nid: 2
+        kd: ND_RETURN
+        expr:
+          kd: EXPR_STRUCT
+          base:
+            kd: EXPR_PATH
+            path: Self
+          field inits len: 2
+          field inits:
+            kd: FLD_EXPR
+            expr:
+              kd: EXPR_PATH
+              path: x
+            kd: FLD_EXPR
+            expr:
+              kd: EXPR_PATH
+              path: y
+    kd: ASSOC_FN
+    vis: VIS_PUB
+    ident: x
+    sig: Self -> T
+    params len: 1
       pat:
         kd: PAT_EXPR
         expr:
           kd: EXPR_PATH
-          path: count
-      ty: uint
-    nid: 2
-    kd: ND_TY_ALIAS
+          path: self
+      ty: Self
+    body:
+      items:
+        nid: 3
+        kd: ND_RETURN
+        expr:
+          kd: EXPR_FIELD
+          base:
+            kd: EXPR_PATH
+            path: self
+          ident: x
+    kd: ASSOC_FN
+    vis: VIS_PUB
+    ident: y
+    sig: Self -> T
+    params len: 1
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: self
+      ty: Self
+    body:
+      items:
+        nid: 4
+        kd: ND_RETURN
+        expr:
+          kd: EXPR_FIELD
+          base:
+            kd: EXPR_PATH
+            path: self
+          ident: y
+  nid: 7
+  kd: ND_EXTENSION
+  is_unsafe: 0
+  ty: Point
+  interface: IAdd
+  extension len: 2
+    kd: ASSOC_TY_ALIAS
     vis: VIS_PRIV
-    ident:size_t
-    ty: uint
+    ident: Output
+    bounds len: 0
+    ty: Self
+    kd: ASSOC_FN
+    vis: VIS_PRIV
+    ident: add
+    sig: Self -> Self -> Self
+    params len: 2
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: self
+      ty: Self
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: rhs
+      ty: Self
+    body:
+      items:
+        nid: 6
+        kd: ND_RETURN
+        expr:
+          kd: EXPR_STRUCT
+          base:
+            kd: EXPR_PATH
+            path: Self
+          field inits len: 2
+          field inits:
+            kd: FLD_NAME
+            name: x
+            init:
+              kd: EXPR_BINARY
+              op: OP_ADD
+              lexpr:
+                kd: EXPR_METHOD_CALL
+                method: x
+                args len: 1
+                args:
+                  kd: EXPR_PATH
+                  path: self
+              rexpr:
+                kd: EXPR_METHOD_CALL
+                method: x
+                args len: 1
+                args:
+                  kd: EXPR_PATH
+                  path: other
+            kd: FLD_NAME
+            name: y
+            init:
+              kd: EXPR_BINARY
+              op: OP_ADD
+              lexpr:
+                kd: EXPR_METHOD_CALL
+                method: y
+                args len: 1
+                args:
+                  kd: EXPR_PATH
+                  path: self
+              rexpr:
+                kd: EXPR_METHOD_CALL
+                method: y
+                args len: 1
+                args:
+                  kd: EXPR_PATH
+                  path: other

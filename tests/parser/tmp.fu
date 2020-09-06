@@ -1,5 +1,34 @@
-extern {
-    static buf: *raw byte;
-    fn read(fd: int, buf: *raw void, count: uint) -> uint;
-    type size_t = uint;
+interface IAdd {
+    type Output;
+    fn add(self, rhs: Self) -> Self::Output;
+}
+
+pub struct Point {
+    x: int,
+    y: int,
+}
+
+extension Point {
+    pub fn new(x: int, y: int) -> Self {
+        return Self::{x, y};
+    }
+
+    pub fn x(self) -> T {
+        return self.x;
+    }
+
+    pub fn y(self) -> T {
+        return self.y;
+    }
+}
+
+extension Point: IAdd {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self {
+         return Self::{
+            .x = self.x() + other.x(),
+            .y = self.y() + other.y()
+        };
+    }
 }

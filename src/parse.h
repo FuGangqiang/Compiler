@@ -508,10 +508,12 @@ FuNode *FuParser_parse_item_union(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_alias(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_interface(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_extern(FuParser *p, FuVec *attrs);
+FuNode *FuParser_parse_item_extension(FuParser *p, FuVec *attrs);
 
 FuNode *FuParser_parse_block_item(FuParser *p);
 FuNode *FuParser_parse_mod_item(FuParser *p);
 FuNode *FuParser_parse_extern_item(FuParser *p);
+FuAssoc *FuParser_parse_assoc(FuParser *p);
 
 FuVec *FuParser_parse_mod_items(FuParser *p);
 
@@ -709,6 +711,7 @@ struct FuAssoc {
         } _const;
         struct {
             FuVec *bounds;
+            FuType *ty;
         } _ty_alias;
         struct {
             /* FuFnParam */
@@ -1180,15 +1183,10 @@ struct FuNode {
             FuVec *declares;
         } _extern;
         struct {
+            fu_bool_t is_unsafe;
             FuGeneric *ge;
             FuType *ty;
             FuType *interface;
-            /* FuNode
-             *     - _const
-             *     - _fn
-             *     - _type
-             *     - _macro_call
-             */
             FuVec *assocs;
         } _extension;
         struct {

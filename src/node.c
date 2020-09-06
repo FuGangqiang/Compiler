@@ -508,6 +508,12 @@ FuStr *FuAssoc_display(FuAssoc *assoc, fu_size_t indent) {
                 FuStr_push_utf8_cstr(str, "\n");
             }
         }
+        if (assoc->_ty_alias.ty) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "ty: ");
+            FuStr_append(str, FuType_display(assoc->_ty_alias.ty));
+            FuStr_push_utf8_cstr(str, "\n");
+        }
         break;
     }
     case ASSOC_FN: {
@@ -1396,6 +1402,9 @@ void FuNode_drop(FuNode *nd) {
         FuLit_drop(nd->_extern.abi);
         FuVec_drop(nd->_extern.declares);
         break;
+    case ND_EXTENSION:
+        FuVec_drop_with_ptrs(nd->_extension.assocs, (FuDropFn)FuAssoc_drop);
+        break;
     case ND_PKG:
         FuScope_drop(nd->_pkg.globals);
         FuScope_drop(nd->_pkg.builtins);
@@ -1735,7 +1744,7 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         }
         fu_size_t assoc_len = FuVec_len(nd->_interface.assocs);
         FuStr_push_indent(str, indent);
-        FuStr_push_utf8_format(str, "assoc len: %d\n", super_len);
+        FuStr_push_utf8_format(str, "assoc len: %d\n", assoc_len);
         for (i = 0; i < assoc_len; i++) {
             FuAssoc *item = FuVec_get_ptr(nd->_interface.assocs, i);
             FuStr_append(str, FuAssoc_display(item, indent + 1));
@@ -1769,6 +1778,28 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
             FuStr_append(str, FuNode_display(item, indent + 1));
         }
         break;
+    case ND_EXTENSION: {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "is_unsafe: %d\n", nd->_extension.is_unsafe);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "ty: ");
+        FuStr_append(str, FuType_display(nd->_extension.ty));
+        FuStr_push_utf8_cstr(str, "\n");
+        if (nd->_extension.interface) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "interface: ");
+            FuStr_append(str, FuType_display(nd->_extension.interface));
+            FuStr_push_utf8_cstr(str, "\n");
+        }
+        fu_size_t len = FuVec_len(nd->_extension.assocs);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "extension len: %d\n", len);
+        for (i = 0; i < len; i++) {
+            FuAssoc *item = FuVec_get_ptr(nd->_extension.assocs, i);
+            FuStr_append(str, FuAssoc_display(item, indent + 1));
+        }
+        break;
+    }
     case ND_PKG:
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "items:\n");
