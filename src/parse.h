@@ -465,8 +465,6 @@ struct FuParser {
     /* FuToken */
     FuVec *tok_buf;
     fu_bool_t in_tok_tree;
-    /* FuToken */
-    FuVec *unclosed_delims;
 };
 
 FuParser *FuParser_new(FuCtx *ctx);
@@ -483,7 +481,10 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
 FuPat *FuParser_parse_pat(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 FuType *FuParser_parse_type(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 
+void FuParser_parse_outer_attrs(FuParser *p, FuVec *attrs);
+void FuParser_parse_inner_attrs(FuParser *p, FuVec *attrs);
 fu_vis_k FuParser_parse_visibility(FuParser *p, fu_vis_k def);
+
 FuNode *FuParser_parse_item_use(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_static(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_const(FuParser *p, FuVec *attrs, fu_vis_k vis);
@@ -564,14 +565,17 @@ struct FuTokTree {
     union {
         FuToken _token;
         struct {
-            FuSpan *open_sp;
-            FuSpan *close_sp;
-            FuChar delimiter;
+            FuToken open_tok;
+            FuToken close_tok;
             /* FuTokTree */
-            FuVec *tokens;
+            FuVec *trees;
         } _group;
     };
 };
+
+FuTokTree *FuTokTree_new(FuSpan *sp, fu_bool_t is_group);
+void FuTokTree_drop(FuTokTree *tree);
+FuStr *FuTokTree_display(FuTokTree *tree, fu_size_t indent);
 
 struct FuIdent {
     FuSpan *sp;
@@ -593,6 +597,7 @@ void FuLabel_drop(FuLabel *label);
 FuStr *FuLabel_display(FuLabel *label);
 
 struct FuAttr {
+    FuSpan *sp;
     fu_attr_k kd;
     fu_bool_t is_outer;
     union {
@@ -600,9 +605,13 @@ struct FuAttr {
             FuPath *path;
             FuTokTree *tok_tree;
         } _normal;
-        FuStr *_doc_comment;
+        FuStr *_doc;
     };
 };
+
+FuAttr *FuAttr_new(FuSpan *sp, fu_attr_k kd, fu_bool_t is_outer);
+void FuAttr_drop(FuAttr *attr);
+FuStr *FuAttr_display(FuAttr *attr, fu_size_t indent);
 
 struct FuBlock {
     FuSpan *sp;

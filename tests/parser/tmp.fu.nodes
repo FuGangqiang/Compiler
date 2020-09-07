@@ -1,18 +1,37 @@
 nid: 8
 kd: ND_PKG
+attrs:
+  kd: ATTR_DOC
+  is_outer: 0
+  doc:  The Point Example Pkg
 items:
   nid: 0
   kd: ND_INTERFACE
+  attrs:
+    kd: ATTR_DOC
+    is_outer: 1
+    doc:  `IAdd` interface
+    kd: ATTR_DOC
+    is_outer: 0
+    doc:  two items
   vis: VIS_PRIV
   is_unsafe: 0
   ident:IAdd
   super len: 0
   assoc len: 2
     kd: ASSOC_TY_ALIAS
+    attrs:
+      kd: ATTR_DOC
+      is_outer: 1
+      doc:  The type of output
     vis: VIS_PRIV
     ident: Output
     bounds len: 0
     kd: ASSOC_FN
+    attrs:
+      kd: ATTR_DOC
+      is_outer: 1
+      doc:  add method
     vis: VIS_PRIV
     ident: add
     sig: Self -> Self -> Self::Output
@@ -32,12 +51,44 @@ items:
   nid: 1
   kd: ND_STRUCT
     kd: VA_STRUCT
+    attrs:
+      kd: ATTR_DOC
+      is_outer: 1
+      doc:  Point type
+      kd: ATTR_NORMAL
+      is_outer: 1
+      path: derive
+      tok trees:
+        is_group: 1
+        tok tree delimiter: (
+        group tree items len: 5
+          is_group: 0
+          tree token: IDebug
+          is_group: 0
+          tree token: ,
+          is_group: 0
+          tree token: ICopy
+          is_group: 0
+          tree token: ,
+          is_group: 0
+          tree token: ICmp
+      kd: ATTR_DOC
+      is_outer: 0
+      doc:  (x, y)
     vis: VIS_PUB
     ident: Point
     struct len: 2
+      attrs:
+        kd: ATTR_DOC
+        is_outer: 1
+        doc:  x coord
       vis: VIS_PRIV
       ident: x
       ty: int
+      attrs:
+        kd: ATTR_DOC
+        is_outer: 1
+        doc:  y coord
       vis: VIS_PRIV
       ident: y
       ty: int
@@ -47,6 +98,13 @@ items:
   ty: Point
   extension len: 3
     kd: ASSOC_FN
+    attrs:
+      kd: ATTR_DOC
+      is_outer: 1
+      doc:  create a new point
+      kd: ATTR_NORMAL
+      is_outer: 1
+      path: inline
     vis: VIS_PUB
     ident: new
     sig: int -> int -> Self
@@ -83,6 +141,13 @@ items:
               kd: EXPR_PATH
               path: y
     kd: ASSOC_FN
+    attrs:
+      kd: ATTR_DOC
+      is_outer: 1
+      doc:  get x
+      kd: ATTR_NORMAL
+      is_outer: 1
+      path: inline
     vis: VIS_PUB
     ident: x
     sig: Self -> T
@@ -104,6 +169,13 @@ items:
             path: self
           ident: x
     kd: ASSOC_FN
+    attrs:
+      kd: ATTR_DOC
+      is_outer: 1
+      doc:  get y
+      kd: ATTR_NORMAL
+      is_outer: 1
+      path: inline
     vis: VIS_PUB
     ident: y
     sig: Self -> T
@@ -136,6 +208,10 @@ items:
     bounds len: 0
     ty: Self
     kd: ASSOC_FN
+    attrs:
+      kd: ATTR_DOC
+      is_outer: 1
+      doc:  implement Point::add method
     vis: VIS_PRIV
     ident: add
     sig: Self -> Self -> Self

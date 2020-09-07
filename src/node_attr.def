@@ -5,4 +5,4 @@
 /* `#[attr]`, `#![attr]`, `#[attr(args)]` */
 ATTR(ATTR_NORMAL, "normal attribute")
 /* `/// comment`, `//! comment` */
-ATTR(ATTR_DOC_COMMENT, "doc comment attribute")
+ATTR(ATTR_DOC, "doc comment attribute")

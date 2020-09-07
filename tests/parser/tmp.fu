@@ -1,22 +1,42 @@
+//! The Point Example Pkg
+
+/// `IAdd` interface
 interface IAdd {
+    //! two items
+
+    /// The type of output
     type Output;
+
+    /// add method
     fn add(self, rhs: Self) -> Self::Output;
 }
 
+/// Point type
+#[derive(IDebug, ICopy, ICmp)]
 pub struct Point {
+    //! (x, y)
+
+    /// x coord
     x: int,
+    /// y coord
     y: int,
 }
 
 extension Point {
+    /// create a new point
+    #[inline]
     pub fn new(x: int, y: int) -> Self {
         return Self::{x, y};
     }
 
+    /// get x
+    #[inline]
     pub fn x(self) -> T {
         return self.x;
     }
 
+    /// get y
+    #[inline]
     pub fn y(self) -> T {
         return self.y;
     }
@@ -25,6 +45,7 @@ extension Point {
 extension Point: IAdd {
     type Output = Self;
 
+    /// implement Point::add method
     fn add(self, rhs: Self) -> Self {
          return Self::{
             .x = self.x() + other.x(),

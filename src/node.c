@@ -56,6 +56,105 @@ FuStr *FuLabel_display(FuLabel *label) {
     return FuStr_clone(str);
 }
 
+FuTokTree *FuTokTree_new(FuSpan *sp, fu_bool_t is_group) {
+    FuTokTree *tree = FuMem_new(FuTokTree);
+    tree->sp = sp;
+    tree->is_group = is_group;
+    return tree;
+}
+
+void FuTokTree_drop(FuTokTree *tree) {
+    if (!tree) {
+        return;
+    }
+    if (tree->is_group) {
+        FuVec_drop_with_ptrs(tree->_group.trees, (FuDropFn)FuTokTree_drop);
+    }
+    FuMem_free(tree);
+}
+
+FuStr *FuTokTree_display(FuTokTree *tree, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "is_group: %d\n", tree->is_group);
+    if (tree->is_group) {
+        fu_size_t len = FuVec_len(tree->_group.trees);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "tok tree delimiter: ");
+        FuStr_append(str, FuSpan_content(tree->_group.open_tok.sp));
+        FuStr_push_utf8_cstr(str, "\n");
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "group tree items len: %d\n", len);
+        fu_size_t i;
+        for (i = 0; i < len; i++) {
+            FuTokTree *item = FuVec_get_ptr(tree->_group.trees, i);
+            FuStr_append(str, FuTokTree_display(item, indent + 1));
+        }
+        return str;
+    }
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_cstr(str, "tree token: ");
+    FuStr_append(str, FuSpan_content(tree->_token.sp));
+    FuStr_push_utf8_cstr(str, "\n");
+    return str;
+}
+
+FuAttr *FuAttr_new(FuSpan *sp, fu_attr_k kd, fu_bool_t is_outer) {
+    FuAttr *attr = FuMem_new(FuAttr);
+    attr->sp = sp;
+    attr->kd = kd;
+    attr->is_outer = is_outer;
+    return attr;
+}
+
+void FuAttr_drop(FuAttr *attr) {
+    if (!attr) {
+        return;
+    }
+    switch (attr->kd) {
+    case ATTR_NORMAL:
+        FuPath_drop(attr->_normal.path);
+        FuTokTree_drop(attr->_normal.tok_tree);
+        break;
+    case ATTR_DOC:
+        FuStr_drop(attr->_doc);
+        break;
+    default:
+        break;
+    }
+    FuMem_free(attr);
+}
+
+FuStr *FuAttr_display(FuAttr *attr, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "kd: %s\n", FuKind_attr_cstr(attr->kd));
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "is_outer: %d\n", (attr->is_outer));
+    switch (attr->kd) {
+    case ATTR_NORMAL:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "path: ");
+        FuStr_append(str, FuPath_display(attr->_normal.path));
+        FuStr_push_utf8_cstr(str, "\n");
+        if (attr->_normal.tok_tree) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "tok trees:\n");
+            FuStr_append(str, FuTokTree_display(attr->_normal.tok_tree, indent + 1));
+        }
+        break;
+    case ATTR_DOC:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "doc: ");
+        FuStr_append(str, FuStr_clone(attr->_doc));
+        FuStr_push_utf8_cstr(str, "\n");
+        break;
+    default:
+        break;
+    }
+    return str;
+}
+
 void FuPathItem_drop(FuPathItem *item) {
     if (!item) {
         return;
@@ -118,13 +217,23 @@ void FuFieldDef_drop(FuFieldDef *def) {
     if (!def) {
         return;
     }
-    FuVec_drop(def->attrs);
+    FuVec_drop_with_ptrs(def->attrs, (FuDropFn)FuAttr_drop);
     FuIdent_drop(def->ident);
     FuMem_free(def);
 }
 
 FuStr *FuFieldDef_display(FuFieldDef *def, fu_size_t indent) {
     FuStr *str = FuStr_new();
+    fu_size_t attrs_len = def->attrs ? FuVec_len(def->attrs) : 0;
+    if (attrs_len) {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "attrs:\n");
+        fu_size_t i;
+        for (i = 0; i < attrs_len; i++) {
+            FuAttr *item = FuVec_get_ptr(def->attrs, i);
+            FuStr_append(str, FuAttr_display(item, indent + 1));
+        }
+    }
     FuStr_push_indent(str, indent);
     FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(def->vis));
     FuStr_push_indent(str, indent);
@@ -175,8 +284,7 @@ void FuFieldInit_drop(FuFieldInit *init) {
         FATAL(NULL, "can not be here");
         break;
     }
-    /* todo: drop attrs */
-    FuVec_drop(init->attrs);
+    FuVec_drop_with_ptrs(init->attrs, (FuDropFn)FuAttr_drop);
     FuMem_free(init);
 }
 
@@ -184,6 +292,16 @@ FuStr *FuFieldInit_display(FuFieldInit *init, fu_size_t indent) {
     FuStr *str = FuStr_new();
     FuStr_push_indent(str, indent);
     FuStr_push_utf8_format(str, "kd: %s\n", FuKind_field_cstr(init->kd));
+    fu_size_t attrs_len = init->attrs ? FuVec_len(init->attrs) : 0;
+    if (attrs_len) {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "attrs:\n");
+        fu_size_t i;
+        for (i = 0; i < attrs_len; i++) {
+            FuAttr *item = FuVec_get_ptr(init->attrs, i);
+            FuStr_append(str, FuAttr_display(item, indent + 1));
+        }
+    }
     switch (init->kd) {
     case FLD_EXPR:
         FuStr_push_indent(str, indent);
@@ -242,7 +360,7 @@ void FuVariant_drop(FuVariant *va) {
     if (!va) {
         return;
     }
-    FuVec_drop(va->attrs);
+    FuVec_drop_with_ptrs(va->attrs, (FuDropFn)FuAttr_drop);
     FuIdent_drop(va->ident);
     switch (va->kd) {
     case VA_UNIT:
@@ -264,6 +382,16 @@ FuStr *FuVariant_display(FuVariant *va, fu_size_t indent) {
     FuStr *str = FuStr_new();
     FuStr_push_indent(str, indent);
     FuStr_push_utf8_format(str, "kd: %s\n", FuKind_variant_cstr(va->kd));
+    fu_size_t attrs_len = va->attrs ? FuVec_len(va->attrs) : 0;
+    if (attrs_len) {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "attrs:\n");
+        fu_size_t i;
+        for (i = 0; i < attrs_len; i++) {
+            FuAttr *item = FuVec_get_ptr(va->attrs, i);
+            FuStr_append(str, FuAttr_display(item, indent + 1));
+        }
+    }
     FuStr_push_indent(str, indent);
     FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(va->vis));
     FuStr_push_indent(str, indent);
@@ -318,12 +446,22 @@ void FuFnParam_drop(FuFnParam *param) {
         return;
     }
     FuPat_drop(param->pat);
-    FuVec_drop(param->attrs);
+    FuVec_drop_with_ptrs(param->attrs, (FuDropFn)FuAttr_drop);
     FuMem_free(param);
 }
 
 FuStr *FuFnParam_display(FuFnParam *param, fu_size_t indent) {
     FuStr *str = FuStr_new();
+    fu_size_t attrs_len = param->attrs ? FuVec_len(param->attrs) : 0;
+    if (attrs_len) {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "attrs:\n");
+        fu_size_t i;
+        for (i = 0; i < attrs_len; i++) {
+            FuAttr *item = FuVec_get_ptr(param->attrs, i);
+            FuStr_append(str, FuAttr_display(item, indent + 1));
+        }
+    }
     FuStr_push_indent(str, indent);
     FuStr_push_utf8_format(str, "pat:\n");
     FuStr_append(str, FuPat_display(param->pat, indent + 1));
@@ -403,7 +541,7 @@ void FuArm_drop(FuArm *arm) {
     if (!arm) {
         return;
     }
-    FuVec_drop(arm->attrs);
+    FuVec_drop_with_ptrs(arm->attrs, (FuDropFn)FuAttr_drop);
     FuPat_drop(arm->pat);
     FuExpr_drop(arm->guard);
     if (arm->kd == ARM_CATCH) {
@@ -416,6 +554,16 @@ FuStr *FuArm_display(FuArm *arm, fu_size_t indent) {
     FuStr *str = FuStr_new();
     FuStr_push_indent(str, indent);
     FuStr_push_utf8_format(str, "kd: %s\n", FuKind_arm_cstr(arm->kd));
+    fu_size_t attrs_len = arm->attrs ? FuVec_len(arm->attrs) : 0;
+    if (attrs_len) {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "attrs:\n");
+        fu_size_t i;
+        for (i = 0; i < attrs_len; i++) {
+            FuAttr *item = FuVec_get_ptr(arm->attrs, i);
+            FuStr_append(str, FuAttr_display(item, indent + 1));
+        }
+    }
     FuStr_push_indent(str, indent);
     FuStr_push_utf8_cstr(str, "pat:\n");
     FuStr_append(str, FuPat_display(arm->pat, indent + 1));
@@ -467,7 +615,7 @@ void FuAssoc_drop(FuAssoc *assoc) {
     default:
         break;
     }
-    FuVec_drop(assoc->attrs);
+    FuVec_drop_with_ptrs(assoc->attrs, (FuDropFn)FuAttr_drop);
     FuMem_free(assoc);
 }
 
@@ -475,6 +623,16 @@ FuStr *FuAssoc_display(FuAssoc *assoc, fu_size_t indent) {
     FuStr *str = FuStr_new();
     FuStr_push_indent(str, indent);
     FuStr_push_utf8_format(str, "kd: %s\n", FuKind_assoc_cstr(assoc->kd));
+    fu_size_t attrs_len = assoc->attrs ? FuVec_len(assoc->attrs) : 0;
+    if (attrs_len) {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "attrs:\n");
+        fu_size_t i;
+        for (i = 0; i < attrs_len; i++) {
+            FuAttr *item = FuVec_get_ptr(assoc->attrs, i);
+            FuStr_append(str, FuAttr_display(item, indent + 1));
+        }
+    }
     FuStr_push_indent(str, indent);
     FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(assoc->vis));
     FuStr_push_indent(str, indent);
@@ -1415,10 +1573,7 @@ void FuNode_drop(FuNode *nd) {
     default:
         FATAL1(NULL, "unimplemented node: `%s`", FuKind_node_cstr(nd->kd));
     }
-    if (nd->attrs) {
-        /* todo: attr drop */
-        FuVec_drop(nd->attrs);
-    }
+    FuVec_drop_with_ptrs(nd->attrs, (FuDropFn)FuAttr_drop);
     FuMem_free(nd);
 }
 
@@ -1456,6 +1611,16 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
     FuStr_push_utf8_format(str, "nid: %d\n", nd->nid);
     FuStr_push_indent(str, indent);
     FuStr_push_utf8_format(str, "kd: %s\n", FuKind_node_cstr(nd->kd));
+    fu_size_t attrs_len = nd->attrs ? FuVec_len(nd->attrs) : 0;
+    if (attrs_len) {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "attrs:\n");
+        fu_size_t i;
+        for (i = 0; i < attrs_len; i++) {
+            FuAttr *item = FuVec_get_ptr(nd->attrs, i);
+            FuStr_append(str, FuAttr_display(item, indent + 1));
+        }
+    }
     switch (nd->kd) {
     case ND_EXPR:
         FuStr_push_indent(str, indent);

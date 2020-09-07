@@ -67,7 +67,7 @@ void FuType_drop(FuType *ty) {
     default:
         break;
     }
-    FuVec_drop(ty->attrs);
+    FuVec_drop_with_ptrs(ty->attrs, (FuDropFn)FuAttr_drop);
     FuMem_free(ty);
 }
 
