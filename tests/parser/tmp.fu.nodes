@@ -1,4 +1,4 @@
-nid: 8
+nid: 14
 kd: ND_PKG
 attrs:
   kd: ATTR_DOC
@@ -277,3 +277,104 @@ items:
                 args:
                   kd: EXPR_PATH
                   path: other
+  nid: 13
+  kd: ND_MOD
+  attrs:
+    kd: ATTR_NORMAL
+    is_outer: 1
+    path: cfg
+    tok trees:
+      is_group: 1
+      tok tree delimiter: (
+      group tree items len: 1
+        is_group: 0
+        tree token: test
+  vis: VIS_PRIV
+  ident:test
+  is_inline: 1
+  items len: 2
+    nid: 8
+    kd: ND_USE
+    vis: VIS_PRIV
+      kd: USE_GLOB
+      prefix: super
+    nid: 12
+    kd: ND_FN
+    attrs:
+      kd: ATTR_NORMAL
+      is_outer: 1
+      path: test
+    vis: VIS_PRIV
+    ident: new
+    vis: VIS_PRIV
+    sig: nil -> nil
+    params len: 0
+    body:
+      items:
+        nid: 9
+        kd: ND_LET
+        pat:
+          kd: PAT_EXPR
+          expr:
+            kd: EXPR_PATH
+            path: p0
+        init:
+          kd: EXPR_STRUCT
+          base:
+            kd: EXPR_PATH
+            path: Point
+          field inits len: 2
+          field inits:
+            kd: FLD_NAME
+            name: x
+            init:
+              kd: EXPR_LIT
+              lit:
+                kd: LIT_INT
+                size: 0, is_signed: 0, v: 0
+            kd: FLD_NAME
+            name: y
+            init:
+              kd: EXPR_LIT
+              lit:
+                kd: LIT_INT
+                size: 0, is_signed: 0, v: 1
+        nid: 10
+        kd: ND_LET
+        pat:
+          kd: PAT_EXPR
+          expr:
+            kd: EXPR_PATH
+            path: p1
+        init:
+          kd: EXPR_CALL
+          fn:
+            kd: EXPR_PATH
+            path: Point::new
+          args len: 2
+          args:
+            kd: EXPR_LIT
+            lit:
+              kd: LIT_INT
+              size: 0, is_signed: 0, v: 0
+            kd: EXPR_LIT
+            lit:
+              kd: LIT_INT
+              size: 0, is_signed: 0, v: 1
+        nid: 11
+        kd: ND_EXPR
+        expr:
+          kd: EXPR_CALL
+          fn:
+            kd: EXPR_PATH
+            path: assert
+          args len: 1
+          args:
+            kd: EXPR_BINARY
+            op: OP_EQ
+            lexpr:
+              kd: EXPR_PATH
+              path: p0
+            rexpr:
+              kd: EXPR_PATH
+              path: p1

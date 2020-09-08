@@ -1563,6 +1563,10 @@ void FuNode_drop(FuNode *nd) {
     case ND_EXTENSION:
         FuVec_drop_with_ptrs(nd->_extension.assocs, (FuDropFn)FuAssoc_drop);
         break;
+    case ND_MOD:
+        FuIdent_drop(nd->_mod.ident);
+        FuVec_drop(nd->_mod.items);
+        break;
     case ND_PKG:
         FuScope_drop(nd->_pkg.globals);
         FuScope_drop(nd->_pkg.builtins);
@@ -1959,9 +1963,29 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         fu_size_t len = FuVec_len(nd->_extension.assocs);
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_format(str, "extension len: %d\n", len);
+        fu_size_t i;
         for (i = 0; i < len; i++) {
             FuAssoc *item = FuVec_get_ptr(nd->_extension.assocs, i);
             FuStr_append(str, FuAssoc_display(item, indent + 1));
+        }
+        break;
+    }
+    case ND_MOD: {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(nd->_mod.vis));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "ident:");
+        FuStr_append(str, FuIdent_display(nd->_mod.ident));
+        FuStr_push_utf8_cstr(str, "\n");
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "is_inline: %d\n", nd->_mod.is_inline);
+        fu_size_t len = FuVec_len(nd->_mod.items);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "items len: %d\n", len);
+        fu_size_t i;
+        for (i = 0; i < len; i++) {
+            FuNode *item = FuVec_get_ptr(nd->_mod.items, i);
+            FuStr_append(str, FuNode_display(item, indent + 1));
         }
         break;
     }

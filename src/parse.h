@@ -510,13 +510,12 @@ FuNode *FuParser_parse_item_alias(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_interface(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_extern(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_extension(FuParser *p, FuVec *attrs);
+FuNode *FuParser_parse_item_mod(FuParser *p, FuVec *attrs);
 
 FuNode *FuParser_parse_block_item(FuParser *p);
 FuNode *FuParser_parse_mod_item(FuParser *p);
 FuNode *FuParser_parse_extern_item(FuParser *p);
 FuAssoc *FuParser_parse_assoc(FuParser *p);
-
-FuVec *FuParser_parse_mod_items(FuParser *p);
 
 FuNode *FuParser_parse_pkg(FuParser *p);
 
