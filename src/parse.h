@@ -534,6 +534,7 @@ struct FuType {
         } _path;
         FuType *_ptr;
         FuType *_raw_ptr;
+        FuType *_dyn_ptr;
         FuType *_nilable;
         struct {
             FuType *ty;

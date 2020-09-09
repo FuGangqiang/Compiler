@@ -577,22 +577,27 @@ static FuType *FuParser_parse_keyword_type(FuParser *p) {
 
 static FuType *FuParser_parse_pointer_type(FuParser *p, fu_op_prec_t prec) {
     FuToken tok0 = FuParser_expect_token(p, TOK_STAR);
+    if (FuParser_check_keyword(p, KW_DYN)) {
+        FuParser_expect_keyword(p, KW_DYN);
+        FuType *right = FuParser_parse_type(p, prec, FU_FALSE);
+        FuSpan *sp = FuSpan_join(tok0.sp, right->sp);
+        FuType *ty = FuType_new(p->ctx, sp, TY_DYN_PTR);
+        ty->_dyn_ptr = right;
+        return ty;
+    }
     FuToken tok1 = FuParser_nth_token(p, 0);
-    fu_bool_t is_raw = FU_FALSE;
     if (FuToken_is_ident(tok1) && tok1.sym == FuCtx_intern_cstr(p->ctx, "raw")) {
         FuParser_bump(p);
-        is_raw = FU_TRUE;
+        FuType *right = FuParser_parse_type(p, prec, FU_FALSE);
+        FuSpan *sp = FuSpan_join(tok0.sp, right->sp);
+        FuType *ty = FuType_new(p->ctx, sp, TY_RAW_PTR);
+        ty->_raw_ptr = right;
+        return ty;
     }
     FuType *right = FuParser_parse_type(p, prec, FU_FALSE);
     FuSpan *sp = FuSpan_join(tok0.sp, right->sp);
-    FuType *ty;
-    if (is_raw) {
-        ty = FuType_new(p->ctx, sp, TY_RAW_PTR);
-        ty->_raw_ptr = right;
-    } else {
-        ty = FuType_new(p->ctx, sp, TY_PTR);
-        ty->_ptr = right;
-    }
+    FuType *ty = FuType_new(p->ctx, sp, TY_PTR);
+    ty->_ptr = right;
     return ty;
 }
 

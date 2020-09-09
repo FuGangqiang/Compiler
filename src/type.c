@@ -125,6 +125,19 @@ FuStr *FuType_display(FuType *ty) {
         }
         break;
     }
+    case TY_DYN_PTR: {
+        fu_bool_t need_paren = FU_FALSE;
+        FuStr_push_utf8_cstr(str, "*dyn ");
+        if (FuType_precedence(ty) > FuType_precedence(ty->_ptr)) {
+            FuStr_push_utf8_cstr(str, "(");
+            need_paren = FU_TRUE;
+        }
+        FuStr_append(str, FuType_display(ty->_ptr));
+        if (need_paren) {
+            FuStr_push_utf8_cstr(str, ")");
+        }
+        break;
+    }
     case TY_NILABLE: {
         fu_bool_t need_paren = FU_FALSE;
         if (FuType_precedence(ty) > FuType_precedence(ty->_ptr)) {
