@@ -1517,9 +1517,6 @@ FuNode *FuParser_parse_block_item(FuParser *p) {
     if (FuParser_check_loop(p, KW_LOOP)) {
         return FuParser_parse_item_loop(p, attrs);
     }
-    if (FuParser_check_block(p)) {
-        return FuParser_parse_item_block(p, attrs);
-    }
     FuExpr *expr = FuParser_parse_expr(p, 0, FU_TRUE);
     if (!FuParser_check_token_fn(p, FuToken_is_assign)) {
         FuParser_expect_token(p, TOK_SEMI);
@@ -1604,8 +1601,9 @@ static FuFnParam *FuParser_parse_self_fn_param(FuParser *p) {
 
 static FuFnParam *FuParser_parse_fn_param(FuParser *p, fu_bool_t check_ty) {
     FuVec *attrs = FuVec_new(sizeof(FuAttr *));
-    /* todo: parse attrs */
-    FuPat *pat = FuParser_parse_pat(p, 0, FU_TRUE);
+    FuParser_parse_outer_attrs(p, attrs);
+    /* can not use `|` pat because clousrue use `|...|` */
+    FuPat *pat = FuParser_parse_pat(p, 1, FU_TRUE);
     FuType *ty;
     if (check_ty) {
         /* parse fn or method params */
@@ -1737,6 +1735,19 @@ static FuExpr *FuParser_parse_if_expr(FuParser *p) {
     return expr;
 }
 
+static FuExpr *FuParser_parse_block_expr(FuParser *p) {
+    FuSpan *lo = FuParser_current_span(p);
+    fu_bool_t is_async = FuParser_eat_keyword(p, KW_ASYNC);
+    fu_bool_t is_unsafe = FuParser_eat_keyword(p, KW_UNSAFE);
+    FuBlock *blk = FuParser_parse_block(p);
+    FuSpan *sp = FuSpan_join(lo, blk->sp);
+    FuExpr *expr = FuExpr_new(sp, EXPR_BLOCK);
+    expr->_block.is_async = is_async;
+    expr->_block.is_unsafe = is_unsafe;
+    expr->_block.block = blk;
+    return expr;
+}
+
 static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
     FuExpr *expr;
     FuToken tok = FuParser_nth_token(p, 0);
@@ -1760,6 +1771,9 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
     }
     if (tok.sym == KW_LET) {
         return FuParser_parse_let_cond_expr(p);
+    }
+    if (FuParser_check_block(p)) {
+        return FuParser_parse_block_expr(p);
     }
     if (FuParser_check_closure(p)) {
         return FuParser_parse_closure_expr(p);
@@ -1796,6 +1810,9 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
     }
     case TOK_OPEN_BRACKET:
         prefix_expr = FuParser_parse_array_expr(p);
+        break;
+    case TOK_OPEN_BRACE:
+        prefix_expr = FuParser_parse_block_expr(p);
         break;
     case TOK_LT:
         /* check first invoke, begin expr */
@@ -2190,10 +2207,12 @@ FuNode *FuParser_parse_item_break(FuParser *p, FuVec *attrs) {
     } else {
         sp = tok.sp;
     }
+    FuExpr *expr = FuParser_parse_expr(p, 0, FU_FALSE);
     FuParser_expect_token(p, TOK_SEMI);
     FuNode *nd = FuNode_new(p->ctx, sp, ND_BREAK);
     nd->attrs = attrs;
     nd->_break.label = label;
+    nd->_break.expr = expr;
     return nd;
 }
 
@@ -2258,18 +2277,6 @@ FuNode *FuParser_parse_item_return(FuParser *p, FuVec *attrs) {
     FuNode *nd = FuNode_new(p->ctx, sp, ND_RETURN);
     nd->attrs = attrs;
     nd->_return.expr = expr;
-    return nd;
-}
-
-FuNode *FuParser_parse_item_block(FuParser *p, FuVec *attrs) {
-    FuSpan *lo = FuParser_current_span(p);
-    fu_bool_t is_unsafe = FuParser_eat_keyword(p, KW_UNSAFE);
-    FuBlock *blk = FuParser_parse_block(p);
-    FuSpan *sp = FuSpan_join(lo, blk->sp);
-    FuNode *nd = FuNode_new(p->ctx, sp, ND_BLOCK);
-    nd->attrs = attrs;
-    nd->_block.is_unsafe = is_unsafe;
-    nd->_block.block = blk;
     return nd;
 }
 

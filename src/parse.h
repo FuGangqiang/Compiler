@@ -495,7 +495,6 @@ FuNode *FuParser_parse_item_continue(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_yield(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_throw(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_return(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_block(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_if(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_match(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_loop(FuParser *p, FuVec *attrs);
@@ -1006,6 +1005,11 @@ struct FuExpr {
             FuExpr *on_true;
             FuExpr *on_false;
         } _if;
+        struct {
+            fu_bool_t is_async;
+            fu_bool_t is_unsafe;
+            FuBlock *block;
+        } _block;
         FuMacroCall *_macro_call;
     };
 };
@@ -1098,6 +1102,7 @@ struct FuNode {
         } _assign;
         struct {
             FuLabel *label;
+            FuExpr *expr;
         } _break;
         struct {
             FuLabel *label;
@@ -1111,10 +1116,6 @@ struct FuNode {
         struct {
             FuExpr *expr;
         } _return;
-        struct {
-            fu_bool_t is_unsafe;
-            FuBlock *block;
-        } _block;
         struct {
             FuExpr *cond;
             FuBlock *block;

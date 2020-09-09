@@ -1217,6 +1217,9 @@ void FuExpr_drop(FuExpr *expr) {
         FuExpr_drop(expr->_if.on_true);
         FuExpr_drop(expr->_if.on_false);
         break;
+    case EXPR_BLOCK:
+        FuBlock_drop(expr->_block.block);
+        break;
     default:
         FATAL1(expr->sp, "unimplemented expr: `%s`", FuKind_expr_cstr(expr->kd));
     }
@@ -1443,6 +1446,15 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_push_utf8_cstr(str, "on_false:\n");
         FuStr_append(str, FuExpr_display(expr->_if.on_false, indent + 1));
         break;
+    case EXPR_BLOCK:
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "is_async: %d\n", expr->_block.is_async);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "is_unsafe: %d\n", expr->_block.is_unsafe);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "block:\n");
+        FuStr_append(str, FuBlock_display(expr->_block.block, indent + 1));
+        break;
     default:
         FATAL1(expr->sp, "unimplemented expr: `%s`", FuKind_expr_cstr(expr->kd));
     }
@@ -1487,6 +1499,7 @@ void FuNode_drop(FuNode *nd) {
         break;
     case ND_BREAK:
         FuLabel_drop(nd->_break.label);
+        FuExpr_drop(nd->_break.expr);
         break;
     case ND_CONTINUE:
         FuLabel_drop(nd->_continue.label);
@@ -1499,9 +1512,6 @@ void FuNode_drop(FuNode *nd) {
         break;
     case ND_RETURN:
         FuExpr_drop(nd->_return.expr);
-        break;
-    case ND_BLOCK:
-        FuBlock_drop(nd->_block.block);
         break;
     case ND_IF:
         FuExpr_drop(nd->_if.cond);
@@ -1701,6 +1711,11 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
             FuStr_append(str, FuLabel_display(nd->_break.label));
             FuStr_push_utf8_cstr(str, "\n");
         }
+        if (nd->_break.expr) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "expr:\n");
+            FuStr_append(str, FuExpr_display(nd->_break.expr, indent + 1));
+        }
         break;
     case ND_CONTINUE:
         if (nd->_continue.label) {
@@ -1728,13 +1743,6 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
             FuStr_push_utf8_cstr(str, "expr:\n");
             FuStr_append(str, FuExpr_display(nd->_return.expr, indent + 1));
         }
-        break;
-    case ND_BLOCK:
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_format(str, "is_unsafe: %d\n", nd->_block.is_unsafe);
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "block:\n");
-        FuStr_append(str, FuBlock_display(nd->_block.block, indent + 1));
         break;
     case ND_IF:
         FuStr_push_indent(str, indent);

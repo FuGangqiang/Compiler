@@ -1,4 +1,4 @@
-nid: 14
+nid: 26
 kd: ND_PKG
 attrs:
   kd: ATTR_DOC
@@ -92,11 +92,11 @@ items:
       vis: VIS_PRIV
       ident: y
       ty: int
-  nid: 5
+  nid: 12
   kd: ND_EXTENSION
   is_unsafe: 0
   ty: Point
-  extension len: 3
+  extension len: 5
     kd: ASSOC_FN
     attrs:
       kd: ATTR_DOC
@@ -196,7 +196,184 @@ items:
             kd: EXPR_PATH
             path: self
           ident: y
-  nid: 7
+    kd: ASSOC_FN
+    attrs:
+      kd: ATTR_DOC
+      is_outer: 1
+      doc:  map fn
+    vis: VIS_PUB
+    ident: map
+    sig: Self -> (Self -> int) -> int
+    params len: 2
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: self
+      ty: Self
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: func
+      ty: Self -> int
+    body:
+      items:
+        nid: 5
+        kd: ND_RETURN
+        expr:
+          kd: EXPR_CALL
+          fn:
+            kd: EXPR_PATH
+            path: func
+          args len: 1
+          args:
+            kd: EXPR_PATH
+            path: self
+    kd: ASSOC_FN
+    attrs:
+      kd: ATTR_DOC
+      is_outer: 1
+      doc:  some transform
+    vis: VIS_PUB
+    ident: some_transform
+    sig: Self -> Self
+    params len: 1
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: self
+      ty: Self
+    body:
+      items:
+        nid: 10
+        kd: ND_LET
+        pat:
+          kd: PAT_EXPR
+          expr:
+            kd: EXPR_PATH
+            path: p
+        init:
+          kd: EXPR_BLOCK
+          is_async: 0
+          is_unsafe: 1
+          block:
+            items:
+              nid: 6
+              kd: ND_LET
+              pat:
+                kd: PAT_EXPR
+                expr:
+                  kd: EXPR_PATH
+                  path: len
+              init:
+                kd: EXPR_METHOD_CALL
+                method: map
+                args len: 2
+                args:
+                  kd: EXPR_PATH
+                  path: self
+                  kd: EXPR_CLOSURE
+                  is_async: 0
+                  is_unsafe: 0
+                  params:
+                  body:
+                    kd: EXPR_CALL
+                    fn:
+                      kd: EXPR_PATH
+                      path: sqrt
+                    args len: 1
+                    args:
+                      kd: EXPR_BINARY
+                      op: OP_ADD
+                      lexpr:
+                        kd: EXPR_BINARY
+                        op: OP_MUL
+                        lexpr:
+                          kd: EXPR_FIELD
+                          base:
+                            kd: EXPR_PATH
+                            path: p
+                          ident: x
+                        rexpr:
+                          kd: EXPR_FIELD
+                          base:
+                            kd: EXPR_PATH
+                            path: p
+                          ident: x
+                      rexpr:
+                        kd: EXPR_BINARY
+                        op: OP_MUL
+                        lexpr:
+                          kd: EXPR_FIELD
+                          base:
+                            kd: EXPR_PATH
+                            path: p
+                          ident: y
+                        rexpr:
+                          kd: EXPR_FIELD
+                          base:
+                            kd: EXPR_PATH
+                            path: p
+                          ident: y
+              nid: 8
+              kd: ND_IF
+              cond:
+                kd: EXPR_BINARY
+                op: OP_GT
+                lexpr:
+                  kd: EXPR_PATH
+                  path: len
+                rexpr:
+                  kd: EXPR_LIT
+                  lit:
+                    kd: LIT_INT
+                    size: 0, is_signed: 0, v: 5
+              block:
+                items:
+                  nid: 7
+                  kd: ND_BREAK
+                  expr:
+                    kd: EXPR_PATH
+                    path: p
+              nid: 9
+              kd: ND_BREAK
+              expr:
+                kd: EXPR_STRUCT
+                base:
+                  kd: EXPR_PATH
+                  path: Self
+                field inits len: 2
+                field inits:
+                  kd: FLD_NAME
+                  name: x
+                  init:
+                    kd: EXPR_UNARY
+                    op: OP_NEG
+                    expr:
+                      kd: EXPR_FIELD
+                      base:
+                        kd: EXPR_PATH
+                        path: p
+                      ident: x
+                  kd: FLD_NAME
+                  name: y
+                  init:
+                    kd: EXPR_UNARY
+                    op: OP_NEG
+                    expr:
+                      kd: EXPR_FIELD
+                      base:
+                        kd: EXPR_PATH
+                        path: p
+                      ident: y
+        nid: 11
+        kd: ND_RETURN
+        expr:
+          kd: EXPR_PATH
+          path: p
+  nid: 14
   kd: ND_EXTENSION
   is_unsafe: 0
   ty: Point
@@ -230,7 +407,7 @@ items:
       ty: Self
     body:
       items:
-        nid: 6
+        nid: 13
         kd: ND_RETURN
         expr:
           kd: EXPR_STRUCT
@@ -277,7 +454,7 @@ items:
                 args:
                   kd: EXPR_PATH
                   path: other
-  nid: 13
+  nid: 25
   kd: ND_MOD
   attrs:
     kd: ATTR_NORMAL
@@ -292,13 +469,13 @@ items:
   vis: VIS_PRIV
   ident:test
   is_inline: 1
-  items len: 2
-    nid: 8
+  items len: 3
+    nid: 15
     kd: ND_USE
     vis: VIS_PRIV
       kd: USE_GLOB
       prefix: super
-    nid: 12
+    nid: 19
     kd: ND_FN
     attrs:
       kd: ATTR_NORMAL
@@ -311,7 +488,7 @@ items:
     params len: 0
     body:
       items:
-        nid: 9
+        nid: 16
         kd: ND_LET
         pat:
           kd: PAT_EXPR
@@ -339,7 +516,7 @@ items:
               lit:
                 kd: LIT_INT
                 size: 0, is_signed: 0, v: 1
-        nid: 10
+        nid: 17
         kd: ND_LET
         pat:
           kd: PAT_EXPR
@@ -361,7 +538,7 @@ items:
             lit:
               kd: LIT_INT
               size: 0, is_signed: 0, v: 1
-        nid: 11
+        nid: 18
         kd: ND_EXPR
         expr:
           kd: EXPR_CALL
@@ -378,3 +555,134 @@ items:
             rexpr:
               kd: EXPR_PATH
               path: p1
+    nid: 24
+    kd: ND_FN
+    attrs:
+      kd: ATTR_NORMAL
+      is_outer: 1
+      path: test
+    vis: VIS_PRIV
+    ident: map
+    vis: VIS_PRIV
+    sig: nil -> nil
+    params len: 0
+    body:
+      items:
+        nid: 20
+        kd: ND_LET
+        pat:
+          kd: PAT_EXPR
+          expr:
+            kd: EXPR_PATH
+            path: p0
+        init:
+          kd: EXPR_STRUCT
+          base:
+            kd: EXPR_PATH
+            path: Point
+          field inits len: 2
+          field inits:
+            kd: FLD_NAME
+            name: x
+            init:
+              kd: EXPR_LIT
+              lit:
+                kd: LIT_INT
+                size: 0, is_signed: 0, v: 3
+            kd: FLD_NAME
+            name: y
+            init:
+              kd: EXPR_LIT
+              lit:
+                kd: LIT_INT
+                size: 0, is_signed: 0, v: 4
+        nid: 22
+        kd: ND_LET
+        pat:
+          kd: PAT_EXPR
+          expr:
+            kd: EXPR_PATH
+            path: r
+        init:
+          kd: EXPR_METHOD_CALL
+          method: map
+          args len: 2
+          args:
+            kd: EXPR_PATH
+            path: p0
+            kd: EXPR_CLOSURE
+            is_async: 0
+            is_unsafe: 0
+            params:
+              pat:
+                kd: PAT_EXPR
+                expr:
+                  kd: EXPR_PATH
+                  path: p
+              ty: _
+            body:
+              kd: EXPR_BLOCK
+              is_async: 0
+              is_unsafe: 0
+              block:
+                items:
+                  nid: 21
+                  kd: ND_RETURN
+                  expr:
+                    kd: EXPR_CALL
+                    fn:
+                      kd: EXPR_PATH
+                      path: sqrt
+                    args len: 1
+                    args:
+                      kd: EXPR_BINARY
+                      op: OP_ADD
+                      lexpr:
+                        kd: EXPR_BINARY
+                        op: OP_MUL
+                        lexpr:
+                          kd: EXPR_FIELD
+                          base:
+                            kd: EXPR_PATH
+                            path: p
+                          ident: x
+                        rexpr:
+                          kd: EXPR_FIELD
+                          base:
+                            kd: EXPR_PATH
+                            path: p
+                          ident: x
+                      rexpr:
+                        kd: EXPR_BINARY
+                        op: OP_MUL
+                        lexpr:
+                          kd: EXPR_FIELD
+                          base:
+                            kd: EXPR_PATH
+                            path: p
+                          ident: y
+                        rexpr:
+                          kd: EXPR_FIELD
+                          base:
+                            kd: EXPR_PATH
+                            path: p
+                          ident: y
+        nid: 23
+        kd: ND_EXPR
+        expr:
+          kd: EXPR_CALL
+          fn:
+            kd: EXPR_PATH
+            path: assert
+          args len: 1
+          args:
+            kd: EXPR_BINARY
+            op: OP_EQ
+            lexpr:
+              kd: EXPR_PATH
+              path: r
+            rexpr:
+              kd: EXPR_LIT
+              lit:
+                kd: LIT_INT
+                size: 0, is_signed: 0, v: 5

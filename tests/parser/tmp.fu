@@ -40,6 +40,23 @@ extension Point {
     pub fn y(self) -> T {
         return self.y;
     }
+
+    /// map fn
+    pub fn map(self, func: Self -> int) -> int {
+        return func(self);
+    }
+
+    /// some transform
+    pub fn some_transform(self) -> Self {
+        let p = unsafe {
+            let len = self.map(||sqrt(p.x*p.x + p.y*p.y));
+            if(len > 5) {
+                break p;
+            }
+            break Self::{.x=-p.x, .y=-p.y};
+        };
+        return p;
+    }
 }
 
 extension Point: IAdd {
@@ -63,5 +80,14 @@ mod test {
         let p0 = Point::{.x=0, .y=1};
         let p1 = Point::new(0, 1);
         assert(p0 == p1);
+    }
+
+    #[test]
+    fn map() {
+        let p0 = Point::{.x=3, .y=4};
+        let r = p0.map(|p| {
+            return sqrt(p.x*p.x + p.y*p.y);
+        });
+        assert(r == 5);
     }
 }
