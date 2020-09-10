@@ -5,14 +5,12 @@
 /* OP(kind, precedence, associativity, type, doc) */
 
 /*
- * - group (): highest precedence 
+ * - group (...): highest precedence 
+ * - block {...}: highest precedence
  * - paths::
  * - macro!
  */
 
- /*
- * - expr.macro!
- */
 OP(OP_DOT,     160, OP_LR, OP_INFIX, ".")   /* field, method call, suffix macro, tuple struct constructor */
 OP(OP_CALL,    160, OP_LR, OP_INFIX, "(")
 OP(OP_INDEX,   160, OP_LR, OP_INFIX, "[")
