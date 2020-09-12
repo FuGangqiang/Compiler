@@ -412,29 +412,44 @@ fu_size_t FuToken_left_skip_count(FuToken tok);
 FuStr *FuToken_display(FuToken tok);
 char *FuToken_kind_csr(FuToken tok);
 
+typedef enum fu_lexer_k fu_lexer_k;
+enum fu_lexer_k {
+    LEXER_NONE,
+    LEXER_FILE,
+    LEXER_TOKENS,
+};
+
 struct FuLexer {
     FuCtx *ctx;
-    fu_sym_t fpath;
-    /* interned fcontent */
-    FuStr *chars;
-    fu_size_t tok_line;
-    fu_size_t tok_column;
-    fu_size_t cur_line;
-    fu_size_t cur_column;
-    fu_size_t cursor;
+    fu_lexer_k kd;
     /* for parseing multi-char ops */
     FuVec *tok_buf;
+    union {
+        struct {
+            fu_sym_t fpath;
+            /* interned */
+            FuStr *chars;
+            fu_size_t tok_line;
+            fu_size_t tok_column;
+            fu_size_t cur_line;
+            fu_size_t cur_column;
+            fu_size_t cursor;
+        } _file;
+        struct {
+            fu_size_t cursor;
+            FuVec *tokens;
+        } _tokens;
+    };
 };
 
 FuLexer *FuLexer_new(FuCtx *ctx);
 void FuLexer_drop(FuLexer *l);
 
 void FuLexer_for_file(FuLexer *l, char *fname, fu_size_t len);
+void FuLexer_for_tokens(FuLexer *l, FuVec *tokens);
 
-fu_bool_t FuLexer_is_eof(FuLexer *l);
 FuToken FuLexer_get_token(FuLexer *l);
 void FuLexer_unget_token(FuLexer *l, FuToken tok);
-FuStr *FuLexer_display_token(FuLexer *l, FuToken token);
 
 FuStr *FuLexer_dump(FuLexer *l);
 
