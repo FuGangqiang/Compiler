@@ -1,6 +1,9 @@
 CC=gcc
 CFLAGS=-std=c89 -Werror -Wall -I.
 
+# realpath need it
+CFLAGS+=-D_DEFAULT_SOURCE
+
 ifneq (,$(findstring test,$(MAKECMDGOALS)))
   # test targets
   CFLAGS+=-g -O0 -DFU_TEST
@@ -24,6 +27,8 @@ map.o: map.c map.h def.h hash.o alloc.o
 set.o: set.c set.h def.h hash.o alloc.o
 bitset.o: bitset.c bitset.h def.h alloc.o
 
+unix.o: unix.c unix.h str.o
+
 kind.o: kind.c parse.h keyword.def token.def symbol.def node.def node_arm.def node_expr.def node_ge_arg.def \
     node_ge_param.def node_lit.def node_op.def node_pat.def node_use.def node_variant.def node_vis.def type_op.def
 context.o: context.c parse.h str.o vec.o map.o set.o keyword.def symbol.def node.o
@@ -32,14 +37,14 @@ log.o: log.c log.h parse.h span.o
 token.o: token.c parse.h kind.o span.o log.o
 lexer.o: lexer.c parse.h token.o str.o char.o hash.o set.o span.o log.o
 node.o: node.c parse.h alloc.o kind.o
-parser.o: parser.c parse.h node.o alloc.o log.o
+parser.o: parser.c parse.h node.o alloc.o log.o unix.o
 type.o: type.c parse.h type.def
 scope.o: scope.c parse.h
 
 # dep objs
 
 DEP_OBJS=char.o bytes.o str.o hash.o span.o context.o vec.o map.o set.o log.o alloc.o kind.o \
-	node.o type.o scope.o token.o parser.o lexer.o
+	node.o type.o scope.o token.o parser.o lexer.o unix.o
 
 # tools
 

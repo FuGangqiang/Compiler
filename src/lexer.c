@@ -22,16 +22,13 @@ void FuLexer_drop(FuLexer *l) {
     FuMem_free(l);
 }
 
-void FuLexer_for_file(FuLexer *l, char *fpath, fu_size_t len) {
+void FuLexer_for_file(FuLexer *l, FuStr *fpath) {
     l->kd = LEXER_FILE;
-    FuStr *fp = FuStr_new();
-    FuStr_reserve(fp, len);
-    FuStr_push_utf8(fp, fpath, len);
-    fu_sym_t sym = FuCtx_intern_symbol(l->ctx, fp);
+    fu_sym_t sym = FuCtx_intern_symbol(l->ctx, fpath);
     l->_file.fpath = sym;
 
     FuStr *fcontent = FuStr_new();
-    FuStr_read_file(fcontent, fpath, len);
+    FuStr_read_file(fcontent, fpath);
     FuCtx_intern_file(l->ctx, sym, fcontent);
     l->_file.chars = fcontent;
 

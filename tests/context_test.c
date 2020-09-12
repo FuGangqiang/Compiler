@@ -36,7 +36,7 @@ void test_file(FuCtx *ctx) {
 }
 
 int main(void) {
-    FuCtx *ctx = FuCtx_new();
+    FuCtx *ctx = FuCtx_new(FuStr_new());
     FuCtx_init(ctx);
     test_symbol(ctx);
     test_keyword(ctx);

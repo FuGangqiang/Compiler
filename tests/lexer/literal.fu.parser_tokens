@@ -1,112 +1,112 @@
-lexer/literal.fu:2:1:TOK_KEYWORD:true
-lexer/literal.fu:3:1:TOK_KEYWORD:false
-lexer/literal.fu:6:1:TOK_IDENT:keyword
-lexer/literal.fu:9:1:TOK_INT:12
-lexer/literal.fu:10:1:TOK_INT:1i32
-lexer/literal.fu:11:1:TOK_INT:0b101_010
-lexer/literal.fu:12:1:TOK_INT:0b101_010i32
-lexer/literal.fu:13:1:TOK_INT:0o12_345
-lexer/literal.fu:14:1:TOK_INT:0o12_345u32
-lexer/literal.fu:15:1:TOK_INT:0x12_345_abc_def
-lexer/literal.fu:16:1:TOK_INT:0x12_345_abc_def_uint
-lexer/literal.fu:17:1:TOK_FLOAT:1.0
-lexer/literal.fu:18:1:TOK_FLOAT:1.0f32
-lexer/literal.fu:19:1:TOK_FLOAT:1e2f32
-lexer/literal.fu:20:1:TOK_FLOAT:1.2e5
-lexer/literal.fu:21:1:TOK_FLOAT:1.2e5f32
-lexer/literal.fu:24:1:TOK_BYTE:a
-lexer/literal.fu:25:1:TOK_BYTE:\'
-lexer/literal.fu:26:1:TOK_BYTE:\n
-lexer/literal.fu:27:1:TOK_BYTE:\x20
-lexer/literal.fu:30:1:TOK_CHAR:c
-lexer/literal.fu:31:1:TOK_CHAR:中
-lexer/literal.fu:32:1:TOK_CHAR:\'
-lexer/literal.fu:33:1:TOK_CHAR:\n
-lexer/literal.fu:34:1:TOK_CHAR:\x20
-lexer/literal.fu:35:1:TOK_CHAR:\u{7FFF}
-lexer/literal.fu:38:1:TOK_STR:abc中文
-lexer/literal.fu:39:1:TOK_STR:    first line 第一行
+literal.fu:2:1:TOK_KEYWORD:true
+literal.fu:3:1:TOK_KEYWORD:false
+literal.fu:6:1:TOK_IDENT:keyword
+literal.fu:9:1:TOK_INT:12
+literal.fu:10:1:TOK_INT:1i32
+literal.fu:11:1:TOK_INT:0b101_010
+literal.fu:12:1:TOK_INT:0b101_010i32
+literal.fu:13:1:TOK_INT:0o12_345
+literal.fu:14:1:TOK_INT:0o12_345u32
+literal.fu:15:1:TOK_INT:0x12_345_abc_def
+literal.fu:16:1:TOK_INT:0x12_345_abc_def_uint
+literal.fu:17:1:TOK_FLOAT:1.0
+literal.fu:18:1:TOK_FLOAT:1.0f32
+literal.fu:19:1:TOK_FLOAT:1e2f32
+literal.fu:20:1:TOK_FLOAT:1.2e5
+literal.fu:21:1:TOK_FLOAT:1.2e5f32
+literal.fu:24:1:TOK_BYTE:a
+literal.fu:25:1:TOK_BYTE:\'
+literal.fu:26:1:TOK_BYTE:\n
+literal.fu:27:1:TOK_BYTE:\x20
+literal.fu:30:1:TOK_CHAR:c
+literal.fu:31:1:TOK_CHAR:中
+literal.fu:32:1:TOK_CHAR:\'
+literal.fu:33:1:TOK_CHAR:\n
+literal.fu:34:1:TOK_CHAR:\x20
+literal.fu:35:1:TOK_CHAR:\u{7FFF}
+literal.fu:38:1:TOK_STR:abc中文
+literal.fu:39:1:TOK_STR:    first line 第一行
     second line 第二行
-lexer/literal.fu:43:1:TOK_STR:first line 第一行
+literal.fu:43:1:TOK_STR:first line 第一行
 second line 第二行
-lexer/literal.fu:47:1:TOK_STR:abc"def
-lexer/literal.fu:48:1:TOK_STR:    first line 第一行
+literal.fu:47:1:TOK_STR:abc"def
+literal.fu:48:1:TOK_STR:    first line 第一行
     "
     second line 第二行
-lexer/literal.fu:53:1:TOK_STR:first line 第一行
+literal.fu:53:1:TOK_STR:first line 第一行
 "
 second line 第二行
-lexer/literal.fu:58:1:TOK_STR:    first line 第一行
+literal.fu:58:1:TOK_STR:    first line 第一行
     #"#
     second line 第二行
-lexer/literal.fu:63:1:TOK_STR:first line 第一行
+literal.fu:63:1:TOK_STR:first line 第一行
 #"#
 second line 第二行
-lexer/literal.fu:68:1:TOK_RAW_STR:abc\ndef
-lexer/literal.fu:69:1:TOK_RAW_STR:    first line 第一行
+literal.fu:68:1:TOK_RAW_STR:abc\ndef
+literal.fu:69:1:TOK_RAW_STR:    first line 第一行
     second line 第二行
-lexer/literal.fu:73:1:TOK_RAW_STR:first line 第一行
+literal.fu:73:1:TOK_RAW_STR:first line 第一行
 second line 第二行
-lexer/literal.fu:77:1:TOK_RAW_STR:abc\n"\nbar
-lexer/literal.fu:78:1:TOK_RAW_STR:    first line 第一行
+literal.fu:77:1:TOK_RAW_STR:abc\n"\nbar
+literal.fu:78:1:TOK_RAW_STR:    first line 第一行
     #"#
     second line 第二行
-lexer/literal.fu:83:1:TOK_RAW_STR:first line 第一行
+literal.fu:83:1:TOK_RAW_STR:first line 第一行
 #"#
 second line 第二行
-lexer/literal.fu:90:1:TOK_BYTE_STR:abc
-lexer/literal.fu:91:1:TOK_BYTE_STR:    first line
+literal.fu:90:1:TOK_BYTE_STR:abc
+literal.fu:91:1:TOK_BYTE_STR:    first line
     second line
-lexer/literal.fu:95:1:TOK_BYTE_STR:first line
+literal.fu:95:1:TOK_BYTE_STR:first line
 second line
-lexer/literal.fu:99:1:TOK_BYTE_STR:abc"def
-lexer/literal.fu:100:1:TOK_BYTE_STR:    first line
+literal.fu:99:1:TOK_BYTE_STR:abc"def
+literal.fu:100:1:TOK_BYTE_STR:    first line
     #"#
     second line
-lexer/literal.fu:105:1:TOK_BYTE_STR:first line
+literal.fu:105:1:TOK_BYTE_STR:first line
 #"#
 second line
-lexer/literal.fu:110:1:TOK_BYTE_RAW_STR:bytes\n
-lexer/literal.fu:111:1:TOK_BYTE_RAW_STR:    first line
+literal.fu:110:1:TOK_BYTE_RAW_STR:bytes\n
+literal.fu:111:1:TOK_BYTE_RAW_STR:    first line
     second line
-lexer/literal.fu:115:1:TOK_BYTE_RAW_STR:first line
+literal.fu:115:1:TOK_BYTE_RAW_STR:first line
 second line
-lexer/literal.fu:119:1:TOK_BYTE_RAW_STR:abc\n"\nbar
-lexer/literal.fu:120:1:TOK_BYTE_RAW_STR:    first line
+literal.fu:119:1:TOK_BYTE_RAW_STR:abc\n"\nbar
+literal.fu:120:1:TOK_BYTE_RAW_STR:    first line
     #"#
     second line
-lexer/literal.fu:125:1:TOK_BYTE_RAW_STR:first line
+literal.fu:125:1:TOK_BYTE_RAW_STR:first line
 #"#
 second line
-lexer/literal.fu:132:1:TOK_FORMAT_STR:hello {name}
-lexer/literal.fu:133:1:TOK_FORMAT_STR:    first line
+literal.fu:132:1:TOK_FORMAT_STR:hello {name}
+literal.fu:133:1:TOK_FORMAT_STR:    first line
     {name}
     second line
-lexer/literal.fu:138:1:TOK_FORMAT_STR:first line
+literal.fu:138:1:TOK_FORMAT_STR:first line
 {name}
 second line
-lexer/literal.fu:143:1:TOK_FORMAT_STR:abc"def{name}
-lexer/literal.fu:144:1:TOK_FORMAT_STR:    first line
+literal.fu:143:1:TOK_FORMAT_STR:abc"def{name}
+literal.fu:144:1:TOK_FORMAT_STR:    first line
     #"#
     {name}
     second line
-lexer/literal.fu:150:1:TOK_FORMAT_STR:first line
+literal.fu:150:1:TOK_FORMAT_STR:first line
 #"#
 {name}
 second line
-lexer/literal.fu:156:1:TOK_FORMAT_RAW_STR:hello{name}
-lexer/literal.fu:157:1:TOK_FORMAT_RAW_STR:    first line
+literal.fu:156:1:TOK_FORMAT_RAW_STR:hello{name}
+literal.fu:157:1:TOK_FORMAT_RAW_STR:    first line
     {name}
     second line
-lexer/literal.fu:162:1:TOK_FORMAT_RAW_STR:first line
+literal.fu:162:1:TOK_FORMAT_RAW_STR:first line
 {name}
 second line
-lexer/literal.fu:167:1:TOK_FORMAT_RAW_STR:hello {name}
-lexer/literal.fu:168:1:TOK_FORMAT_RAW_STR:    first line
+literal.fu:167:1:TOK_FORMAT_RAW_STR:hello {name}
+literal.fu:168:1:TOK_FORMAT_RAW_STR:    first line
     #"#
     {name}
     second line
-lexer/literal.fu:174:1:TOK_FORMAT_RAW_STR:first line
+literal.fu:174:1:TOK_FORMAT_RAW_STR:first line
 #"#
 {name}
 second line

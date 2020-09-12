@@ -164,7 +164,7 @@ void FuVec_push(FuVec *vec, void *value) {
 }
 
 fu_err_t FuVec_pop(FuVec *vec, void *value) {
-    if (vec->len <= 0) {
+    if (vec->len == 0) {
         return 1;
     }
     if (value) {

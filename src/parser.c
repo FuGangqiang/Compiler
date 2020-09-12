@@ -21,9 +21,9 @@ void FuParser_drop(FuParser *p) {
     FuMem_free(p);
 }
 
-void FuParser_for_file(FuParser *p, char *fpath, fu_size_t len) {
+void FuParser_for_file(FuParser *p, FuStr *fpath) {
     p->lexer = FuLexer_new(p->ctx);
-    FuLexer_for_file(p->lexer, fpath, len);
+    FuLexer_for_file(p->lexer, fpath);
 }
 
 static FuToken FuParser_get_token(FuParser *p) {

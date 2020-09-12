@@ -1,6 +1,7 @@
 #include "alloc.h"
 #include "log.h"
 #include "parse.h"
+#include "unix.h"
 
 FuSpan *FuSpan_new(FuCtx *ctx, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line, fu_size_t column) {
     FuSpan *sp = FuMem_new(FuSpan);
@@ -91,7 +92,7 @@ FuStr *FuSpan_display(FuSpan *sp) {
     }
 
     FuStr *str = FuCtx_get_symbol(sp->ctx, sp->fpath);
-    FuStr *display = FuStr_clone(str);
+    FuStr *display = FuStr_rel_path(str, sp->ctx->pkg_dir);
     FuStr_push_utf8_format(display, ":%u:%u", line, column);
     return display;
 }

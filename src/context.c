@@ -10,8 +10,9 @@ fu_size_t FuId_hash(fu_id_t *id) {
     return hash_bytes((fu_uint8_t *)id, sizeof(fu_id_t));
 }
 
-FuCtx *FuCtx_new() {
+FuCtx *FuCtx_new(FuStr *pkg_dir) {
     FuCtx *ctx = FuMem_new(FuCtx);
+    ctx->pkg_dir = pkg_dir;
     ctx->symbols = FuSet_with_capacity(1024, sizeof(FuStr *), (FuEqFn)FuStr_eq, (FuHashFn)FuStr_hash);
     ctx->fmap = FuMap_new(sizeof(fu_sym_t), sizeof(fu_size_t), (FuEqFn)FuId_eq, (FuHashFn)FuId_hash);
     ctx->fcontents = FuVec_new(sizeof(FuStr *));
@@ -41,6 +42,7 @@ void FuCtx_drop(FuCtx *ctx) {
     FuVec_drop_with_ptrs(ctx->fcontents, (FuDropFn)FuStr_drop);
     FuMap_drop(ctx->fmap);
     FuSet_drop_with_ptrs(ctx->symbols, (FuDropFn)FuStr_drop);
+    FuStr_drop(ctx->pkg_dir);
     FuMem_free(ctx);
 }
 

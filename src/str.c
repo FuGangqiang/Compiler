@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -247,10 +248,61 @@ fu_bool_t FuStr_eq_cstr(FuStr *str, char *cstr) {
     return res;
 }
 
-void FuStr_read_file(FuStr *str, char *fpath, fu_size_t len) {
-    FILE *f = fopen(fpath, "r");
+fu_bool_t FuStr_starts_with(FuStr *str, FuStr *pat) {
+    fu_size_t str_len = FuStr_len(str);
+    fu_size_t pat_len = FuStr_len(pat);
+    if (pat_len > str_len) {
+        return FU_FALSE;
+    }
+    fu_size_t i;
+    for (i = 0; i < pat_len; i++) {
+        FuChar fc0 = FuStr_get_char(str, i);
+        FuChar fc1 = FuStr_get_char(pat, i);
+        if (fc0 != fc1) {
+            return FU_FALSE;
+        }
+    }
+    return FU_TRUE;
+}
+
+fu_bool_t FuStr_ends_with(FuStr *str, FuStr *pat) {
+    fu_size_t str_len = FuStr_len(str);
+    fu_size_t pat_len = FuStr_len(pat);
+    if (pat_len > str_len) {
+        return FU_FALSE;
+    }
+    fu_size_t last_idx = pat_len - 1;
+    fu_size_t i;
+    for (i = 0; i < pat_len; i++) {
+        FuChar fc0 = FuStr_get_char(str, last_idx - i);
+        FuChar fc1 = FuStr_get_char(pat, last_idx - i);
+        if (fc0 != fc1) {
+            return FU_FALSE;
+        }
+    }
+    return FU_TRUE;
+}
+
+void FuStr_to_utf8(FuStr *str, char *buf, fu_size_t len) {
+    fu_size_t str_len = FuStr_len(str);
+    fu_size_t consumed = 0;
+    fu_size_t i;
+    for (i = 0; i < str_len; i++) {
+        FuChar fc = FuStr_get_char(str, i);
+        consumed += FuChar_to_utf8(buf + consumed, len - consumed, fc);
+    }
+    if (consumed >= len) {
+        consumed = len - 1;
+    }
+    buf[consumed] = 0;
+}
+
+void FuStr_read_file(FuStr *str, FuStr *fpath) {
+    char path[4096];
+    FuStr_to_utf8(fpath, path, 4096);
+    FILE *f = fopen(path, "r");
     if (!f) {
-        FATAL1(NULL, "can not open file: `%s`", fpath);
+        FATAL1(NULL, "can not open file: `%s`", path);
     }
     fseek(f, 0, SEEK_END);
     long fsize = ftell(f);

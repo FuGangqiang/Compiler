@@ -284,6 +284,7 @@ FuStr *FuSpan_content(FuSpan *sp);
 
 /* compiler context */
 struct FuCtx {
+    FuStr *pkg_dir;
     /* intern symbols */
     /* FuStr* */
     FuSet *symbols;
@@ -303,7 +304,7 @@ struct FuCtx {
     FuVec *types;
 };
 
-FuCtx *FuCtx_new();
+FuCtx *FuCtx_new(FuStr *pkg_dir);
 void FuCtx_init(FuCtx *ctx);
 void FuCtx_drop(FuCtx *ctx);
 
@@ -445,7 +446,7 @@ struct FuLexer {
 FuLexer *FuLexer_new(FuCtx *ctx);
 void FuLexer_drop(FuLexer *l);
 
-void FuLexer_for_file(FuLexer *l, char *fname, fu_size_t len);
+void FuLexer_for_file(FuLexer *l, FuStr *fpath);
 void FuLexer_for_tokens(FuLexer *l, FuVec *tokens);
 
 FuToken FuLexer_get_token(FuLexer *l);
@@ -466,7 +467,7 @@ struct FuParser {
 FuParser *FuParser_new(FuCtx *ctx);
 void FuParser_drop(FuParser *p);
 
-void FuParser_for_file(FuParser *p, char *fpath, fu_size_t len);
+void FuParser_for_file(FuParser *p, FuStr *fpath);
 
 FuLit *FuParser_parse_lit(FuParser *p);
 FuIdent *FuParser_parse_ident(FuParser *p);
