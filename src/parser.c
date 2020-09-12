@@ -4,11 +4,22 @@
 #include "alloc.h"
 #include "log.h"
 #include "parse.h"
+#include "unix.h"
+
+void FuParserState_drop(FuParserState *state) {
+    if (!state) {
+        return;
+    }
+    FuStr_drop(state->cur_dir);
+    FuLexer_drop(state->lexer);
+    FuVec_drop(state->tok_buf);
+    FuMem_free(state);
+}
 
 FuParser *FuParser_new(FuCtx *ctx) {
     FuParser *p = FuMem_new(FuParser);
     p->ctx = ctx;
-    p->tok_buf = FuVec_new(sizeof(FuToken));
+    p->states = FuVec_new(sizeof(FuParserState *));
     return p;
 }
 
@@ -16,6 +27,8 @@ void FuParser_drop(FuParser *p) {
     if (!p) {
         return;
     }
+    FuStr_drop(p->cur_dir);
+    FuVec_drop_with_ptrs(p->states, (FuDropFn)FuParserState_drop);
     FuVec_drop(p->tok_buf);
     FuLexer_drop(p->lexer);
     FuMem_free(p);
@@ -23,7 +36,37 @@ void FuParser_drop(FuParser *p) {
 
 void FuParser_for_file(FuParser *p, FuStr *fpath) {
     p->lexer = FuLexer_new(p->ctx);
+    p->tok_buf = FuVec_new(sizeof(FuToken));
+    p->in_tok_tree = 0;
     FuLexer_for_file(p->lexer, fpath);
+}
+
+static void FuParser_unfor_file(FuParser *p) {
+    FuVec_drop(p->tok_buf);
+    FuLexer_drop(p->lexer);
+}
+
+static void FuParser_push_state(FuParser *p) {
+    FuParserState *state = FuMem_new(FuParserState);
+    state->cur_dir = p->cur_dir;
+    state->lexer = p->lexer;
+    state->tok_buf = p->tok_buf;
+    state->in_tok_tree = p->in_tok_tree;
+    FuVec_push_ptr(p->states, state);
+}
+
+static fu_bool_t FuParser_pop_state(FuParser *p) {
+    if (FuVec_len(p->states) == 0) {
+        return FU_FALSE;
+    }
+    FuParserState *state;
+    FuVec_pop_ptr(p->states, (void **)&state);
+    p->in_tok_tree = state->in_tok_tree;
+    p->tok_buf = state->tok_buf;
+    p->lexer = state->lexer;
+    p->cur_dir = state->cur_dir;
+    FuMem_free(state);
+    return FU_TRUE;
 }
 
 static FuToken FuParser_get_token(FuParser *p) {
@@ -3016,9 +3059,45 @@ FuNode *FuParser_parse_item_mod(FuParser *p, FuVec *attrs) {
         nd->_mod.inner_sp = sp;
         nd->_mod.items = items;
         return nd;
-    } else if (FuParser_check_token(p, TOK_COMMA)) {
-        FuToken tok = FuParser_nth_token(p, 0);
-        FATAL(tok.sp, "unimplemented foreign mod");
+    } else if (FuParser_check_token(p, TOK_SEMI)) {
+        FuToken end_tok = FuParser_expect_token(p, TOK_SEMI);
+        FuStr *mod_name = FuCtx_get_symbol(p->ctx, ident->name);
+        FuStr *mod_dir = FuStr_clone(p->cur_dir);
+        FuStr_path_join(mod_dir, FuStr_clone(mod_name));
+        FuStr *mod_file = FuStr_clone(mod_dir);
+        FuStr_push_utf8_cstr(mod_file, ".fu");
+
+        /* init parser state */
+        FuParser_push_state(p);
+        p->cur_dir = mod_dir;
+        FuParser_for_file(p, mod_file);
+
+        FuVec *items = FuParser_parse_mod_items(p, attrs, TOK_EOF);
+
+        /* restore parser state */
+        FuStr_drop(p->cur_dir);
+        FuParser_unfor_file(p);
+        FuParser_pop_state(p);
+
+        FuSpan *inner_sp;
+        if (FuVec_len(items) == 0) {
+            FuStr *fconent = FuCtx_get_file(p->lexer->ctx, p->lexer->_file.fpath);
+            fu_size_t len = FuStr_len(fconent);
+            inner_sp = FuSpan_new(p->lexer->ctx, p->lexer->_file.fpath, 0, len, 1, 1);
+        } else {
+            FuNode *first = FuVec_first_ptr(items);
+            FuNode *last = FuVec_last_ptr(items);
+            inner_sp = FuSpan_join(first->sp, last->sp);
+        }
+        FuSpan *sp = FuSpan_join(lo, end_tok.sp);
+        FuNode *nd = FuNode_new(p->ctx, sp, ND_MOD);
+        nd->attrs = attrs;
+        nd->_mod.vis = vis;
+        nd->_mod.ident = ident;
+        nd->_mod.is_inline = FU_FALSE;
+        nd->_mod.inner_sp = inner_sp;
+        nd->_mod.items = items;
+        return nd;
     } else {
         FuToken tok = FuParser_nth_token(p, 0);
         FATAL1(tok.sp, "expeck `{`, `;`, find: `%s`", FuToken_kind_csr(tok));

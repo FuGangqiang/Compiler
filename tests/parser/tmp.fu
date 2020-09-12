@@ -72,22 +72,4 @@ extension Point: IAdd {
 }
 
 #[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn new() {
-        let p0 = Point::{.x=0, .y=1};
-        let p1 = Point::new(0, 1);
-        assert(p0 == p1);
-    }
-
-    #[test]
-    fn map() {
-        let p0 = Point::{.x=3, .y=4};
-        let r = p0.map(|p| {
-            return sqrt(p.x*p.x + p.y*p.y);
-        });
-        assert(r == 5);
-    }
-}
+mod test;

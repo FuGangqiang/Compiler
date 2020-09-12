@@ -17,6 +17,7 @@ int main(int argc, char **argv) {
     FuCtx_init(ctx);
 
     FuParser *p = FuParser_new(ctx);
+    p->cur_dir = FuStr_path_dir(fpath);
     FuParser_for_file(p, fpath);
 
     FuStr *dump = FuParser_dump_tokens(p);

@@ -456,12 +456,24 @@ FuStr *FuLexer_dump(FuLexer *l);
 
 typedef fu_bool_t (*FuCheckTokenFn)(FuToken tok);
 
+typedef struct FuParserState FuParserState;
+struct FuParserState {
+    FuStr *cur_dir;
+    FuLexer *lexer;
+    FuVec *tok_buf;
+    fu_bool_t in_tok_tree;
+};
+
+void FuParserState_drop(FuParserState *state);
+
 struct FuParser {
     FuCtx *ctx;
+    FuStr *cur_dir;
     FuLexer *lexer;
     /* FuToken */
     FuVec *tok_buf;
     fu_bool_t in_tok_tree;
+    FuVec *states;
 };
 
 FuParser *FuParser_new(FuCtx *ctx);
