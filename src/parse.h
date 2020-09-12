@@ -44,8 +44,9 @@ typedef struct FuLog FuLog;
 typedef struct FuSpan FuSpan;
 typedef struct FuToken FuToken;
 typedef struct FuLexer FuLexer;
-typedef struct FuScope FuScope;
 typedef struct FuParser FuParser;
+
+typedef struct FuScope FuScope;
 
 typedef struct FuLit FuLit;
 typedef struct FuPat FuPat;
@@ -437,26 +438,6 @@ FuStr *FuLexer_display_token(FuLexer *l, FuToken token);
 
 FuStr *FuLexer_dump(FuLexer *l);
 
-struct FuScope {
-    FuCtx *ctx;
-    FuScope *super;
-    fu_sym_t name;
-
-    fu_bool_t is_fn;
-    FuMap *closure_syms;
-
-    FuMap *declares;
-    FuMap *labels;
-    FuMap *types;
-    FuMap *interfaces;
-    FuMap *extensions;
-};
-
-FuScope *FuScope_new(FuCtx *ctx, FuScope *super, fu_sym_t name);
-void FuScope_drop(FuScope *scp);
-
-FuType *FuScope_get_type(FuScope *scp, fu_sym_t name);
-
 typedef fu_bool_t (*FuCheckTokenFn)(FuToken tok);
 
 struct FuParser {
@@ -519,6 +500,26 @@ FuAssoc *FuParser_parse_assoc(FuParser *p);
 FuNode *FuParser_parse_pkg(FuParser *p);
 
 FuStr *FuParser_dump_tokens(FuParser *p);
+
+struct FuScope {
+    FuCtx *ctx;
+    FuScope *super;
+    fu_sym_t name;
+
+    fu_bool_t is_fn;
+    FuMap *closure_syms;
+
+    FuMap *declares;
+    FuMap *labels;
+    FuMap *types;
+    FuMap *interfaces;
+    FuMap *extensions;
+};
+
+FuScope *FuScope_new(FuCtx *ctx, FuScope *super, fu_sym_t name);
+void FuScope_drop(FuScope *scp);
+
+FuType *FuScope_get_type(FuScope *scp, fu_sym_t name);
 
 struct FuType {
     fu_type_k kd;
