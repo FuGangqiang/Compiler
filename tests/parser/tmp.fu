@@ -1,5 +1,7 @@
 //! The Point Example Pkg
 
+use core::dbg!;
+
 /// `IAdd` interface
 interface IAdd {
     //! two items
@@ -65,8 +67,8 @@ extension Point: IAdd {
     /// implement Point::add method
     fn add(self, rhs: Self) -> Self {
          return Self::{
-            .x = self.x() + other.x(),
-            .y = self.y() + other.y()
+            .x = self.x().dbg!() + other.x(),
+            .y = self.y().core::dbg!() + other.y()
         };
     }
 }

@@ -1154,17 +1154,35 @@ static FuExpr *FuParser_parse_field_expr(FuParser *p, FuExpr *left) {
     return expr;
 }
 
+static FuExpr *FuParser_parse_suffix_macro_expr(FuParser *p, FuExpr *left) {
+    FuPath *path = FuParser_parse_path(p);
+    if (!path->is_macro) {
+        ERROR(path->sp, "expect a macro path, but find a normal path");
+    }
+    if (!FuParser_check_token_fn(p, FuToken_is_open_delim)) {
+        FuToken tok = FuParser_nth_token(p, 0);
+        FATAL1(tok.sp, "expect `(`, `[`, `{`, find: `%s`", FuToken_kind_csr(tok));
+    }
+    FuTokTree *tree = FuParser_parse_tok_tree(p);
+    FuSpan *sp = FuSpan_join(left->sp, tree->sp);
+    FuMacroCall *call = FuMacroCall_new(sp, FU_TRUE, path);
+    call->left = left;
+    call->args = tree;
+    FuExpr *expr = FuExpr_new(sp, EXPR_MACRO_CALL);
+    expr->_macro_call = call;
+    return expr;
+}
+
 static FuExpr *FuParser_parse_dot_expr(FuParser *p, FuExpr *left) {
     FuParser_expect_token(p, TOK_DOT);
     FuToken tok0 = FuParser_nth_token(p, 0);
     FuToken tok1 = FuParser_nth_token(p, 1);
+    if (tok0.kd == TOK_MACRO || (FuToken_is_ident(tok0) && tok1.kd == TOK_MOD_SEP)) {
+        return FuParser_parse_suffix_macro_expr(p, left);
+    }
     if (tok0.kd == TOK_IDENT && (tok1.kd == TOK_OPEN_PAREN || tok1.kd == TOK_POUND)) {
         /* `base.method_call()`, `base.method_call#<>()` */
         return FuParser_parse_method_call_expr(p, left);
-    }
-    if (tok0.kd == TOK_MACRO) {
-        /* todo: macro */
-        FATAL(tok0.sp, "unimplemented: suffix macro");
     }
     return FuParser_parse_field_expr(p, left);
 }
@@ -1823,7 +1841,8 @@ static FuExpr *FuParser_parse_prefix_macro_expr(FuParser *p, FuPath *prefix) {
     }
     FuTokTree *tree = FuParser_parse_tok_tree(p);
     FuSpan *sp = FuSpan_join(prefix->sp, tree->sp);
-    FuMacroCall *call = FuMacroCall_new(sp, FU_FALSE, prefix, tree);
+    FuMacroCall *call = FuMacroCall_new(sp, FU_FALSE, prefix);
+    call->args = tree;
     FuExpr *expr = FuExpr_new(sp, EXPR_MACRO_CALL);
     expr->_macro_call = call;
     return expr;

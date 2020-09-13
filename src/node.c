@@ -530,11 +530,10 @@ FuStr *FuFnSig_display(FuFnSig *sig) {
     return str;
 }
 
-FuMacroCall *FuMacroCall_new(FuSpan *sp, fu_bool_t is_method, FuPath *path, FuTokTree *args) {
+FuMacroCall *FuMacroCall_new(FuSpan *sp, fu_bool_t is_method, FuPath *path) {
     FuMacroCall *call = FuMem_new(FuMacroCall);
     call->is_method = is_method;
     call->path = path;
-    call->args = args;
     return call;
 }
 
@@ -542,6 +541,7 @@ void FuMacroCall_drop(FuMacroCall *call) {
     if (!call) {
         return;
     }
+    FuExpr_drop(call->left);
     FuPath_drop(call->path);
     FuTokTree_drop(call->args);
     FuMem_free(call);
@@ -555,6 +555,11 @@ FuStr *FuMacroCall_display(FuMacroCall *call, fu_size_t indent) {
     FuStr_push_utf8_cstr(str, "path: ");
     FuStr_append(str, FuPath_display(call->path));
     FuStr_push_utf8_cstr(str, "\n");
+    if (call->is_method) {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "left:\n");
+        FuStr_append(str, FuExpr_display(call->left, indent + 1));
+    }
     FuStr_push_indent(str, indent);
     FuStr_push_utf8_cstr(str, "args:\n");
     FuStr_append(str, FuTokTree_display(call->args, indent + 1));

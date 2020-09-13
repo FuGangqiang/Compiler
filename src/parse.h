@@ -862,10 +862,11 @@ struct FuMacroCall {
     FuSpan *sp;
     fu_bool_t is_method;
     FuPath *path;
+    FuExpr *left;
     FuTokTree *args;
 };
 
-FuMacroCall *FuMacroCall_new(FuSpan *sp, fu_bool_t is_method, FuPath *path, FuTokTree *args);
+FuMacroCall *FuMacroCall_new(FuSpan *sp, fu_bool_t is_method, FuPath *path);
 void FuMacroCall_drop(FuMacroCall *call);
 FuStr *FuMacroCall_display(FuMacroCall *call, fu_size_t indent);
 

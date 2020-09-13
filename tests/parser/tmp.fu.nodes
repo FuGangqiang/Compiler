@@ -1,4 +1,4 @@
-nid: 27
+nid: 28
 kd: ND_PKG
 attrs:
   kd: ATTR_DOC
@@ -6,6 +6,11 @@ attrs:
   doc:  The Point Example Pkg
 items:
   nid: 0
+  kd: ND_USE
+  vis: VIS_PRIV
+    kd: USE_MACRO
+    prefix: core::dbg!
+  nid: 1
   kd: ND_INTERFACE
   attrs:
     kd: ATTR_DOC
@@ -48,7 +53,7 @@ items:
           kd: EXPR_PATH
           path: rhs
       ty: Self
-  nid: 1
+  nid: 2
   kd: ND_STRUCT
     kd: VA_STRUCT
     attrs:
@@ -92,7 +97,7 @@ items:
       vis: VIS_PRIV
       ident: y
       ty: int
-  nid: 12
+  nid: 13
   kd: ND_EXTENSION
   is_unsafe: 0
   ty: Point
@@ -123,7 +128,7 @@ items:
       ty: int
     body:
       items:
-        nid: 2
+        nid: 3
         kd: ND_RETURN
         expr:
           kd: EXPR_STRUCT
@@ -160,7 +165,7 @@ items:
       ty: Self
     body:
       items:
-        nid: 3
+        nid: 4
         kd: ND_RETURN
         expr:
           kd: EXPR_FIELD
@@ -188,7 +193,7 @@ items:
       ty: Self
     body:
       items:
-        nid: 4
+        nid: 5
         kd: ND_RETURN
         expr:
           kd: EXPR_FIELD
@@ -219,7 +224,7 @@ items:
       ty: Self -> int
     body:
       items:
-        nid: 5
+        nid: 6
         kd: ND_RETURN
         expr:
           kd: EXPR_CALL
@@ -247,7 +252,7 @@ items:
       ty: Self
     body:
       items:
-        nid: 10
+        nid: 11
         kd: ND_LET
         pat:
           kd: PAT_EXPR
@@ -260,7 +265,7 @@ items:
           is_unsafe: 1
           block:
             items:
-              nid: 6
+              nid: 7
               kd: ND_LET
               pat:
                 kd: PAT_EXPR
@@ -317,7 +322,7 @@ items:
                             kd: EXPR_PATH
                             path: p
                           ident: y
-              nid: 8
+              nid: 9
               kd: ND_IF
               cond:
                 kd: EXPR_BINARY
@@ -332,12 +337,12 @@ items:
                     size: 0, is_signed: 0, v: 5
               block:
                 items:
-                  nid: 7
+                  nid: 8
                   kd: ND_BREAK
                   expr:
                     kd: EXPR_PATH
                     path: p
-              nid: 9
+              nid: 10
               kd: ND_BREAK
               expr:
                 kd: EXPR_STRUCT
@@ -368,12 +373,12 @@ items:
                         kd: EXPR_PATH
                         path: p
                       ident: y
-        nid: 11
+        nid: 12
         kd: ND_RETURN
         expr:
           kd: EXPR_PATH
           path: p
-  nid: 14
+  nid: 15
   kd: ND_EXTENSION
   is_unsafe: 0
   ty: Point
@@ -407,7 +412,7 @@ items:
       ty: Self
     body:
       items:
-        nid: 13
+        nid: 14
         kd: ND_RETURN
         expr:
           kd: EXPR_STRUCT
@@ -422,12 +427,20 @@ items:
               kd: EXPR_BINARY
               op: OP_ADD
               lexpr:
-                kd: EXPR_METHOD_CALL
-                method: x
-                args len: 1
+                kd: EXPR_MACRO_CALL
+                is_method: 1
+                path: dbg!
+                left:
+                  kd: EXPR_METHOD_CALL
+                  method: x
+                  args len: 1
+                  args:
+                    kd: EXPR_PATH
+                    path: self
                 args:
-                  kd: EXPR_PATH
-                  path: self
+                  is_group: 1
+                  tok tree delimiter: (
+                  group tree items len: 0
               rexpr:
                 kd: EXPR_METHOD_CALL
                 method: x
@@ -441,12 +454,20 @@ items:
               kd: EXPR_BINARY
               op: OP_ADD
               lexpr:
-                kd: EXPR_METHOD_CALL
-                method: y
-                args len: 1
+                kd: EXPR_MACRO_CALL
+                is_method: 1
+                path: core::dbg!
+                left:
+                  kd: EXPR_METHOD_CALL
+                  method: y
+                  args len: 1
+                  args:
+                    kd: EXPR_PATH
+                    path: self
                 args:
-                  kd: EXPR_PATH
-                  path: self
+                  is_group: 1
+                  tok tree delimiter: (
+                  group tree items len: 0
               rexpr:
                 kd: EXPR_METHOD_CALL
                 method: y
@@ -454,7 +475,7 @@ items:
                 args:
                   kd: EXPR_PATH
                   path: other
-  nid: 26
+  nid: 27
   kd: ND_MOD
   attrs:
     kd: ATTR_NORMAL
@@ -470,17 +491,17 @@ items:
   ident:test
   is_inline: 0
   items len: 4
-    nid: 15
+    nid: 16
     kd: ND_USE
     vis: VIS_PRIV
       kd: USE_MACRO
       prefix: core::assert!
-    nid: 16
+    nid: 17
     kd: ND_USE
     vis: VIS_PRIV
       kd: USE_GLOB
       prefix: super
-    nid: 20
+    nid: 21
     kd: ND_FN
     attrs:
       kd: ATTR_NORMAL
@@ -493,7 +514,7 @@ items:
     params len: 0
     body:
       items:
-        nid: 17
+        nid: 18
         kd: ND_LET
         pat:
           kd: PAT_EXPR
@@ -521,7 +542,7 @@ items:
               lit:
                 kd: LIT_INT
                 size: 0, is_signed: 0, v: 1
-        nid: 18
+        nid: 19
         kd: ND_LET
         pat:
           kd: PAT_EXPR
@@ -543,7 +564,7 @@ items:
             lit:
               kd: LIT_INT
               size: 0, is_signed: 0, v: 1
-        nid: 19
+        nid: 20
         kd: ND_EXPR
         expr:
           kd: EXPR_MACRO_CALL
@@ -559,7 +580,7 @@ items:
               tree token: ==
               is_group: 0
               tree token: p1
-    nid: 25
+    nid: 26
     kd: ND_FN
     attrs:
       kd: ATTR_NORMAL
@@ -572,7 +593,7 @@ items:
     params len: 0
     body:
       items:
-        nid: 21
+        nid: 22
         kd: ND_LET
         pat:
           kd: PAT_EXPR
@@ -600,7 +621,7 @@ items:
               lit:
                 kd: LIT_INT
                 size: 0, is_signed: 0, v: 4
-        nid: 23
+        nid: 24
         kd: ND_LET
         pat:
           kd: PAT_EXPR
@@ -630,7 +651,7 @@ items:
               is_unsafe: 0
               block:
                 items:
-                  nid: 22
+                  nid: 23
                   kd: ND_RETURN
                   expr:
                     kd: EXPR_CALL
@@ -671,7 +692,7 @@ items:
                             kd: EXPR_PATH
                             path: p
                           ident: y
-        nid: 24
+        nid: 25
         kd: ND_EXPR
         expr:
           kd: EXPR_MACRO_CALL

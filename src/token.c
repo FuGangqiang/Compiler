@@ -111,7 +111,7 @@ fu_bool_t FuToken_is_ident(FuToken tok) {
     if (tok.kd == TOK_RAW_IDENT) {
         return FU_TRUE;
     }
-    if (tok.kd == TOK_IDENT && tok.sym >= _KW_LAST_UNUSED) {
+    if (tok.kd == TOK_IDENT) {
         return FU_TRUE;
     }
     if (tok.kd == TOK_MACRO) {
