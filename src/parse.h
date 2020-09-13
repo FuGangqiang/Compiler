@@ -607,6 +607,7 @@ FuStr *FuTokTree_display(FuTokTree *tree, fu_size_t indent);
 
 struct FuIdent {
     FuSpan *sp;
+    fu_bool_t is_macro;
     fu_sym_t name;
 };
 
@@ -661,7 +662,6 @@ struct FuUse {
             FuIdent *alias;
         } _simple;
         struct {
-            FuIdent *name;
             FuIdent *alias;
         } _macro;
         /* FuUse */
@@ -687,6 +687,7 @@ FuStr *FuPathItem_display(FuPathItem *item);
 /* `std::vec::Vec#<T>` */
 struct FuPath {
     FuSpan *sp;
+    fu_size_t is_macro;
     /* FuPathItem */
     FuVec *segments;
 };

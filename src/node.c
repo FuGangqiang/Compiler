@@ -1046,7 +1046,6 @@ void FuUse_drop(FuUse *use) {
         FuIdent_drop(use->_simple.alias);
         break;
     case USE_MACRO:
-        FuIdent_drop(use->_macro.name);
         FuIdent_drop(use->_macro.alias);
         break;
     case USE_NESTED:
@@ -1078,10 +1077,6 @@ FuStr *FuUse_display(FuUse *use, fu_size_t indent) {
         }
         break;
     case USE_MACRO:
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "macro: ");
-        FuStr_append(str, FuIdent_display(use->_macro.name));
-        FuStr_push_utf8_cstr(str, "\n");
         if (use->_macro.alias) {
             FuStr_push_indent(str, indent);
             FuStr_push_utf8_cstr(str, "alias: ");

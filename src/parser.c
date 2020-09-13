@@ -539,6 +539,7 @@ FuIdent *FuParser_parse_ident(FuParser *p) {
     FuToken tok = FuParser_expect_token_fn(p, FuToken_is_ident, "expect ident");
     FuIdent *ident = FuMem_new(FuIdent);
     ident->sp = sp;
+    ident->is_macro = tok.kd == TOK_MACRO ? FU_TRUE : FU_FALSE;
     ident->name = tok.sym;
     return ident;
 }
@@ -563,18 +564,31 @@ static FuPathItem *FuParser_parse_path_item(FuParser *p) {
 FuPath *FuParser_parse_path(FuParser *p) {
     FuPath *path = FuMem_new(FuPath);
     path->segments = FuVec_new(sizeof(FuPathItem *));
+    FuPathItem *item;
     while (1) {
-        FuPathItem *item = FuParser_parse_path_item(p);
+        item = FuParser_parse_path_item(p);
         FuVec_push_ptr(path->segments, item);
-        if (FuParser_check_2_token(p, TOK_MOD_SEP, TOK_IDENT)) {
-            FuParser_bump(p);
-            continue;
+        FuToken tok0 = FuParser_nth_token(p, 0);
+        if (tok0.kd == TOK_MOD_SEP) {
+            FuToken tok1 = FuParser_nth_token(p, 1);
+            if (FuToken_is_ident(tok1)) {
+                if (item->ident->is_macro) {
+                    ERROR(item->sp, "macro ident only allow in last path item");
+                }
+                if (FuToken_check_keyword(tok1, KW_SELF_LOWER) || FuToken_check_keyword(tok1, KW_SUPER) ||
+                    FuToken_check_keyword(tok1, KW_PKG)) {
+                    ERROR1(tok1.sp, "`%s` can only be prefix", FuToken_kind_csr(tok1));
+                }
+                FuParser_bump(p);
+                continue;
+            }
         }
         break;
     }
     FuPathItem *start = FuVec_first_ptr(path->segments);
     FuPathItem *end = FuVec_last_ptr(path->segments);
     path->sp = FuSpan_join(start->sp, end->sp);
+    path->is_macro = item->ident->is_macro;
     return path;
 }
 
@@ -593,6 +607,9 @@ static FuType *FuParser_parse_path_type(FuParser *p) {
         FATAL1(tok.sp, "expect ident, find: `%s`", FuToken_kind_csr(tok));
     }
     FuPath *path = FuParser_parse_path(p);
+    if (path->is_macro) {
+        ERROR(path->sp, "macro ident can not be allowed in type");
+    }
     return FuType_new_path(p->ctx, path);
 }
 
@@ -1023,6 +1040,9 @@ FuPat *FuParser_parse_pat(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null) 
             break;
         }
         FuPath *path = FuParser_parse_path(p);
+        if (path->is_macro) {
+            ERROR(path->sp, "macro is not allowed in pattern");
+        }
         FuExpr *expr = FuExpr_new(path->sp, EXPR_PATH);
         expr->_path.path = path;
         tok0 = FuParser_nth_token(p, 0);
@@ -1809,7 +1829,11 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
     }
     if (tok.sym == KW_SELF_LOWER || tok.sym == KW_SELF_UPPER) {
         FuPath *path = FuParser_parse_path(p);
-        return FuExpr_new_path(NULL, path);
+        if (path->is_macro) {
+            FATAL(path->sp, "unimplemented macro call");
+        } else {
+            return FuExpr_new_path(NULL, path);
+        }
     }
     if (tok.sym == KW_AWAIT) {
         return FuParser_parse_await_expr(p);
@@ -1866,20 +1890,19 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
         /* check first invoke, begin expr */
         /* todo: expr->_path.anno */
         FATAL1(tok.sp, "unimplemented expr: `%s`", FuToken_kind_csr(tok));
+    case TOK_MACRO:
     case TOK_IDENT: {
         FuPath *path = FuParser_parse_path(p);
-        prefix_expr = FuExpr_new_path(NULL, path);
+        if (path->is_macro) {
+            FATAL(path->sp, "unimplemented macro call");
+        } else {
+            prefix_expr = FuExpr_new_path(NULL, path);
+        }
         break;
     }
     case TOK_OR:
-    case TOK_OR_OR:
+    case TOK_OR_OR: {
         prefix_expr = FuParser_parse_closure_expr(p);
-        break;
-    case TOK_MACRO: {
-        FATAL(tok.sp, "unimplemented macro expr");
-        /*
-        prefix_expr = FuParser_parse_prefix_macro(p);
-        */
         break;
     }
     default: {
@@ -1983,6 +2006,9 @@ FuAttr *FuParser_parse_normal_attr(FuParser *p) {
     }
     FuParser_expect_token(p, TOK_OPEN_BRACKET);
     FuPath *path = FuParser_parse_path(p);
+    if (path->is_macro) {
+        ERROR(path->sp, "macro is not allowed in attribute path");
+    }
     FuTokTree *tok_tree = NULL;
     if (FuParser_check_token_fn(p, FuToken_is_open_delim)) {
         tok_tree = FuParser_parse_tok_tree(p);
@@ -2077,13 +2103,24 @@ static FuUse *FuParser_parse_use_tree(FuParser *p) {
     }
     tok = FuParser_nth_token(p, 0);
     if (tok.kd == TOK_SEMI || tok.kd == TOK_COMMA || FuParser_check_keyword(p, KW_AS)) {
+        if (!prefix) {
+            FATAL(tok.sp, "prefix can not be null");
+        }
         FuIdent *alias = NULL;
         if (FuParser_check_keyword(p, KW_AS)) {
             FuParser_expect_keyword(p, KW_AS);
             alias = FuParser_parse_ident(p);
             last_sp = alias->sp;
+            if (!((prefix->is_macro && alias->is_macro) || (!prefix->is_macro && !alias->is_macro))) {
+                ERROR(alias->sp, "alias name does not match prefix");
+            }
         }
         FuSpan *sp = FuSpan_join(lo, last_sp);
+        if (prefix->is_macro) {
+            FuUse *use = FuUse_new(sp, USE_MACRO, prefix);
+            use->_macro.alias = alias;
+            return use;
+        }
         FuUse *use = FuUse_new(sp, USE_SIMPLE, prefix);
         use->_simple.alias = alias;
         return use;
@@ -2092,24 +2129,6 @@ static FuUse *FuParser_parse_use_tree(FuParser *p) {
         FuParser_expect_token(p, TOK_MOD_SEP);
     }
     tok = FuParser_nth_token(p, 0);
-    if (tok.kd == TOK_MACRO) {
-        last_sp = tok.sp;
-        FuToken macro_tok = FuParser_expect_token(p, TOK_MACRO);
-        FuIdent *macro_name = FuIdent_new(macro_tok.sp, macro_tok.sym);
-        last_sp = macro_name->sp;
-        FuIdent *alias = NULL;
-        if (FuParser_check_keyword(p, KW_AS)) {
-            FuParser_expect_keyword(p, KW_AS);
-            FuToken alias_tok = FuParser_expect_token(p, TOK_MACRO);
-            alias = FuIdent_new(alias_tok.sp, alias_tok.sym);
-            last_sp = alias->sp;
-        }
-        FuSpan *sp = FuSpan_join(lo, last_sp);
-        FuUse *use = FuUse_new(sp, USE_MACRO, prefix);
-        use->_macro.name = macro_name;
-        use->_macro.alias = alias;
-        return use;
-    }
     if (tok.kd == TOK_STAR) {
         last_sp = tok.sp;
         FuParser_expect_token(p, TOK_STAR);

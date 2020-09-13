@@ -1,4 +1,4 @@
-nid: 26
+nid: 27
 kd: ND_PKG
 attrs:
   kd: ATTR_DOC
@@ -454,7 +454,7 @@ items:
                 args:
                   kd: EXPR_PATH
                   path: other
-  nid: 25
+  nid: 26
   kd: ND_MOD
   attrs:
     kd: ATTR_NORMAL
@@ -469,13 +469,18 @@ items:
   vis: VIS_PRIV
   ident:test
   is_inline: 0
-  items len: 3
+  items len: 4
     nid: 15
+    kd: ND_USE
+    vis: VIS_PRIV
+      kd: USE_MACRO
+      prefix: core::assert!
+    nid: 16
     kd: ND_USE
     vis: VIS_PRIV
       kd: USE_GLOB
       prefix: super
-    nid: 19
+    nid: 20
     kd: ND_FN
     attrs:
       kd: ATTR_NORMAL
@@ -488,7 +493,7 @@ items:
     params len: 0
     body:
       items:
-        nid: 16
+        nid: 17
         kd: ND_LET
         pat:
           kd: PAT_EXPR
@@ -516,7 +521,7 @@ items:
               lit:
                 kd: LIT_INT
                 size: 0, is_signed: 0, v: 1
-        nid: 17
+        nid: 18
         kd: ND_LET
         pat:
           kd: PAT_EXPR
@@ -538,7 +543,7 @@ items:
             lit:
               kd: LIT_INT
               size: 0, is_signed: 0, v: 1
-        nid: 18
+        nid: 19
         kd: ND_EXPR
         expr:
           kd: EXPR_CALL
@@ -555,7 +560,7 @@ items:
             rexpr:
               kd: EXPR_PATH
               path: p1
-    nid: 24
+    nid: 25
     kd: ND_FN
     attrs:
       kd: ATTR_NORMAL
@@ -568,7 +573,7 @@ items:
     params len: 0
     body:
       items:
-        nid: 20
+        nid: 21
         kd: ND_LET
         pat:
           kd: PAT_EXPR
@@ -596,7 +601,7 @@ items:
               lit:
                 kd: LIT_INT
                 size: 0, is_signed: 0, v: 4
-        nid: 22
+        nid: 23
         kd: ND_LET
         pat:
           kd: PAT_EXPR
@@ -626,7 +631,7 @@ items:
               is_unsafe: 0
               block:
                 items:
-                  nid: 21
+                  nid: 22
                   kd: ND_RETURN
                   expr:
                     kd: EXPR_CALL
@@ -667,7 +672,7 @@ items:
                             kd: EXPR_PATH
                             path: p
                           ident: y
-        nid: 23
+        nid: 24
         kd: ND_EXPR
         expr:
           kd: EXPR_CALL
