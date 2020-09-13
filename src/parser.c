@@ -575,8 +575,7 @@ FuPath *FuParser_parse_path(FuParser *p) {
                 if (item->ident->is_macro) {
                     ERROR(item->sp, "macro ident only allow in last path item");
                 }
-                if (FuToken_check_keyword(tok1, KW_SELF_LOWER) || FuToken_check_keyword(tok1, KW_SUPER) ||
-                    FuToken_check_keyword(tok1, KW_PKG)) {
+                if (tok1.kd == TOK_KEYWORD) {
                     ERROR1(tok1.sp, "`%s` can only be prefix", FuToken_kind_csr(tok1));
                 }
                 FuParser_bump(p);
@@ -1816,6 +1815,20 @@ static FuExpr *FuParser_parse_block_expr(FuParser *p) {
     return expr;
 }
 
+static FuExpr *FuParser_parse_prefix_macro_expr(FuParser *p, FuPath *prefix) {
+    assert(prefix->is_macro);
+    if (!FuParser_check_token_fn(p, FuToken_is_open_delim)) {
+        FuToken tok = FuParser_nth_token(p, 0);
+        FATAL1(tok.sp, "expect `(`, `[`, `{`, find: `%s`", FuToken_kind_csr(tok));
+    }
+    FuTokTree *tree = FuParser_parse_tok_tree(p);
+    FuSpan *sp = FuSpan_join(prefix->sp, tree->sp);
+    FuMacroCall *call = FuMacroCall_new(sp, FU_FALSE, prefix, tree);
+    FuExpr *expr = FuExpr_new(sp, EXPR_MACRO_CALL);
+    expr->_macro_call = call;
+    return expr;
+}
+
 static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
     FuExpr *expr;
     FuToken tok = FuParser_nth_token(p, 0);
@@ -1827,10 +1840,10 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
         expr = FuExpr_new_lit(lit);
         return expr;
     }
-    if (tok.sym == KW_SELF_LOWER || tok.sym == KW_SELF_UPPER) {
+    if (FuToken_is_ident(tok)) {
         FuPath *path = FuParser_parse_path(p);
         if (path->is_macro) {
-            FATAL(path->sp, "unimplemented macro call");
+            return FuParser_parse_prefix_macro_expr(p, path);
         } else {
             return FuExpr_new_path(NULL, path);
         }
@@ -1894,7 +1907,7 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
     case TOK_IDENT: {
         FuPath *path = FuParser_parse_path(p);
         if (path->is_macro) {
-            FATAL(path->sp, "unimplemented macro call");
+            prefix_expr = FuParser_parse_prefix_macro_expr(p, path);
         } else {
             prefix_expr = FuExpr_new_path(NULL, path);
         }

@@ -377,7 +377,6 @@ FuToken FuToken_new_lit_str(fu_token_k kd, FuSpan *sp, fu_sym_t sym, fu_size_t n
                             fu_size_t prefix_ignore, fu_bool_t terminated);
 
 fu_bool_t FuToken_is_eof(FuToken tok);
-fu_bool_t FuToken_is_keyword(FuToken tok);
 fu_bool_t FuToken_is_ident(FuToken tok);
 fu_bool_t FuToken_is_open_delim(FuToken tok);
 fu_bool_t FuToken_is_close_delim(FuToken tok);
@@ -488,6 +487,7 @@ FuPath *FuParser_parse_path(FuParser *p);
 FuBlock *FuParser_parse_block(FuParser *p);
 FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 FuPat *FuParser_parse_pat(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
+FuTokTree *FuParser_parse_tok_tree(FuParser *p);
 FuType *FuParser_parse_type(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 
 void FuParser_parse_outer_attrs(FuParser *p, FuVec *attrs);
@@ -859,10 +859,15 @@ void FuFnSig_drop(FuFnSig *sig);
 FuStr *FuFnSig_display(FuFnSig *sig);
 
 struct FuMacroCall {
+    FuSpan *sp;
     fu_bool_t is_method;
-    FuNode *path;
+    FuPath *path;
     FuTokTree *args;
 };
+
+FuMacroCall *FuMacroCall_new(FuSpan *sp, fu_bool_t is_method, FuPath *path, FuTokTree *args);
+void FuMacroCall_drop(FuMacroCall *call);
+FuStr *FuMacroCall_display(FuMacroCall *call, fu_size_t indent);
 
 struct FuGeParam {
     FuSpan *sp;

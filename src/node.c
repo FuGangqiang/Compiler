@@ -530,6 +530,37 @@ FuStr *FuFnSig_display(FuFnSig *sig) {
     return str;
 }
 
+FuMacroCall *FuMacroCall_new(FuSpan *sp, fu_bool_t is_method, FuPath *path, FuTokTree *args) {
+    FuMacroCall *call = FuMem_new(FuMacroCall);
+    call->is_method = is_method;
+    call->path = path;
+    call->args = args;
+    return call;
+}
+
+void FuMacroCall_drop(FuMacroCall *call) {
+    if (!call) {
+        return;
+    }
+    FuPath_drop(call->path);
+    FuTokTree_drop(call->args);
+    FuMem_free(call);
+}
+
+FuStr *FuMacroCall_display(FuMacroCall *call, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "is_method: %d\n", call->is_method);
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_cstr(str, "path: ");
+    FuStr_append(str, FuPath_display(call->path));
+    FuStr_push_utf8_cstr(str, "\n");
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_cstr(str, "args:\n");
+    FuStr_append(str, FuTokTree_display(call->args, indent + 1));
+    return str;
+}
+
 FuArm *FuArm_new(FuSpan *sp, fu_arm_k kd) {
     FuArm *arm = FuMem_new(FuArm);
     arm->sp = sp;
@@ -1215,6 +1246,9 @@ void FuExpr_drop(FuExpr *expr) {
     case EXPR_BLOCK:
         FuBlock_drop(expr->_block.block);
         break;
+    case EXPR_MACRO_CALL:
+        FuMacroCall_drop(expr->_macro_call);
+        break;
     default:
         FATAL1(expr->sp, "unimplemented expr: `%s`", FuKind_expr_cstr(expr->kd));
     }
@@ -1449,6 +1483,9 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "block:\n");
         FuStr_append(str, FuBlock_display(expr->_block.block, indent + 1));
+        break;
+    case EXPR_MACRO_CALL:
+        FuStr_append(str, FuMacroCall_display(expr->_macro_call, indent));
         break;
     default:
         FATAL1(expr->sp, "unimplemented expr: `%s`", FuKind_expr_cstr(expr->kd));

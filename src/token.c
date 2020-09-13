@@ -124,13 +124,6 @@ fu_bool_t FuToken_is_ident(FuToken tok) {
     return FU_FALSE;
 }
 
-fu_bool_t FuToken_is_keyword(FuToken tok) {
-    if (tok.kd == TOK_IDENT && tok.sym < _KW_LAST_UNUSED) {
-        return FU_TRUE;
-    }
-    return FU_FALSE;
-}
-
 fu_bool_t FuToken_is_open_delim(FuToken tok) {
     switch (tok.kd) {
     case TOK_OPEN_PAREN:

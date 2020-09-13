@@ -546,20 +546,19 @@ items:
         nid: 19
         kd: ND_EXPR
         expr:
-          kd: EXPR_CALL
-          fn:
-            kd: EXPR_PATH
-            path: assert
-          args len: 1
+          kd: EXPR_MACRO_CALL
+          is_method: 0
+          path: core::assert!
           args:
-            kd: EXPR_BINARY
-            op: OP_EQ
-            lexpr:
-              kd: EXPR_PATH
-              path: p0
-            rexpr:
-              kd: EXPR_PATH
-              path: p1
+            is_group: 1
+            tok tree delimiter: (
+            group tree items len: 3
+              is_group: 0
+              tree token: p0
+              is_group: 0
+              tree token: ==
+              is_group: 0
+              tree token: p1
     nid: 25
     kd: ND_FN
     attrs:
@@ -675,19 +674,16 @@ items:
         nid: 24
         kd: ND_EXPR
         expr:
-          kd: EXPR_CALL
-          fn:
-            kd: EXPR_PATH
-            path: assert
-          args len: 1
+          kd: EXPR_MACRO_CALL
+          is_method: 0
+          path: assert!
           args:
-            kd: EXPR_BINARY
-            op: OP_EQ
-            lexpr:
-              kd: EXPR_PATH
-              path: r
-            rexpr:
-              kd: EXPR_LIT
-              lit:
-                kd: LIT_INT
-                size: 0, is_signed: 0, v: 5
+            is_group: 1
+            tok tree delimiter: (
+            group tree items len: 3
+              is_group: 0
+              tree token: r
+              is_group: 0
+              tree token: ==
+              is_group: 0
+              tree token: 5
