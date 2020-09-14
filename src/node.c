@@ -1610,6 +1610,11 @@ void FuNode_drop(FuNode *nd) {
     case ND_EXTENSION:
         FuVec_drop_with_ptrs(nd->_extension.assocs, (FuDropFn)FuAssoc_drop);
         break;
+    case ND_MACRO_DEF:
+        FuIdent_drop(nd->_macro_def.ident);
+        FuVec_drop_with_ptrs(nd->_macro_def.patterns, (FuDropFn)FuTokTree_drop);
+        FuVec_drop_with_ptrs(nd->_macro_def.templates, (FuDropFn)FuTokTree_drop);
+        break;
     case ND_MOD:
         FuIdent_drop(nd->_mod.ident);
         FuVec_drop(nd->_mod.items);
@@ -2012,6 +2017,31 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         for (i = 0; i < len; i++) {
             FuAssoc *item = FuVec_get_ptr(nd->_extension.assocs, i);
             FuStr_append(str, FuAssoc_display(item, indent + 1));
+        }
+        break;
+    }
+    case ND_MACRO_DEF: {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(nd->_macro_def.vis));
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "ident:");
+        FuStr_append(str, FuIdent_display(nd->_macro_def.ident));
+        FuStr_push_utf8_cstr(str, "\n");
+        fu_size_t len = FuVec_len(nd->_macro_def.patterns);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_format(str, "patterns len: %d\n", len);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "patterns:\n");
+        fu_size_t i;
+        for (i = 0; i < len; i++) {
+            FuTokTree *item = FuVec_get_ptr(nd->_macro_def.patterns, i);
+            FuStr_append(str, FuTokTree_display(item, indent + 1));
+        }
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "templates:\n");
+        for (i = 0; i < len; i++) {
+            FuTokTree *item = FuVec_get_ptr(nd->_macro_def.templates, i);
+            FuStr_append(str, FuTokTree_display(item, indent + 1));
         }
         break;
     }

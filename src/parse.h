@@ -519,6 +519,7 @@ FuNode *FuParser_parse_item_interface(FuParser *p, FuVec *attrs, fu_vis_k vis);
 FuNode *FuParser_parse_item_extern(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_extension(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_mod(FuParser *p, FuVec *attrs);
+FuNode *FuParser_parse_item_macro(FuParser *p, FuVec *attrs);
 
 FuNode *FuParser_parse_block_item(FuParser *p);
 FuNode *FuParser_parse_mod_item(FuParser *p);
@@ -1238,8 +1239,6 @@ struct FuNode {
         struct {
             fu_vis_k vis;
             FuIdent *ident;
-            fu_bool_t is_method;
-            FuTokTree *args;
             /* FuTokTree */
             FuVec *patterns;
             /* FuTokTree */

@@ -3070,6 +3070,10 @@ FuNode *FuParser_parse_mod_item(FuParser *p) {
             item = FuParser_parse_item_mod(p, attrs);
             break;
         }
+        if (FuParser_check_item_declare(p, KW_MACRO)) {
+            item = FuParser_parse_item_macro(p, attrs);
+            break;
+        }
         FATAL1(tok.sp, "unimplement item: `%s`", FuKind_keyword_cstr(tok.sym));
         item = NULL;
         break;
@@ -3155,6 +3159,60 @@ FuNode *FuParser_parse_item_mod(FuParser *p, FuVec *attrs) {
     }
     /* can not be here */
     return NULL;
+}
+
+static void FuParser_parse_macro_pattern_template(FuParser *p, FuVec *patterns, FuVec *templates) {
+    FuTokTree *pattern = FuParser_parse_tok_tree(p);
+    if (!pattern->is_group) {
+        FATAL(pattern->sp, "macro pattern must starts with `(`, `[`, `}`");
+    }
+    FuParser_expect_token(p, TOK_FAT_ARROW);
+    FuTokTree *template = FuParser_parse_tok_tree(p);
+    if (!template->is_group || template->_group.open_tok.kd != TOK_OPEN_BRACE) {
+        FATAL(pattern->sp, "macro template must starts with `}`");
+    }
+    FuVec_push_ptr(patterns, pattern);
+    FuVec_push_ptr(templates, template);
+}
+
+FuNode *FuParser_parse_item_macro(FuParser *p, FuVec *attrs) {
+    FuSpan *lo = FuParser_current_span(p);
+    fu_vis_k vis = FuParser_parse_visibility(p, VIS_PRIV);
+    FuParser_expect_keyword(p, KW_MACRO);
+    FuIdent *ident = FuParser_parse_ident(p);
+    if (!ident->is_macro) {
+        FATAL(ident->sp, "macro ident must ends with `!`");
+    }
+    FuVec *patterns = FuVec_new(sizeof(FuTokTree *));
+    FuVec *templates = FuVec_new(sizeof(FuTokTree *));
+    FuSpan *hi;
+    if (FuParser_check_token(p, TOK_FAT_ARROW)) {
+        FuParser_expect_token(p, TOK_FAT_ARROW);
+        FuParser_expect_token(p, TOK_OPEN_BRACE);
+        while (1) {
+            FuParser_parse_macro_pattern_template(p, patterns, templates);
+            if (FuParser_check_token(p, TOK_CLOSE_BRACE)) {
+                break;
+            }
+        }
+        FuToken end_tok = FuParser_expect_token(p, TOK_CLOSE_BRACE);
+        hi = end_tok.sp;
+    } else if (FuParser_check_token_fn(p, FuToken_is_open_delim)) {
+        FuParser_parse_macro_pattern_template(p, patterns, templates);
+        FuTokTree *template = FuVec_last_ptr(templates);
+        hi = template->sp;
+    } else {
+        FuToken err_tok = FuParser_nth_token(p, 0);
+        FATAL1(err_tok.sp, "expect `(`, `[`, `{`, `=>`, find: `%s`", FuToken_kind_csr(err_tok));
+    }
+    FuSpan *sp = FuSpan_join(lo, hi);
+    FuNode *nd = FuNode_new(p->ctx, sp, ND_MACRO_DEF);
+    nd->attrs = attrs;
+    nd->_macro_def.vis = vis;
+    nd->_macro_def.ident = ident;
+    nd->_macro_def.patterns = patterns;
+    nd->_macro_def.templates = templates;
+    return nd;
 }
 
 FuNode *FuParser_parse_pkg(FuParser *p) {

@@ -1,77 +1,12 @@
-//! The Point Example Pkg
-
-use core::dbg!;
-
-/// `IAdd` interface
-interface IAdd {
-    //! two items
-
-    /// The type of output
-    type Output;
-
-    /// add method
-    fn add(self, rhs: Self) -> Self::Output;
+macro baz!($self, $a: expr) => {
+    $self + $a
 }
 
-/// Point type
-#[derive(IDebug, ICopy, ICmp)]
-pub struct Point {
-    //! (x, y)
-
-    /// x coord
-    x: int,
-    /// y coord
-    y: int,
-}
-
-extension Point {
-    /// create a new point
-    #[inline]
-    pub fn new(x: int, y: int) -> Self {
-        return Self::{x, y};
+pub macro baz! => {
+    ($self, $a: ident) => {
+        $self + $a
     }
-
-    /// get x
-    #[inline]
-    pub fn x(self) -> T {
-        return self.x;
-    }
-
-    /// get y
-    #[inline]
-    pub fn y(self) -> T {
-        return self.y;
-    }
-
-    /// map fn
-    pub fn map(self, func: Self -> int) -> int {
-        return func(self);
-    }
-
-    /// some transform
-    pub fn some_transform(self) -> Self {
-        let p = unsafe {
-            let len = self.map(||sqrt(p.x*p.x + p.y*p.y));
-            if(len > 5) {
-                break p;
-            }
-            break Self::{.x=-p.x, .y=-p.y};
-        };
-        return p;
+    [$self, $a: ident] => {
+        $self + $a
     }
 }
-
-extension Point: IAdd {
-    type Output = Self;
-
-    /// implement Point::add method
-    fn add(self, rhs: Self) -> Self {
-         return Self::{
-            .x = self.x().dbg!() + other.x(),
-            .y = self.y().core::dbg!() + other.y()
-        };
-    }
-}
-
-#[cfg(test)]
-mod test;

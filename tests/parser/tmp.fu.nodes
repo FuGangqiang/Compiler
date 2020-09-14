@@ -1,710 +1,107 @@
-nid: 28
+nid: 2
 kd: ND_PKG
-attrs:
-  kd: ATTR_DOC
-  is_outer: 0
-  doc:  The Point Example Pkg
 items:
   nid: 0
-  kd: ND_USE
+  kd: ND_MACRO_DEF
   vis: VIS_PRIV
-    kd: USE_MACRO
-    prefix: core::dbg!
+  ident:baz!
+  patterns len: 1
+  patterns:
+    is_group: 1
+    tok tree delimiter: (
+    group tree items len: 7
+      is_group: 0
+      tree token: $
+      is_group: 0
+      tree token: self
+      is_group: 0
+      tree token: ,
+      is_group: 0
+      tree token: $
+      is_group: 0
+      tree token: a
+      is_group: 0
+      tree token: :
+      is_group: 0
+      tree token: expr
+  templates:
+    is_group: 1
+    tok tree delimiter: {
+    group tree items len: 5
+      is_group: 0
+      tree token: $
+      is_group: 0
+      tree token: self
+      is_group: 0
+      tree token: +
+      is_group: 0
+      tree token: $
+      is_group: 0
+      tree token: a
   nid: 1
-  kd: ND_INTERFACE
-  attrs:
-    kd: ATTR_DOC
-    is_outer: 1
-    doc:  `IAdd` interface
-    kd: ATTR_DOC
-    is_outer: 0
-    doc:  two items
+  kd: ND_MACRO_DEF
   vis: VIS_PRIV
-  is_unsafe: 0
-  ident:IAdd
-  super len: 0
-  assoc len: 2
-    kd: ASSOC_TY_ALIAS
-    attrs:
-      kd: ATTR_DOC
-      is_outer: 1
-      doc:  The type of output
-    vis: VIS_PRIV
-    ident: Output
-    bounds len: 0
-    kd: ASSOC_FN
-    attrs:
-      kd: ATTR_DOC
-      is_outer: 1
-      doc:  add method
-    vis: VIS_PRIV
-    ident: add
-    sig: Self -> Self -> Self::Output
-    params len: 2
-      pat:
-        kd: PAT_EXPR
-        expr:
-          kd: EXPR_PATH
-          path: self
-      ty: Self
-      pat:
-        kd: PAT_EXPR
-        expr:
-          kd: EXPR_PATH
-          path: rhs
-      ty: Self
-  nid: 2
-  kd: ND_STRUCT
-    kd: VA_STRUCT
-    attrs:
-      kd: ATTR_DOC
-      is_outer: 1
-      doc:  Point type
-      kd: ATTR_NORMAL
-      is_outer: 1
-      path: derive
-      tok trees:
-        is_group: 1
-        tok tree delimiter: (
-        group tree items len: 5
-          is_group: 0
-          tree token: IDebug
-          is_group: 0
-          tree token: ,
-          is_group: 0
-          tree token: ICopy
-          is_group: 0
-          tree token: ,
-          is_group: 0
-          tree token: ICmp
-      kd: ATTR_DOC
-      is_outer: 0
-      doc:  (x, y)
-    vis: VIS_PUB
-    ident: Point
-    struct len: 2
-      attrs:
-        kd: ATTR_DOC
-        is_outer: 1
-        doc:  x coord
-      vis: VIS_PRIV
-      ident: x
-      ty: int
-      attrs:
-        kd: ATTR_DOC
-        is_outer: 1
-        doc:  y coord
-      vis: VIS_PRIV
-      ident: y
-      ty: int
-  nid: 13
-  kd: ND_EXTENSION
-  is_unsafe: 0
-  ty: Point
-  extension len: 5
-    kd: ASSOC_FN
-    attrs:
-      kd: ATTR_DOC
-      is_outer: 1
-      doc:  create a new point
-      kd: ATTR_NORMAL
-      is_outer: 1
-      path: inline
-    vis: VIS_PUB
-    ident: new
-    sig: int -> int -> Self
-    params len: 2
-      pat:
-        kd: PAT_EXPR
-        expr:
-          kd: EXPR_PATH
-          path: x
-      ty: int
-      pat:
-        kd: PAT_EXPR
-        expr:
-          kd: EXPR_PATH
-          path: y
-      ty: int
-    body:
-      items:
-        nid: 3
-        kd: ND_RETURN
-        expr:
-          kd: EXPR_STRUCT
-          base:
-            kd: EXPR_PATH
-            path: Self
-          field inits len: 2
-          field inits:
-            kd: FLD_EXPR
-            expr:
-              kd: EXPR_PATH
-              path: x
-            kd: FLD_EXPR
-            expr:
-              kd: EXPR_PATH
-              path: y
-    kd: ASSOC_FN
-    attrs:
-      kd: ATTR_DOC
-      is_outer: 1
-      doc:  get x
-      kd: ATTR_NORMAL
-      is_outer: 1
-      path: inline
-    vis: VIS_PUB
-    ident: x
-    sig: Self -> T
-    params len: 1
-      pat:
-        kd: PAT_EXPR
-        expr:
-          kd: EXPR_PATH
-          path: self
-      ty: Self
-    body:
-      items:
-        nid: 4
-        kd: ND_RETURN
-        expr:
-          kd: EXPR_FIELD
-          base:
-            kd: EXPR_PATH
-            path: self
-          ident: x
-    kd: ASSOC_FN
-    attrs:
-      kd: ATTR_DOC
-      is_outer: 1
-      doc:  get y
-      kd: ATTR_NORMAL
-      is_outer: 1
-      path: inline
-    vis: VIS_PUB
-    ident: y
-    sig: Self -> T
-    params len: 1
-      pat:
-        kd: PAT_EXPR
-        expr:
-          kd: EXPR_PATH
-          path: self
-      ty: Self
-    body:
-      items:
-        nid: 5
-        kd: ND_RETURN
-        expr:
-          kd: EXPR_FIELD
-          base:
-            kd: EXPR_PATH
-            path: self
-          ident: y
-    kd: ASSOC_FN
-    attrs:
-      kd: ATTR_DOC
-      is_outer: 1
-      doc:  map fn
-    vis: VIS_PUB
-    ident: map
-    sig: Self -> (Self -> int) -> int
-    params len: 2
-      pat:
-        kd: PAT_EXPR
-        expr:
-          kd: EXPR_PATH
-          path: self
-      ty: Self
-      pat:
-        kd: PAT_EXPR
-        expr:
-          kd: EXPR_PATH
-          path: func
-      ty: Self -> int
-    body:
-      items:
-        nid: 6
-        kd: ND_RETURN
-        expr:
-          kd: EXPR_CALL
-          fn:
-            kd: EXPR_PATH
-            path: func
-          args len: 1
-          args:
-            kd: EXPR_PATH
-            path: self
-    kd: ASSOC_FN
-    attrs:
-      kd: ATTR_DOC
-      is_outer: 1
-      doc:  some transform
-    vis: VIS_PUB
-    ident: some_transform
-    sig: Self -> Self
-    params len: 1
-      pat:
-        kd: PAT_EXPR
-        expr:
-          kd: EXPR_PATH
-          path: self
-      ty: Self
-    body:
-      items:
-        nid: 11
-        kd: ND_LET
-        pat:
-          kd: PAT_EXPR
-          expr:
-            kd: EXPR_PATH
-            path: p
-        init:
-          kd: EXPR_BLOCK
-          is_async: 0
-          is_unsafe: 1
-          block:
-            items:
-              nid: 7
-              kd: ND_LET
-              pat:
-                kd: PAT_EXPR
-                expr:
-                  kd: EXPR_PATH
-                  path: len
-              init:
-                kd: EXPR_METHOD_CALL
-                method: map
-                args len: 2
-                args:
-                  kd: EXPR_PATH
-                  path: self
-                  kd: EXPR_CLOSURE
-                  is_async: 0
-                  is_unsafe: 0
-                  params:
-                  body:
-                    kd: EXPR_CALL
-                    fn:
-                      kd: EXPR_PATH
-                      path: sqrt
-                    args len: 1
-                    args:
-                      kd: EXPR_BINARY
-                      op: OP_ADD
-                      lexpr:
-                        kd: EXPR_BINARY
-                        op: OP_MUL
-                        lexpr:
-                          kd: EXPR_FIELD
-                          base:
-                            kd: EXPR_PATH
-                            path: p
-                          ident: x
-                        rexpr:
-                          kd: EXPR_FIELD
-                          base:
-                            kd: EXPR_PATH
-                            path: p
-                          ident: x
-                      rexpr:
-                        kd: EXPR_BINARY
-                        op: OP_MUL
-                        lexpr:
-                          kd: EXPR_FIELD
-                          base:
-                            kd: EXPR_PATH
-                            path: p
-                          ident: y
-                        rexpr:
-                          kd: EXPR_FIELD
-                          base:
-                            kd: EXPR_PATH
-                            path: p
-                          ident: y
-              nid: 9
-              kd: ND_IF
-              cond:
-                kd: EXPR_BINARY
-                op: OP_GT
-                lexpr:
-                  kd: EXPR_PATH
-                  path: len
-                rexpr:
-                  kd: EXPR_LIT
-                  lit:
-                    kd: LIT_INT
-                    size: 0, is_signed: 0, v: 5
-              block:
-                items:
-                  nid: 8
-                  kd: ND_BREAK
-                  expr:
-                    kd: EXPR_PATH
-                    path: p
-              nid: 10
-              kd: ND_BREAK
-              expr:
-                kd: EXPR_STRUCT
-                base:
-                  kd: EXPR_PATH
-                  path: Self
-                field inits len: 2
-                field inits:
-                  kd: FLD_NAME
-                  name: x
-                  init:
-                    kd: EXPR_UNARY
-                    op: OP_NEG
-                    expr:
-                      kd: EXPR_FIELD
-                      base:
-                        kd: EXPR_PATH
-                        path: p
-                      ident: x
-                  kd: FLD_NAME
-                  name: y
-                  init:
-                    kd: EXPR_UNARY
-                    op: OP_NEG
-                    expr:
-                      kd: EXPR_FIELD
-                      base:
-                        kd: EXPR_PATH
-                        path: p
-                      ident: y
-        nid: 12
-        kd: ND_RETURN
-        expr:
-          kd: EXPR_PATH
-          path: p
-  nid: 15
-  kd: ND_EXTENSION
-  is_unsafe: 0
-  ty: Point
-  interface: IAdd
-  extension len: 2
-    kd: ASSOC_TY_ALIAS
-    vis: VIS_PRIV
-    ident: Output
-    bounds len: 0
-    ty: Self
-    kd: ASSOC_FN
-    attrs:
-      kd: ATTR_DOC
-      is_outer: 1
-      doc:  implement Point::add method
-    vis: VIS_PRIV
-    ident: add
-    sig: Self -> Self -> Self
-    params len: 2
-      pat:
-        kd: PAT_EXPR
-        expr:
-          kd: EXPR_PATH
-          path: self
-      ty: Self
-      pat:
-        kd: PAT_EXPR
-        expr:
-          kd: EXPR_PATH
-          path: rhs
-      ty: Self
-    body:
-      items:
-        nid: 14
-        kd: ND_RETURN
-        expr:
-          kd: EXPR_STRUCT
-          base:
-            kd: EXPR_PATH
-            path: Self
-          field inits len: 2
-          field inits:
-            kd: FLD_NAME
-            name: x
-            init:
-              kd: EXPR_BINARY
-              op: OP_ADD
-              lexpr:
-                kd: EXPR_MACRO_CALL
-                is_method: 1
-                path: dbg!
-                left:
-                  kd: EXPR_METHOD_CALL
-                  method: x
-                  args len: 1
-                  args:
-                    kd: EXPR_PATH
-                    path: self
-                args:
-                  is_group: 1
-                  tok tree delimiter: (
-                  group tree items len: 0
-              rexpr:
-                kd: EXPR_METHOD_CALL
-                method: x
-                args len: 1
-                args:
-                  kd: EXPR_PATH
-                  path: other
-            kd: FLD_NAME
-            name: y
-            init:
-              kd: EXPR_BINARY
-              op: OP_ADD
-              lexpr:
-                kd: EXPR_MACRO_CALL
-                is_method: 1
-                path: core::dbg!
-                left:
-                  kd: EXPR_METHOD_CALL
-                  method: y
-                  args len: 1
-                  args:
-                    kd: EXPR_PATH
-                    path: self
-                args:
-                  is_group: 1
-                  tok tree delimiter: (
-                  group tree items len: 0
-              rexpr:
-                kd: EXPR_METHOD_CALL
-                method: y
-                args len: 1
-                args:
-                  kd: EXPR_PATH
-                  path: other
-  nid: 27
-  kd: ND_MOD
-  attrs:
-    kd: ATTR_NORMAL
-    is_outer: 1
-    path: cfg
-    tok trees:
-      is_group: 1
-      tok tree delimiter: (
-      group tree items len: 1
-        is_group: 0
-        tree token: test
-  vis: VIS_PRIV
-  ident:test
-  is_inline: 0
-  items len: 4
-    nid: 16
-    kd: ND_USE
-    vis: VIS_PRIV
-      kd: USE_MACRO
-      prefix: core::assert!
-    nid: 17
-    kd: ND_USE
-    vis: VIS_PRIV
-      kd: USE_GLOB
-      prefix: super
-    nid: 21
-    kd: ND_FN
-    attrs:
-      kd: ATTR_NORMAL
-      is_outer: 1
-      path: test
-    vis: VIS_PRIV
-    ident: new
-    vis: VIS_PRIV
-    sig: nil -> nil
-    params len: 0
-    body:
-      items:
-        nid: 18
-        kd: ND_LET
-        pat:
-          kd: PAT_EXPR
-          expr:
-            kd: EXPR_PATH
-            path: p0
-        init:
-          kd: EXPR_STRUCT
-          base:
-            kd: EXPR_PATH
-            path: Point
-          field inits len: 2
-          field inits:
-            kd: FLD_NAME
-            name: x
-            init:
-              kd: EXPR_LIT
-              lit:
-                kd: LIT_INT
-                size: 0, is_signed: 0, v: 0
-            kd: FLD_NAME
-            name: y
-            init:
-              kd: EXPR_LIT
-              lit:
-                kd: LIT_INT
-                size: 0, is_signed: 0, v: 1
-        nid: 19
-        kd: ND_LET
-        pat:
-          kd: PAT_EXPR
-          expr:
-            kd: EXPR_PATH
-            path: p1
-        init:
-          kd: EXPR_CALL
-          fn:
-            kd: EXPR_PATH
-            path: Point::new
-          args len: 2
-          args:
-            kd: EXPR_LIT
-            lit:
-              kd: LIT_INT
-              size: 0, is_signed: 0, v: 0
-            kd: EXPR_LIT
-            lit:
-              kd: LIT_INT
-              size: 0, is_signed: 0, v: 1
-        nid: 20
-        kd: ND_EXPR
-        expr:
-          kd: EXPR_MACRO_CALL
-          is_method: 0
-          path: core::assert!
-          args:
-            is_group: 1
-            tok tree delimiter: (
-            group tree items len: 3
-              is_group: 0
-              tree token: p0
-              is_group: 0
-              tree token: ==
-              is_group: 0
-              tree token: p1
-    nid: 26
-    kd: ND_FN
-    attrs:
-      kd: ATTR_NORMAL
-      is_outer: 1
-      path: test
-    vis: VIS_PRIV
-    ident: map
-    vis: VIS_PRIV
-    sig: nil -> nil
-    params len: 0
-    body:
-      items:
-        nid: 22
-        kd: ND_LET
-        pat:
-          kd: PAT_EXPR
-          expr:
-            kd: EXPR_PATH
-            path: p0
-        init:
-          kd: EXPR_STRUCT
-          base:
-            kd: EXPR_PATH
-            path: Point
-          field inits len: 2
-          field inits:
-            kd: FLD_NAME
-            name: x
-            init:
-              kd: EXPR_LIT
-              lit:
-                kd: LIT_INT
-                size: 0, is_signed: 0, v: 3
-            kd: FLD_NAME
-            name: y
-            init:
-              kd: EXPR_LIT
-              lit:
-                kd: LIT_INT
-                size: 0, is_signed: 0, v: 4
-        nid: 24
-        kd: ND_LET
-        pat:
-          kd: PAT_EXPR
-          expr:
-            kd: EXPR_PATH
-            path: r
-        init:
-          kd: EXPR_METHOD_CALL
-          method: map
-          args len: 2
-          args:
-            kd: EXPR_PATH
-            path: p0
-            kd: EXPR_CLOSURE
-            is_async: 0
-            is_unsafe: 0
-            params:
-              pat:
-                kd: PAT_EXPR
-                expr:
-                  kd: EXPR_PATH
-                  path: p
-              ty: _
-            body:
-              kd: EXPR_BLOCK
-              is_async: 0
-              is_unsafe: 0
-              block:
-                items:
-                  nid: 23
-                  kd: ND_RETURN
-                  expr:
-                    kd: EXPR_CALL
-                    fn:
-                      kd: EXPR_PATH
-                      path: sqrt
-                    args len: 1
-                    args:
-                      kd: EXPR_BINARY
-                      op: OP_ADD
-                      lexpr:
-                        kd: EXPR_BINARY
-                        op: OP_MUL
-                        lexpr:
-                          kd: EXPR_FIELD
-                          base:
-                            kd: EXPR_PATH
-                            path: p
-                          ident: x
-                        rexpr:
-                          kd: EXPR_FIELD
-                          base:
-                            kd: EXPR_PATH
-                            path: p
-                          ident: x
-                      rexpr:
-                        kd: EXPR_BINARY
-                        op: OP_MUL
-                        lexpr:
-                          kd: EXPR_FIELD
-                          base:
-                            kd: EXPR_PATH
-                            path: p
-                          ident: y
-                        rexpr:
-                          kd: EXPR_FIELD
-                          base:
-                            kd: EXPR_PATH
-                            path: p
-                          ident: y
-        nid: 25
-        kd: ND_EXPR
-        expr:
-          kd: EXPR_MACRO_CALL
-          is_method: 0
-          path: assert!
-          args:
-            is_group: 1
-            tok tree delimiter: (
-            group tree items len: 3
-              is_group: 0
-              tree token: r
-              is_group: 0
-              tree token: ==
-              is_group: 0
-              tree token: 5
+  ident:baz!
+  patterns len: 2
+  patterns:
+    is_group: 1
+    tok tree delimiter: (
+    group tree items len: 7
+      is_group: 0
+      tree token: $
+      is_group: 0
+      tree token: self
+      is_group: 0
+      tree token: ,
+      is_group: 0
+      tree token: $
+      is_group: 0
+      tree token: a
+      is_group: 0
+      tree token: :
+      is_group: 0
+      tree token: ident
+    is_group: 1
+    tok tree delimiter: [
+    group tree items len: 7
+      is_group: 0
+      tree token: $
+      is_group: 0
+      tree token: self
+      is_group: 0
+      tree token: ,
+      is_group: 0
+      tree token: $
+      is_group: 0
+      tree token: a
+      is_group: 0
+      tree token: :
+      is_group: 0
+      tree token: ident
+  templates:
+    is_group: 1
+    tok tree delimiter: {
+    group tree items len: 5
+      is_group: 0
+      tree token: $
+      is_group: 0
+      tree token: self
+      is_group: 0
+      tree token: +
+      is_group: 0
+      tree token: $
+      is_group: 0
+      tree token: a
+    is_group: 1
+    tok tree delimiter: {
+    group tree items len: 5
+      is_group: 0
+      tree token: $
+      is_group: 0
+      tree token: self
+      is_group: 0
+      tree token: +
+      is_group: 0
+      tree token: $
+      is_group: 0
+      tree token: a
