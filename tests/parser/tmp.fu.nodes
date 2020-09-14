@@ -40,7 +40,7 @@ items:
       tree token: a
   nid: 1
   kd: ND_MACRO_DEF
-  vis: VIS_PRIV
+  vis: VIS_PUB
   ident:baz!
   patterns len: 2
   patterns:
