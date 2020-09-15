@@ -1,12 +1,10 @@
-macro baz!($self, $a: expr) => {
-    $self + $a
-}
-
 pub macro baz! => {
     ($self, $a: ident) => {
         $self + $a
     }
-    [$self, $a: ident] => {
-        $self + $a
+    [$a: ident] => {
+        $a + 1
     }
 }
+
+baz![abc];

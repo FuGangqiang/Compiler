@@ -519,10 +519,11 @@ FuNode *FuParser_parse_item_interface(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_extern(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_extension(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_mod(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_macro(FuParser *p, FuVec *attrs);
+FuNode *FuParser_parse_item_macro_def(FuParser *p, FuVec *attrs);
+FuNode *FuParser_parse_item_macro_call(FuParser *p, FuVec *attrs);
 
-FuNode *FuParser_parse_block_item(FuParser *p);
 FuNode *FuParser_parse_mod_item(FuParser *p);
+FuNode *FuParser_parse_block_item(FuParser *p);
 FuNode *FuParser_parse_extern_item(FuParser *p);
 FuAssoc *FuParser_parse_assoc(FuParser *p);
 
@@ -688,7 +689,7 @@ FuStr *FuPathItem_display(FuPathItem *item);
 /* `std::vec::Vec#<T>` */
 struct FuPath {
     FuSpan *sp;
-    fu_size_t is_macro;
+    fu_bool_t is_macro;
     /* FuPathItem */
     FuVec *segments;
 };

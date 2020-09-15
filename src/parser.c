@@ -3064,7 +3064,10 @@ FuNode *FuParser_parse_mod_item(FuParser *p) {
         return FuParser_parse_item_mod(p, attrs);
     }
     if (FuParser_check_item_declare(p, KW_MACRO)) {
-        return FuParser_parse_item_macro(p, attrs);
+        return FuParser_parse_item_macro_def(p, attrs);
+    }
+    if (FuParser_check_token_fn(p, FuToken_is_ident)) {
+        return FuParser_parse_item_macro_call(p, attrs);
     }
     FuToken tok = FuParser_nth_token(p, 0);
     FATAL1(tok.sp, "expect item prefix keyword, find `%s`", FuToken_kind_csr(tok));
@@ -3164,7 +3167,7 @@ static void FuParser_parse_macro_pattern_template(FuParser *p, FuVec *patterns, 
     FuVec_push_ptr(templates, template);
 }
 
-FuNode *FuParser_parse_item_macro(FuParser *p, FuVec *attrs) {
+FuNode *FuParser_parse_item_macro_def(FuParser *p, FuVec *attrs) {
     FuSpan *lo = FuParser_current_span(p);
     fu_vis_k vis = FuParser_parse_visibility(p, VIS_PRIV);
     FuParser_expect_keyword(p, KW_MACRO);
@@ -3201,6 +3204,27 @@ FuNode *FuParser_parse_item_macro(FuParser *p, FuVec *attrs) {
     nd->_macro_def.ident = ident;
     nd->_macro_def.patterns = patterns;
     nd->_macro_def.templates = templates;
+    return nd;
+}
+
+FuNode *FuParser_parse_item_macro_call(FuParser *p, FuVec *attrs) {
+    FuPath *path = FuParser_parse_path(p);
+    if (!path->is_macro) {
+        FATAL(path->sp, "expect a macro path");
+    }
+    if (!FuParser_check_token_fn(p, FuToken_is_open_delim)) {
+        FuToken err_tok = FuParser_nth_token(p, 0);
+        FATAL1(err_tok.sp, "expect `(`, `[`, `{`, find: `%s`", FuToken_kind_csr(err_tok));
+    }
+    FuTokTree *tree = FuParser_parse_tok_tree(p);
+    FuToken end_tok = FuParser_expect_token(p, TOK_SEMI);
+    FuSpan *sp = FuSpan_join(path->sp, end_tok.sp);
+    FuMacroCall *call = FuMacroCall_new(sp, FU_FALSE, path);
+    call->left = NULL;
+    call->args = tree;
+    FuNode *nd = FuNode_new(p->ctx, sp, ND_MACRO_CALL);
+    nd->attrs = attrs;
+    nd->_macro_call = call;
     return nd;
 }
 

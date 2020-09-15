@@ -541,8 +541,8 @@ void FuMacroCall_drop(FuMacroCall *call) {
     if (!call) {
         return;
     }
-    FuExpr_drop(call->left);
     FuPath_drop(call->path);
+    FuExpr_drop(call->left);
     FuTokTree_drop(call->args);
     FuMem_free(call);
 }
@@ -1615,6 +1615,9 @@ void FuNode_drop(FuNode *nd) {
         FuVec_drop_with_ptrs(nd->_macro_def.patterns, (FuDropFn)FuTokTree_drop);
         FuVec_drop_with_ptrs(nd->_macro_def.templates, (FuDropFn)FuTokTree_drop);
         break;
+    case ND_MACRO_CALL:
+        FuMacroCall_drop(nd->_macro_call);
+        break;
     case ND_MOD:
         FuIdent_drop(nd->_mod.ident);
         FuVec_drop(nd->_mod.items);
@@ -2045,6 +2048,9 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         }
         break;
     }
+    case ND_MACRO_CALL:
+        FuStr_append(str, FuMacroCall_display(nd->_macro_call, indent));
+        break;
     case ND_MOD: {
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(nd->_mod.vis));
