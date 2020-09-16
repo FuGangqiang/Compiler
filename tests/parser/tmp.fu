@@ -7,4 +7,4 @@ pub macro baz! => {
     }
 }
 
-baz![abc];
+baz![abc>=];

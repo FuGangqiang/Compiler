@@ -3,43 +3,6 @@ kd: ND_PKG
 items:
   nid: 0
   kd: ND_MACRO_DEF
-  vis: VIS_PRIV
-  ident:baz!
-  patterns len: 1
-  patterns:
-    is_group: 1
-    tok tree delimiter: (
-    group tree items len: 7
-      is_group: 0
-      tree token: $
-      is_group: 0
-      tree token: self
-      is_group: 0
-      tree token: ,
-      is_group: 0
-      tree token: $
-      is_group: 0
-      tree token: a
-      is_group: 0
-      tree token: :
-      is_group: 0
-      tree token: expr
-  templates:
-    is_group: 1
-    tok tree delimiter: {
-    group tree items len: 5
-      is_group: 0
-      tree token: $
-      is_group: 0
-      tree token: self
-      is_group: 0
-      tree token: +
-      is_group: 0
-      tree token: $
-      is_group: 0
-      tree token: a
-  nid: 1
-  kd: ND_MACRO_DEF
   vis: VIS_PUB
   ident:baz!
   patterns len: 2
@@ -63,13 +26,7 @@ items:
       tree token: ident
     is_group: 1
     tok tree delimiter: [
-    group tree items len: 7
-      is_group: 0
-      tree token: $
-      is_group: 0
-      tree token: self
-      is_group: 0
-      tree token: ,
+    group tree items len: 4
       is_group: 0
       tree token: $
       is_group: 0
@@ -94,14 +51,26 @@ items:
       tree token: a
     is_group: 1
     tok tree delimiter: {
-    group tree items len: 5
-      is_group: 0
-      tree token: $
-      is_group: 0
-      tree token: self
-      is_group: 0
-      tree token: +
+    group tree items len: 4
       is_group: 0
       tree token: $
       is_group: 0
       tree token: a
+      is_group: 0
+      tree token: +
+      is_group: 0
+      tree token: 1
+  nid: 1
+  kd: ND_MACRO_CALL
+  is_method: 0
+  path: baz!
+  args:
+    is_group: 1
+    tok tree delimiter: [
+    group tree items len: 3
+      is_group: 0
+      tree token: abc
+      is_group: 0
+      tree token: >
+      is_group: 0
+      tree token: =

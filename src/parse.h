@@ -485,9 +485,9 @@ FuIdent *FuParser_parse_ident(FuParser *p);
 FuLabel *FuParser_parse_label(FuParser *p);
 FuPath *FuParser_parse_path(FuParser *p);
 FuBlock *FuParser_parse_block(FuParser *p);
+FuTokTree *FuParser_parse_tok_tree(FuParser *p);
 FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 FuPat *FuParser_parse_pat(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
-FuTokTree *FuParser_parse_tok_tree(FuParser *p);
 FuType *FuParser_parse_type(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 
 void FuParser_parse_outer_attrs(FuParser *p, FuVec *attrs);

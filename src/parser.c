@@ -74,22 +74,14 @@ static FuToken FuParser_get_token(FuParser *p) {
     FuSpan *sp;
 
     tok0 = FuLexer_get_token(p->lexer);
+    while (FuToken_is_blank(tok0)) {
+        tok0 = FuLexer_get_token(p->lexer);
+    }
     if (p->in_tok_tree) {
         return tok0;
     }
 
     switch (tok0.kd) {
-    case TOK_NEWLINE:
-    case TOK_WHITESPACE:
-    case TOK_COMMENT: {
-        /* ignore comment, blank */
-        do {
-            tok0 = FuLexer_get_token(p->lexer);
-        } while (FuToken_is_blank(tok0));
-        FuLexer_unget_token(p->lexer, tok0);
-        return FuParser_get_token(p);
-        break;
-    }
     case TOK_RAW_IDENT: {
         tok1 = FuLexer_get_token(p->lexer);
         if (tok1.kd == TOK_NOT) {
@@ -1991,6 +1983,8 @@ static fu_bool_t FuParser_check_item_declare(FuParser *p, fu_keyword_k kd) {
 };
 
 FuTokTree *FuParser_parse_tok_tree(FuParser *p) {
+    fu_bool_t old_in_tok_tree = p->in_tok_tree;
+    p->in_tok_tree = FU_TRUE;
     FuToken tok = FuParser_nth_token(p, 0);
     if (FuToken_is_close_delim(tok)) {
         FATAL1(tok.sp, "unblance tok tree group delimiter: `%s`", FuToken_kind_csr(tok));
@@ -2019,6 +2013,7 @@ FuTokTree *FuParser_parse_tok_tree(FuParser *p) {
     tree->_group.open_tok = open_tok;
     tree->_group.close_tok = close_tok;
     tree->_group.trees = trees;
+    p->in_tok_tree = old_in_tok_tree;
     return tree;
 }
 
