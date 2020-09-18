@@ -12,20 +12,21 @@ int main(int argc, char **argv) {
     }
 
     FuStr *fpath = FuStr_abs_path(argv[1]);
-    FuStr *pkg_dir = FuStr_path_dir(fpath);
-    FuCtx *ctx = FuCtx_new(pkg_dir);
-    FuCtx_init(ctx);
+    FuStr *dir = FuStr_path_dir(fpath);
+    FuPkg *pkg = FuPkg_new(dir);
+    FuPkg_init(pkg);
 
-    FuParser *p = FuParser_new(ctx);
+    FuParser *p = FuParser_new(pkg);
     p->cur_dir = FuStr_path_dir(fpath);
     FuParser_for_file(p, fpath);
 
-    FuNode *pkg = FuParser_parse_pkg(p);
-    FuStr *dump = FuNode_display(pkg, 0);
+    FuParser_parse_pkg(p);
+
+    FuStr *dump = FuPkg_display(pkg, 0);
     FuStr_print(stdout, dump);
 
     FuStr_drop(dump);
     FuParser_drop(p);
-    FuCtx_drop(ctx);
+    FuPkg_drop(pkg);
     return 0;
 }

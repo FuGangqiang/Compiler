@@ -2,6 +2,14 @@
 #include "log.h"
 #include "parse.h"
 
+fu_bool_t FuId_eq(fu_id_t *id1, fu_id_t *id2) {
+    return *id1 == *id2;
+}
+
+fu_size_t FuId_hash(fu_id_t *id) {
+    return hash_bytes((fu_uint8_t *)id, sizeof(fu_id_t));
+}
+
 static void FuStr_push_indent(FuStr *str, fu_size_t n) {
     fu_size_t i;
     for (i = 0; i < n * DUMP_INDENT_WIDTH; i++) {
@@ -16,10 +24,10 @@ FuIdent *FuIdent_new(FuSpan *sp, fu_sym_t name) {
     return ident;
 }
 
-FuIdent *FuIdent_from_idx(FuCtx *ctx, FuSpan *sp, fu_size_t i) {
+FuIdent *FuIdent_from_idx(FuPkg *pkg, FuSpan *sp, fu_size_t i) {
     FuStr *symbol = FuStr_new();
     FuStr_push_utf8_format(symbol, "%d", i);
-    fu_sym_t sym = FuCtx_intern_symbol(ctx, symbol);
+    fu_sym_t sym = FuPkg_intern_symbol(pkg, symbol);
     FuIdent *ident = FuIdent_new(NULL, sym);
     ident->sp = sp;
     return ident;
@@ -33,7 +41,7 @@ void FuIdent_drop(FuIdent *ident) {
 }
 
 FuStr *FuIdent_display(FuIdent *ident) {
-    FuStr *str = FuCtx_get_symbol(ident->sp->ctx, ident->name);
+    FuStr *str = FuPkg_get_symbol(ident->sp->pkg, ident->name);
     return FuStr_clone(str);
 }
 
@@ -52,7 +60,7 @@ void FuLabel_drop(FuLabel *label) {
 }
 
 FuStr *FuLabel_display(FuLabel *label) {
-    FuStr *str = FuCtx_get_symbol(label->sp->ctx, label->name);
+    FuStr *str = FuPkg_get_symbol(label->sp->pkg, label->name);
     return FuStr_clone(str);
 }
 
@@ -481,7 +489,7 @@ FuFnSig *FuFnSig_new(FuGeneric *ge, FuVec *tys) {
     return sig;
 }
 
-FuFnSig *FuFnSig_from_params(FuCtx *ctx, FuGeneric *ge, FuVec *params, FuType *return_ty) {
+FuFnSig *FuFnSig_from_params(FuPkg *pkg, FuGeneric *ge, FuVec *params, FuType *return_ty) {
     FuVec *sig_tys = FuVec_new(sizeof(FuType *));
     fu_size_t len = FuVec_len(params);
     fu_size_t i;
@@ -490,7 +498,7 @@ FuFnSig *FuFnSig_from_params(FuCtx *ctx, FuGeneric *ge, FuVec *params, FuType *r
         FuVec_push_ptr(sig_tys, param->ty);
     }
     if (len == 0) {
-        FuVec_push_ptr(sig_tys, FuType_from_keyword(ctx, NULL, KW_NIL));
+        FuVec_push_ptr(sig_tys, FuType_from_keyword(pkg, NULL, KW_NIL));
     }
     FuVec_push_ptr(sig_tys, return_ty);
     FuFnSig *sig = FuMem_new(FuFnSig);
@@ -1498,12 +1506,12 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
     return str;
 }
 
-FuNode *FuNode_new(FuCtx *ctx, FuSpan *sp, fu_node_k kind) {
+FuNode *FuNode_new(FuPkg *pkg, FuSpan *sp, fu_node_k kind) {
     FuNode *node = FuMem_new(FuNode);
     node->sp = sp;
     node->kd = kind;
-    node->nid = FuVec_len(ctx->nodes);
-    FuVec_push_ptr(ctx->nodes, node);
+    node->nid = FuVec_len(pkg->nodes);
+    FuVec_push_ptr(pkg->nodes, node);
     return node;
 }
 
@@ -1622,13 +1630,6 @@ void FuNode_drop(FuNode *nd) {
         FuIdent_drop(nd->_mod.ident);
         FuVec_drop(nd->_mod.items);
         break;
-    case ND_PKG:
-        FuScope_drop(nd->_pkg.globals);
-        FuScope_drop(nd->_pkg.builtins);
-        FuVec_drop_with_ptrs(nd->_pkg.extern_pkgs, (FuDropFn)FuNode_drop);
-        /* node ptr is drop in the context */
-        FuVec_drop(nd->_pkg.items);
-        break;
     default:
         FATAL1(NULL, "unimplemented node: `%s`", FuKind_node_cstr(nd->kd));
     }
@@ -1636,20 +1637,9 @@ void FuNode_drop(FuNode *nd) {
     FuMem_free(nd);
 }
 
-FuNode *FuNode_new_expr(FuCtx *ctx, FuExpr *expr) {
-    FuNode *nd = FuNode_new(ctx, expr->sp, ND_EXPR);
+FuNode *FuNode_new_expr(FuPkg *pkg, FuExpr *expr) {
+    FuNode *nd = FuNode_new(pkg, expr->sp, ND_EXPR);
     nd->_expr.expr = expr;
-    return nd;
-}
-
-FuNode *FuNode_new_pkg(FuCtx *ctx, FuSpan *sp) {
-    FuNode *nd = FuNode_new(ctx, sp, ND_PKG);
-    FuScope *builtins = FuScope_new(ctx, NULL, 0);
-    FuScope *globals = FuScope_new(ctx, builtins, 0);
-    nd->_pkg.builtins = builtins;
-    nd->_pkg.globals = globals;
-    nd->_pkg.extern_pkgs = FuVec_new(sizeof(FuNode *));
-    FuType_init_pkg_builtins(ctx, nd);
     return nd;
 }
 
@@ -2070,14 +2060,159 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         }
         break;
     }
-    case ND_PKG:
-        FuStr_push_indent(str, indent);
-        FuStr_push_utf8_cstr(str, "items:\n");
-        FuStr_append(str, FuNode_display_items(nd->_pkg.items, indent + 1));
-        break;
     default:
         FATAL1(NULL, "unimplemented node: `%s`", FuKind_node_cstr(nd->kd));
         break;
     }
     return str;
+}
+
+FuPkg *FuPkg_new(FuStr *dir) {
+    FuPkg *pkg = FuMem_new(FuPkg);
+    pkg->dir = dir;
+    pkg->symbols = FuSet_with_capacity(1024, sizeof(FuStr *), (FuEqFn)FuStr_eq, (FuHashFn)FuStr_hash);
+    pkg->fmap = FuMap_new(sizeof(fu_sym_t), sizeof(fu_size_t), (FuEqFn)FuId_eq, (FuHashFn)FuId_hash);
+    pkg->fcontents = FuVec_new(sizeof(FuStr *));
+    pkg->spans = FuVec_new(sizeof(FuSpan *));
+    pkg->nodes = FuVec_new(sizeof(FuNode *));
+    pkg->types = FuVec_new(sizeof(FuType *));
+
+    FuScope *builtins = FuScope_new(pkg, NULL, 0);
+    FuScope *globals = FuScope_new(pkg, builtins, 0);
+    pkg->builtins = builtins;
+    pkg->globals = globals;
+    pkg->extern_pkgs = FuVec_new(sizeof(FuNode *));
+    return pkg;
+}
+
+void FuPkg_drop(FuPkg *pkg) {
+    if (!pkg) {
+        return;
+    }
+
+    FuVec_drop_with_ptrs(pkg->types, (FuDropFn)FuType_drop);
+    FuVec_drop_with_ptrs(pkg->nodes, (FuDropFn)FuNode_drop);
+    FuVec_drop_with_ptrs(pkg->spans, (FuDropFn)FuSpan_drop);
+    FuVec_drop_with_ptrs(pkg->fcontents, (FuDropFn)FuStr_drop);
+    FuMap_drop(pkg->fmap);
+    FuSet_drop_with_ptrs(pkg->symbols, (FuDropFn)FuStr_drop);
+
+    FuScope_drop(pkg->globals);
+    FuScope_drop(pkg->builtins);
+    FuVec_drop_with_ptrs(pkg->extern_pkgs, (FuDropFn)FuPkg_drop);
+
+    /* node ptr is drop in the context */
+    FuVec_drop(pkg->items);
+    FuVec_drop_with_ptrs(pkg->attrs, (FuDropFn)FuAttr_drop);
+
+    FuStr_drop(pkg->dir);
+
+    FuMem_free(pkg);
+}
+
+FuStr *FuPkg_display(FuPkg *pkg, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_cstr(str, "pkg: ");
+    FuStr_append(str, FuStr_clone(FuPkg_get_symbol(pkg, pkg->name)));
+    FuStr_push_utf8_cstr(str, "\n");
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_cstr(str, "items:\n");
+    FuStr_append(str, FuNode_display_items(pkg->items, indent + 1));
+    return str;
+}
+
+static void FuPkg_init_builtin_types(FuPkg *pkg) {
+    fu_sym_t sym;
+    fu_tid_t tid;
+    FuType *ty;
+
+    /* create init tids */
+    if (!FuVec_len(pkg->types)) {
+        /* clang-format off */
+#define TYPE(kd, name)                      \
+        if(kd <= TY_ERR) {                  \
+            ty = FuType_new(pkg, NULL, kd); \
+            ty->vis = VIS_BUILTIN;          \
+        }
+        #include "type.def"
+        /* clang-format on */
+#undef TYPE
+    }
+
+/* insert builtins */
+/* clang-format off */
+#define TYPE(kd, name)                                             \
+        if(kd <= TY_VA_LIST) {                                     \
+            tid = kd;                                              \
+            sym = FuKind_type_to_sym(pkg, kd);                     \
+            FuMap_set(pkg->builtins->types, &sym, &tid, NULL); \
+        }
+        #include "type.def"
+/* clang-format on */
+#undef TYPE
+}
+
+void FuPkg_init(FuPkg *pkg) {
+    /* must be inter keyword first
+     * KW_keyword == SYM_keyword
+     */
+#define KEYWORD(kd, str) FuPkg_intern_symbol(pkg, FuStr_from_utf8_cstr(str));
+#include "keyword.def"
+#undef KEYWORD
+    /* init other symbol */
+#define SYMBOL(str) FuPkg_intern_symbol(pkg, FuStr_from_utf8_cstr(str));
+#include "symbol.def"
+#undef SYMBOL
+    FuPkg_init_builtin_types(pkg);
+}
+
+fu_sym_t FuPkg_intern_symbol(FuPkg *pkg, FuStr *symbol) {
+    fu_sym_t sym;
+    if (FuSet_contains_ptr(pkg->symbols, symbol, &sym)) {
+        FuStr_drop(symbol);
+        return sym;
+    }
+    FuSet_add_ptr(pkg->symbols, symbol, &sym);
+    return sym;
+}
+
+fu_sym_t FuPkg_intern_cstr(FuPkg *pkg, char *cstr) {
+    FuStr *symbol = FuStr_from_utf8_cstr(cstr);
+    return FuPkg_intern_symbol(pkg, symbol);
+}
+
+FuStr *FuPkg_get_symbol(FuPkg *pkg, fu_sym_t sym) {
+    return (FuStr *)FuSet_key_ptr_at(pkg->symbols, sym);
+}
+
+void FuPkg_intern_file(FuPkg *pkg, fu_sym_t fpath, FuStr *fcontent) {
+    if (FuMap_contains(pkg->fmap, &fpath)) {
+        return;
+    }
+    fu_size_t idx = FuVec_len(pkg->fcontents);
+    FuMap_set(pkg->fmap, &fpath, &idx, NULL);
+    FuVec_push_ptr(pkg->fcontents, fcontent);
+}
+
+FuStr *FuPkg_get_file(FuPkg *pkg, fu_sym_t fpath) {
+    if (!FuMap_contains(pkg->fmap, &fpath)) {
+        return NULL;
+    }
+    fu_size_t *idx_p = FuMap_get(pkg->fmap, &fpath);
+    return FuVec_get_ptr(pkg->fcontents, *idx_p);
+}
+
+void FuPkg_intern_span(FuPkg *pkg, FuSpan *sp) {
+    FuVec_push_ptr(pkg->spans, sp);
+}
+
+fu_tid_t FuPkg_push_type(FuPkg *pkg, FuType *ty) {
+    fu_tid_t tid = FuVec_len(pkg->types);
+    FuVec_push_ptr(pkg->types, ty);
+    return tid;
+}
+
+FuType *FuPkg_get_type(FuPkg *pkg, fu_tid_t tid) {
+    return FuVec_get_ptr(pkg->types, tid);
 }

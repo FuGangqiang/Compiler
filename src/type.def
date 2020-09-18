@@ -27,7 +27,7 @@ TYPE(TY_AUTO, "_")
 TYPE(TY_SELF, "Self")
 TYPE(TY_ERR, "err")
 
-/* ctx->types[kd] index type above */
+/* pkg->types[kd] index type above */
 
 TYPE(TY_PATH, "path")
 TYPE(TY_PTR, "pointer")

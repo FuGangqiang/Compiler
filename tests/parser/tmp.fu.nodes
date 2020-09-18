@@ -1,5 +1,4 @@
-nid: 2
-kd: ND_PKG
+pkg: $pkg
 items:
   nid: 0
   kd: ND_MACRO_DEF

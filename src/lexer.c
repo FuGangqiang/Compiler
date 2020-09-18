@@ -4,9 +4,9 @@
 #include "log.h"
 #include "parse.h"
 
-FuLexer *FuLexer_new(FuCtx *ctx) {
+FuLexer *FuLexer_new(FuPkg *pkg) {
     FuLexer *l = FuMem_new(FuLexer);
-    l->ctx = ctx;
+    l->pkg = pkg;
     l->tok_buf = FuVec_new(sizeof(FuToken));
     return l;
 }
@@ -24,12 +24,12 @@ void FuLexer_drop(FuLexer *l) {
 
 void FuLexer_for_file(FuLexer *l, FuStr *fpath) {
     l->kd = LEXER_FILE;
-    fu_sym_t sym = FuCtx_intern_symbol(l->ctx, fpath);
+    fu_sym_t sym = FuPkg_intern_symbol(l->pkg, fpath);
     l->_file.fpath = sym;
 
     FuStr *fcontent = FuStr_new();
     FuStr_read_file(fcontent, fpath);
-    FuCtx_intern_file(l->ctx, sym, fcontent);
+    FuPkg_intern_file(l->pkg, sym, fcontent);
     l->_file.chars = fcontent;
 
     l->_file.cur_line = 1;
@@ -278,13 +278,13 @@ static fu_bool_t FuLexer_eat_raw_double_quoted_string(FuLexer *l, fu_size_t *n_h
 
 static FuSpan *FuLexer_token_span(FuLexer *l, fu_size_t start) {
     FuSpan *sp =
-        FuSpan_new(l->ctx, l->_file.fpath, start, l->_file.cursor - start, l->_file.tok_line, l->_file.tok_column);
+        FuSpan_new(l->pkg, l->_file.fpath, start, l->_file.cursor - start, l->_file.tok_line, l->_file.tok_column);
     return sp;
 }
 
 static fu_sym_t FuLexer_token_sym(FuLexer *l, fu_size_t start, fu_size_t len) {
     FuStr *str = FuStr_from_slice(l->_file.chars, start, len);
-    fu_sym_t sym = FuCtx_intern_symbol(l->ctx, str);
+    fu_sym_t sym = FuPkg_intern_symbol(l->pkg, str);
     return sym;
 }
 
@@ -342,7 +342,7 @@ static fu_sym_t FuLexer_token_str_sym(FuLexer *l, FuSpan *sp, fu_size_t start, f
         } while (fc != '\n' && i < len);
     }
 
-    fu_sym_t sym = FuCtx_intern_symbol(l->ctx, str);
+    fu_sym_t sym = FuPkg_intern_symbol(l->pkg, str);
     return sym;
 }
 

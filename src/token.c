@@ -196,7 +196,7 @@ fu_bool_t FuToken_is_lit(FuToken tok) {
 
 fu_bool_t FuToken_is_outer_doc_comment(FuToken tok) {
     assert(tok.kd == TOK_DOC_COMMENT);
-    FuStr *symbol = FuCtx_get_symbol(tok.sp->ctx, tok.sym);
+    FuStr *symbol = FuPkg_get_symbol(tok.sp->pkg, tok.sym);
     if (FuStr_get_char(symbol, 0) == '/') {
         return FU_TRUE;
     }
@@ -276,7 +276,7 @@ FuStr *FuToken_display(FuToken tok) {
         return str;
     }
     FuStr_push_utf8_cstr(str, ":");
-    FuStr *symbol = FuStr_clone(FuCtx_get_symbol(tok.sp->ctx, tok.sym));
+    FuStr *symbol = FuStr_clone(FuPkg_get_symbol(tok.sp->pkg, tok.sym));
     FuStr_append(str, symbol);
     return str;
 }
@@ -545,7 +545,7 @@ FuLit *FuToken_to_lit_byte(FuToken tok) {
     }
 
     FuLit *lit = FuLit_new(tok.sp, LIT_BYTE);
-    FuStr *symbol = FuCtx_get_symbol(tok.sp->ctx, tok._byte.sym);
+    FuStr *symbol = FuPkg_get_symbol(tok.sp->pkg, tok._byte.sym);
     fu_size_t len = FuStr_len(symbol);
     if (len == 0) {
         FATAL(tok.sp, "empty byte");
@@ -578,8 +578,8 @@ FuLit *FuToken_to_lit_byte_str(FuToken tok) {
         FATAL(tok.sp, "mismatched byte str closing delimiter");
     }
     FuLit *lit = FuLit_new(tok.sp, LIT_BYTE_STR);
-    FuStr *symbol = FuCtx_get_symbol(tok.sp->ctx, tok._str.sym);
-    FuStr *fcontent = FuCtx_get_file(tok.sp->ctx, tok.sp->fpath);
+    FuStr *symbol = FuPkg_get_symbol(tok.sp->pkg, tok._str.sym);
+    FuStr *fcontent = FuPkg_get_file(tok.sp->pkg, tok.sp->fpath);
 
     FuBytes *bytes = FuBytes_new();
     fu_size_t len = FuStr_len(symbol);
@@ -790,7 +790,7 @@ FuLit *FuToken_to_lit_char(FuToken tok) {
     }
 
     FuLit *lit = FuLit_new(tok.sp, LIT_CHAR);
-    FuStr *symbol = FuCtx_get_symbol(tok.sp->ctx, tok._char.sym);
+    FuStr *symbol = FuPkg_get_symbol(tok.sp->pkg, tok._char.sym);
     fu_size_t len = FuStr_len(symbol);
     if (len == 0) {
         FATAL(tok.sp, "empty char");
@@ -821,8 +821,8 @@ FuLit *FuToken_to_lit_str(FuToken tok) {
         FATAL(tok.sp, "mismatched str closing delimiter");
     }
     FuLit *lit = FuLit_new(tok.sp, LIT_STR);
-    FuStr *symbol = FuCtx_get_symbol(tok.sp->ctx, tok._str.sym);
-    FuStr *fcontent = FuCtx_get_file(tok.sp->ctx, tok.sp->fpath);
+    FuStr *symbol = FuPkg_get_symbol(tok.sp->pkg, tok._str.sym);
+    FuStr *fcontent = FuPkg_get_file(tok.sp->pkg, tok.sp->fpath);
 
     FuStr *str = FuStr_new();
     fu_size_t len = FuStr_len(symbol);
@@ -940,7 +940,7 @@ FuLit *FuToken_to_lit_int(FuToken tok) {
     FuSpan *err_sp;
     assert(tok.kd == TOK_INT);
     FuLit *lit = FuLit_new(tok.sp, LIT_INT);
-    FuStr *symbol = FuCtx_get_symbol(tok.sp->ctx, tok._str.sym);
+    FuStr *symbol = FuPkg_get_symbol(tok.sp->pkg, tok._str.sym);
     fu_size_t len = FuStr_len(symbol);
 
     if (tok._int.empty_int) {
@@ -1026,7 +1026,7 @@ FuIdent *FuToken_index_to_ident(FuToken tok) {
     if (tok._int.base != 10) {
         FATAL(tok.sp, "invalid index");
     }
-    FuStr *symbol = FuCtx_get_symbol(tok.sp->ctx, tok._int.sym);
+    FuStr *symbol = FuPkg_get_symbol(tok.sp->pkg, tok._int.sym);
     if (FuStr_len(symbol) != tok._int.suffix_start) {
         FATAL(tok.sp, "invalid index");
     }

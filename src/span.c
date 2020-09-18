@@ -3,16 +3,16 @@
 #include "parse.h"
 #include "unix.h"
 
-FuSpan *FuSpan_new(FuCtx *ctx, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line, fu_size_t column) {
+FuSpan *FuSpan_new(FuPkg *pkg, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line, fu_size_t column) {
     FuSpan *sp = FuMem_new(FuSpan);
-    FuSpan_init(sp, ctx, fpath, start, len, line, column);
-    FuCtx_intern_span(ctx, sp);
+    FuSpan_init(sp, pkg, fpath, start, len, line, column);
+    FuPkg_intern_span(pkg, sp);
     return sp;
 }
 
-void FuSpan_init(FuSpan *sp, FuCtx *ctx, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line,
+void FuSpan_init(FuSpan *sp, FuPkg *pkg, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line,
                  fu_size_t column) {
-    sp->ctx = ctx;
+    sp->pkg = pkg;
     sp->fpath = fpath;
     sp->start = start;
     sp->len = len;
@@ -27,19 +27,19 @@ void FuSpan_drop(FuSpan *sp) {
 
 FuSpan *FuSpan_clone(FuSpan *sp) {
     FuSpan *new = FuMem_new(FuSpan);
-    FuSpan_init(new, sp->ctx, sp->fpath, sp->start, sp->len, sp->line, sp->column);
+    FuSpan_init(new, sp->pkg, sp->fpath, sp->start, sp->len, sp->line, sp->column);
     return new;
 }
 
 FuSpan *FuSpan_offset(FuSpan *sp, fu_size_t offset) {
     FuSpan *new = FuSpan_clone(sp);
     new->offset = offset;
-    FuCtx_intern_span(new->ctx, new);
+    FuPkg_intern_span(new->pkg, new);
     return new;
 }
 
 FuSpan *FuSpan_unintern_join(FuSpan *sp1, FuSpan *sp2) {
-    if (sp1->ctx != sp2->ctx) {
+    if (sp1->pkg != sp2->pkg) {
         FATAL(NULL, "span context not match");
     }
     if (sp1->fpath != sp2->fpath) {
@@ -64,13 +64,13 @@ FuSpan *FuSpan_unintern_join(FuSpan *sp1, FuSpan *sp2) {
         end = end1;
     }
     FuSpan *new = FuMem_new(FuSpan);
-    FuSpan_init(new, sp1->ctx, sp1->fpath, start, end - start, line, column);
+    FuSpan_init(new, sp1->pkg, sp1->fpath, start, end - start, line, column);
     return new;
 }
 
 FuSpan *FuSpan_join(FuSpan *sp1, FuSpan *sp2) {
     FuSpan *new = FuSpan_unintern_join(sp1, sp2);
-    FuCtx_intern_span(new->ctx, new);
+    FuPkg_intern_span(new->pkg, new);
     return new;
 }
 
@@ -79,7 +79,7 @@ FuStr *FuSpan_display(FuSpan *sp) {
     fu_size_t column = sp->column;
 
     if (sp->offset) {
-        FuStr *fcontent = FuCtx_get_file(sp->ctx, sp->fpath);
+        FuStr *fcontent = FuPkg_get_file(sp->pkg, sp->fpath);
         fu_size_t i;
         for (i = 0; i < sp->offset; i++) {
             if (FuStr_get_char(fcontent, sp->start + i) == '\n') {
@@ -91,14 +91,14 @@ FuStr *FuSpan_display(FuSpan *sp) {
         }
     }
 
-    FuStr *str = FuCtx_get_symbol(sp->ctx, sp->fpath);
-    FuStr *display = FuStr_rel_path(str, sp->ctx->pkg_dir);
+    FuStr *str = FuPkg_get_symbol(sp->pkg, sp->fpath);
+    FuStr *display = FuStr_rel_path(str, sp->pkg->dir);
     FuStr_push_utf8_format(display, ":%u:%u", line, column);
     return display;
 }
 
 FuStr *FuSpan_line(FuSpan *sp) {
-    FuStr *fcontent = FuCtx_get_file(sp->ctx, sp->fpath);
+    FuStr *fcontent = FuPkg_get_file(sp->pkg, sp->fpath);
     fu_size_t len = FuStr_len(fcontent);
 
     fu_size_t start, end;
@@ -130,6 +130,6 @@ FuStr *FuSpan_line(FuSpan *sp) {
 }
 
 FuStr *FuSpan_content(FuSpan *sp) {
-    FuStr *fcontent = FuCtx_get_file(sp->ctx, sp->fpath);
+    FuStr *fcontent = FuPkg_get_file(sp->pkg, sp->fpath);
     return FuStr_from_slice(fcontent, sp->start, sp->len);
 }

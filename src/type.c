@@ -4,32 +4,32 @@
 #include "log.h"
 #include "parse.h"
 
-fu_sym_t FuKind_type_to_sym(FuCtx *ctx, fu_type_k kd) {
+fu_sym_t FuKind_type_to_sym(FuPkg *pkg, fu_type_k kd) {
     char *cstr = FuKind_type_cstr(kd);
     FuStr *str = FuStr_from_utf8_cstr(cstr);
-    fu_sym_t sym = FuCtx_intern_symbol(ctx, str);
+    fu_sym_t sym = FuPkg_intern_symbol(pkg, str);
     return sym;
 }
 
-FuType *FuType_new(FuCtx *ctx, FuSpan *sp, fu_type_k kd) {
+FuType *FuType_new(FuPkg *pkg, FuSpan *sp, fu_type_k kd) {
     FuType *ty = FuMem_new(FuType);
     ty->kd = kd;
     ty->sp = sp;
-    ty->tid = FuCtx_push_type(ctx, ty);
+    ty->tid = FuPkg_push_type(pkg, ty);
     return ty;
 }
 
-FuType *FuType_from_keyword(FuCtx *ctx, FuSpan *sp, fu_keyword_k keyword) {
+FuType *FuType_from_keyword(FuPkg *pkg, FuSpan *sp, fu_keyword_k keyword) {
     FuType *ty;
     switch (keyword) {
     case KW_NIL:
-        ty = FuType_new(ctx, sp, TY_NIL);
+        ty = FuType_new(pkg, sp, TY_NIL);
         break;
     case KW_UNDERSCORE:
-        ty = FuType_new(ctx, sp, TY_AUTO);
+        ty = FuType_new(pkg, sp, TY_AUTO);
         break;
     case KW_SELF_UPPER:
-        ty = FuType_new(ctx, sp, TY_SELF);
+        ty = FuType_new(pkg, sp, TY_SELF);
         break;
     default:
         FATAL1(sp, "expect a type, find: `%s`", FuKind_keyword_cstr(keyword));
@@ -38,14 +38,14 @@ FuType *FuType_from_keyword(FuCtx *ctx, FuSpan *sp, fu_keyword_k keyword) {
     return ty;
 }
 
-FuType *FuType_new_path(FuCtx *ctx, FuPath *path) {
-    FuType *ty = FuType_new(ctx, path->sp, TY_PATH);
+FuType *FuType_new_path(FuPkg *pkg, FuPath *path) {
+    FuType *ty = FuType_new(pkg, path->sp, TY_PATH);
     ty->_path.path = path;
     return ty;
 }
 
-FuType *FuType_new_fn_sig(FuCtx *ctx, FuSpan *sp, FuFnSig *sig) {
-    FuType *ty = FuType_new(ctx, sp, TY_FN_SIG);
+FuType *FuType_new_fn_sig(FuPkg *pkg, FuSpan *sp, FuFnSig *sig) {
+    FuType *ty = FuType_new(pkg, sp, TY_FN_SIG);
     ty->_fn_sig = sig;
     return ty;
 }
@@ -235,37 +235,4 @@ fu_op_prec_t FuType_precedence(FuType *ty) {
     }
     FATAL1(NULL, "unimplemented type: `%s`", FuKind_type_cstr(ty->kd));
     return 0;
-}
-
-void FuType_init_pkg_builtins(FuCtx *ctx, FuNode *nd) {
-    assert(nd->kd == ND_PKG);
-
-    fu_sym_t sym;
-    fu_tid_t tid;
-    FuType *ty;
-
-    /* create init tids */
-    if (!FuVec_len(ctx->types)) {
-        /* clang-format off */
-#define TYPE(kd, name)                      \
-        if(kd <= TY_ERR) {                  \
-            ty = FuType_new(ctx, NULL, kd); \
-            ty->vis = VIS_BUILTIN;          \
-        }
-        #include "type.def"
-        /* clang-format on */
-#undef TYPE
-    }
-
-/* insert builtins */
-/* clang-format off */
-#define TYPE(kd, name)                                             \
-        if(kd <= TY_VA_LIST) {                                     \
-            tid = kd;                                              \
-            sym = FuKind_type_to_sym(ctx, kd);                     \
-            FuMap_set(nd->_pkg.builtins->types, &sym, &tid, NULL); \
-        }
-        #include "type.def"
-/* clang-format on */
-#undef TYPE
 }

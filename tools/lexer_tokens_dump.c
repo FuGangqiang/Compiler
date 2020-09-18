@@ -12,11 +12,11 @@ int main(int argc, char **argv) {
     }
 
     FuStr *fpath = FuStr_abs_path(argv[1]);
-    FuStr *pkg_dir = FuStr_path_dir(fpath);
-    FuCtx *ctx = FuCtx_new(pkg_dir);
-    FuCtx_init(ctx);
+    FuStr *dir = FuStr_path_dir(fpath);
+    FuPkg *pkg = FuPkg_new(dir);
+    FuPkg_init(pkg);
 
-    FuLexer *l = FuLexer_new(ctx);
+    FuLexer *l = FuLexer_new(pkg);
     FuLexer_for_file(l, fpath);
 
     FuStr *dump = FuLexer_dump(l);
@@ -24,6 +24,6 @@ int main(int argc, char **argv) {
 
     FuStr_drop(dump);
     FuLexer_drop(l);
-    FuCtx_drop(ctx);
+    FuPkg_drop(pkg);
     return 0;
 }

@@ -1,9 +1,9 @@
 #include "alloc.h"
 #include "parse.h"
 
-FuScope *FuScope_new(FuCtx *ctx, FuScope *super, fu_sym_t name) {
+FuScope *FuScope_new(FuPkg *pkg, FuScope *super, fu_sym_t name) {
     FuScope *scp = FuMem_new(FuScope);
-    scp->ctx = ctx;
+    scp->pkg = pkg;
     scp->super = super;
     scp->name = name;
 
@@ -29,5 +29,5 @@ FuType *FuScope_get_type(FuScope *scp, fu_sym_t name) {
         }
         scp = scp->super;
     } while (scp);
-    return FuCtx_get_type(scp->ctx, *tid);
+    return FuPkg_get_type(scp->pkg, *tid);
 }

@@ -39,20 +39,20 @@ typedef enum fu_use_k fu_use_k;
 typedef enum fu_variant_k fu_variant_k;
 typedef enum fu_vis_k fu_vis_k;
 
-typedef struct FuCtx FuCtx;
+typedef struct FuPkg FuPkg;
 typedef struct FuLog FuLog;
 typedef struct FuSpan FuSpan;
 typedef struct FuToken FuToken;
 typedef struct FuLexer FuLexer;
 typedef struct FuParser FuParser;
 
-typedef struct FuScope FuScope;
-
 typedef struct FuLit FuLit;
 typedef struct FuPat FuPat;
 typedef struct FuExpr FuExpr;
 typedef struct FuNode FuNode;
+
 typedef struct FuType FuType;
+typedef struct FuScope FuScope;
 
 typedef struct FuAnnoSelf FuAnnoSelf;
 typedef struct FuArm FuArm;
@@ -260,7 +260,7 @@ char *FuKind_variant_cstr(fu_variant_k kd);
 char *FuKind_vis_cstr(fu_vis_k kd);
 
 struct FuSpan {
-    FuCtx *ctx;
+    FuPkg *pkg;
     fu_sym_t fpath;
     fu_size_t start;
     fu_size_t len;
@@ -269,8 +269,8 @@ struct FuSpan {
     fu_size_t offset; /* offset in token */
 };
 
-FuSpan *FuSpan_new(FuCtx *ctx, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line, fu_size_t column);
-void FuSpan_init(FuSpan *sp, FuCtx *ctx, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line,
+FuSpan *FuSpan_new(FuPkg *pkg, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line, fu_size_t column);
+void FuSpan_init(FuSpan *sp, FuPkg *pkg, fu_sym_t fpath, fu_size_t start, fu_size_t len, fu_size_t line,
                  fu_size_t column);
 void FuSpan_drop(FuSpan *sp);
 
@@ -281,48 +281,6 @@ FuSpan *FuSpan_join(FuSpan *sp1, FuSpan *sp2);
 FuStr *FuSpan_display(FuSpan *sp);
 FuStr *FuSpan_line(FuSpan *sp);
 FuStr *FuSpan_content(FuSpan *sp);
-
-/* compiler context */
-struct FuCtx {
-    FuStr *pkg_dir;
-    /* intern symbols */
-    /* FuStr* */
-    FuSet *symbols;
-
-    /* intern lexer file context */
-    /* fpath sym -> fcontent no*/
-    FuMap *fmap;
-    FuVec *fcontents;
-
-    /* ast spans */
-    FuVec *spans;
-
-    /* ast nodes */
-    FuVec *nodes;
-
-    /* types */
-    FuVec *types;
-};
-
-FuCtx *FuCtx_new(FuStr *pkg_dir);
-void FuCtx_init(FuCtx *ctx);
-void FuCtx_drop(FuCtx *ctx);
-
-/* intern symbol */
-fu_sym_t FuCtx_intern_symbol(FuCtx *ctx, FuStr *symbol);
-fu_sym_t FuCtx_intern_cstr(FuCtx *ctx, char *cstr);
-FuStr *FuCtx_get_symbol(FuCtx *ctx, fu_sym_t sym);
-
-/* intern file content */
-void FuCtx_intern_file(FuCtx *ctx, fu_sym_t fpath, FuStr *fcontent);
-FuStr *FuCtx_get_file(FuCtx *ctx, fu_sym_t fpath);
-
-/* context spans */
-void FuCtx_intern_span(FuCtx *ctx, FuSpan *sp);
-
-/* context types */
-fu_tid_t FuCtx_push_type(FuCtx *ctx, FuType *ty);
-FuType *FuCtx_get_type(FuCtx *ctx, fu_tid_t tid);
 
 struct FuToken {
     fu_token_k kd;
@@ -420,7 +378,7 @@ enum fu_lexer_k {
 };
 
 struct FuLexer {
-    FuCtx *ctx;
+    FuPkg *pkg;
     fu_lexer_k kd;
     /* for parseing multi-char ops */
     FuVec *tok_buf;
@@ -442,7 +400,7 @@ struct FuLexer {
     };
 };
 
-FuLexer *FuLexer_new(FuCtx *ctx);
+FuLexer *FuLexer_new(FuPkg *pkg);
 void FuLexer_drop(FuLexer *l);
 
 void FuLexer_for_file(FuLexer *l, FuStr *fpath);
@@ -466,7 +424,7 @@ struct FuParserState {
 void FuParserState_drop(FuParserState *state);
 
 struct FuParser {
-    FuCtx *ctx;
+    FuPkg *pkg;
     FuStr *cur_dir;
     FuLexer *lexer;
     /* FuToken */
@@ -475,7 +433,7 @@ struct FuParser {
     FuVec *states;
 };
 
-FuParser *FuParser_new(FuCtx *ctx);
+FuParser *FuParser_new(FuPkg *pkg);
 void FuParser_drop(FuParser *p);
 
 void FuParser_for_file(FuParser *p, FuStr *fpath);
@@ -527,67 +485,9 @@ FuNode *FuParser_parse_block_item(FuParser *p);
 FuNode *FuParser_parse_extern_item(FuParser *p);
 FuAssoc *FuParser_parse_assoc(FuParser *p);
 
-FuNode *FuParser_parse_pkg(FuParser *p);
+void FuParser_parse_pkg(FuParser *p);
 
 FuStr *FuParser_dump_tokens(FuParser *p);
-
-struct FuScope {
-    FuCtx *ctx;
-    FuScope *super;
-    fu_sym_t name;
-
-    fu_bool_t is_fn;
-    FuMap *closure_syms;
-
-    FuMap *declares;
-    FuMap *labels;
-    FuMap *types;
-    FuMap *interfaces;
-    FuMap *extensions;
-};
-
-FuScope *FuScope_new(FuCtx *ctx, FuScope *super, fu_sym_t name);
-void FuScope_drop(FuScope *scp);
-
-FuType *FuScope_get_type(FuScope *scp, fu_sym_t name);
-
-struct FuType {
-    fu_type_k kd;
-    FuSpan *sp;
-    fu_tid_t tid;
-    fu_vis_k vis;
-    fu_bool_t is_infered;
-    FuVec *attrs;
-    union {
-        struct {
-            FuAnnoSelf *anno;
-            FuPath *path;
-        } _path;
-        FuType *_ptr;
-        FuType *_raw_ptr;
-        FuType *_dyn_ptr;
-        FuType *_nilable;
-        struct {
-            FuType *ty;
-            FuExpr *size;
-        } _array;
-        FuType *_slice;
-        FuVec *_tuple;
-        FuFnSig *_fn_sig;
-    };
-};
-
-FuType *FuType_new(FuCtx *ctx, FuSpan *sp, fu_type_k kd);
-FuType *FuType_from_keyword(FuCtx *ctx, FuSpan *sp, fu_keyword_k keyword);
-FuType *FuType_new_path(FuCtx *ctx, FuPath *path);
-FuType *FuType_new_fn_sig(FuCtx *ctx, FuSpan *sp, FuFnSig *sig);
-
-void FuType_drop(FuType *ty);
-FuStr *FuType_display(FuType *ty);
-
-fu_op_prec_t FuType_precedence(FuType *ty);
-
-void FuType_init_pkg_builtins(FuCtx *ctx, FuNode *nd);
 
 struct FuTokTree {
     FuSpan *sp;
@@ -614,7 +514,7 @@ struct FuIdent {
 };
 
 FuIdent *FuIdent_new(FuSpan *sp, fu_sym_t sym);
-FuIdent *FuIdent_from_idx(FuCtx *ctx, FuSpan *sp, fu_size_t i);
+FuIdent *FuIdent_from_idx(FuPkg *pkg, FuSpan *sp, fu_size_t i);
 void FuIdent_drop(FuIdent *ident);
 FuStr *FuIdent_display(FuIdent *ident);
 
@@ -856,7 +756,7 @@ struct FuFnSig {
 };
 
 FuFnSig *FuFnSig_new(FuGeneric *ge, FuVec *tys);
-FuFnSig *FuFnSig_from_params(FuCtx *ctx, FuGeneric *ge, FuVec *params, FuType *return_ty);
+FuFnSig *FuFnSig_from_params(FuPkg *pkg, FuGeneric *ge, FuVec *params, FuType *return_ty);
 void FuFnSig_drop(FuFnSig *sig);
 FuStr *FuFnSig_display(FuFnSig *sig);
 
@@ -1257,24 +1157,123 @@ struct FuNode {
             /* FuNode */
             FuVec *items;
         } _mod;
-        struct {
-            fu_sym_t name;
-            /* FuNode */
-            FuVec *items;
-
-            FuVec *extern_pkgs;
-            FuScope *builtins;
-            FuScope *globals;
-        } _pkg;
     };
 };
 
-FuNode *FuNode_new(FuCtx *ctx, FuSpan *sp, fu_node_k kind);
+FuNode *FuNode_new(FuPkg *pkg, FuSpan *sp, fu_node_k kind);
 void FuNode_drop(FuNode *nd);
 
-FuNode *FuNode_new_expr(FuCtx *ctx, FuExpr *expr);
-FuNode *FuNode_new_pkg(FuCtx *ctx, FuSpan *sp);
+FuNode *FuNode_new_expr(FuPkg *pkg, FuExpr *expr);
+FuNode *FuNode_new_pkg(FuPkg *pkg, FuSpan *sp);
 
 FuStr *FuNode_display(FuNode *nd, fu_size_t indent);
+
+struct FuPkg {
+    FuStr *dir;
+    fu_sym_t name;
+
+    FuSpan *sp;
+    FuVec *attrs;
+    /* FuNode */
+    FuVec *items;
+
+    FuVec *extern_pkgs;
+    FuScope *builtins;
+    FuScope *globals;
+
+    /* intern symbols */
+    /* FuStr* */
+    FuSet *symbols;
+    /* intern lexer file context */
+    /* fpath sym -> fcontent no*/
+    FuMap *fmap;
+    FuVec *fcontents;
+    /* ast spans */
+    FuVec *spans;
+    /* ast nodes */
+    FuVec *nodes;
+    /* types */
+    FuVec *types;
+};
+
+FuPkg *FuPkg_new(FuStr *dir);
+void FuPkg_drop(FuPkg *pkg);
+FuStr *FuPkg_display(FuPkg *pkg, fu_size_t indent);
+
+void FuPkg_init(FuPkg *pkg);
+
+/* intern symbol */
+fu_sym_t FuPkg_intern_symbol(FuPkg *pkg, FuStr *symbol);
+fu_sym_t FuPkg_intern_cstr(FuPkg *pkg, char *cstr);
+FuStr *FuPkg_get_symbol(FuPkg *pkg, fu_sym_t sym);
+
+/* intern file content */
+void FuPkg_intern_file(FuPkg *pkg, fu_sym_t fpath, FuStr *fcontent);
+FuStr *FuPkg_get_file(FuPkg *pkg, fu_sym_t fpath);
+
+/* context spans */
+void FuPkg_intern_span(FuPkg *pkg, FuSpan *sp);
+
+/* context types */
+fu_tid_t FuPkg_push_type(FuPkg *pkg, FuType *ty);
+FuType *FuPkg_get_type(FuPkg *pkg, fu_tid_t tid);
+
+struct FuScope {
+    FuPkg *pkg;
+    FuScope *super;
+    fu_sym_t name;
+
+    fu_bool_t is_fn;
+    FuMap *closure_syms;
+
+    FuMap *declares;
+    FuMap *labels;
+    FuMap *types;
+    FuMap *interfaces;
+    FuMap *extensions;
+};
+
+FuScope *FuScope_new(FuPkg *pkg, FuScope *super, fu_sym_t name);
+void FuScope_drop(FuScope *scp);
+
+FuType *FuScope_get_type(FuScope *scp, fu_sym_t name);
+
+struct FuType {
+    fu_type_k kd;
+    FuSpan *sp;
+    fu_tid_t tid;
+    fu_vis_k vis;
+    fu_bool_t is_infered;
+    FuVec *attrs;
+    union {
+        struct {
+            FuAnnoSelf *anno;
+            FuPath *path;
+        } _path;
+        FuType *_ptr;
+        FuType *_raw_ptr;
+        FuType *_dyn_ptr;
+        FuType *_nilable;
+        struct {
+            FuType *ty;
+            FuExpr *size;
+        } _array;
+        FuType *_slice;
+        FuVec *_tuple;
+        FuFnSig *_fn_sig;
+    };
+};
+
+FuType *FuType_new(FuPkg *pkg, FuSpan *sp, fu_type_k kd);
+FuType *FuType_from_keyword(FuPkg *pkg, FuSpan *sp, fu_keyword_k keyword);
+FuType *FuType_new_path(FuPkg *pkg, FuPath *path);
+FuType *FuType_new_fn_sig(FuPkg *pkg, FuSpan *sp, FuFnSig *sig);
+
+void FuType_drop(FuType *ty);
+FuStr *FuType_display(FuType *ty);
+
+fu_op_prec_t FuType_precedence(FuType *ty);
+
+fu_sym_t FuKind_type_to_sym(FuPkg *pkg, fu_type_k kd);
 
 #endif /* FU_PARSE_H */

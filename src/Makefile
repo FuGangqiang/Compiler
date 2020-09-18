@@ -31,20 +31,19 @@ unix.o: unix.c unix.h str.o
 
 kind.o: kind.c parse.h keyword.def token.def symbol.def node.def node_arm.def node_expr.def node_ge_arg.def \
     node_ge_param.def node_lit.def node_op.def node_pat.def node_use.def node_variant.def node_vis.def type_op.def
-context.o: context.c parse.h str.o vec.o map.o set.o keyword.def symbol.def node.o
-span.o: span.c parse.h str.o log.o context.o
+span.o: span.c parse.h str.o log.o node.o
 log.o: log.c log.h parse.h span.o
 token.o: token.c parse.h kind.o span.o log.o
 lexer.o: lexer.c parse.h token.o str.o char.o hash.o set.o span.o log.o
-node.o: node.c parse.h alloc.o kind.o
+node.o: node.c parse.h alloc.o kind.o keyword.def symbol.def
 parser.o: parser.c parse.h node.o alloc.o log.o unix.o
 type.o: type.c parse.h type.def
 scope.o: scope.c parse.h
 
 # dep objs
 
-DEP_OBJS=char.o bytes.o str.o hash.o span.o context.o vec.o map.o set.o log.o alloc.o kind.o \
-	node.o type.o scope.o token.o parser.o lexer.o unix.o
+DEP_OBJS=char.o bytes.o str.o hash.o span.o vec.o map.o set.o log.o alloc.o kind.o node.o token.o lexer.o parser.o \
+    scope.o type.o unix.o
 
 # tools
 
@@ -63,7 +62,7 @@ else
   MEM_CHECK_CMD=
 endif
 
-test: char_test bytes_test str_test vec_test map_test set_test bitset_test context_test \
+test: char_test bytes_test str_test vec_test map_test set_test bitset_test pkg_test \
 	  tokens_test parser_test
 test-mem: test
 
@@ -95,7 +94,7 @@ bitset_test: $(TEST_DIR)/bitset_test.c bitset.o $(DEP_OBJS)
 	$(FU_CC) -o $(TEST_DIR)/$@.bin $^
 	$(MEM_CHECK_CMD) $(TEST_DIR)/$@.bin
 
-context_test: $(TEST_DIR)/context_test.c context.o $(DEP_OBJS)
+pkg_test: $(TEST_DIR)/pkg_test.c node.o $(DEP_OBJS)
 	$(FU_CC) -o $(TEST_DIR)/$@.bin $^
 	$(MEM_CHECK_CMD) $(TEST_DIR)/$@.bin
 

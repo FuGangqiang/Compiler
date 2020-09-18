@@ -63,4 +63,3 @@ NODE(ND_MACRO_CALL, "node macro call")
  * mod foo { ... }
  */
 NODE(ND_MOD, "node module")
-NODE(ND_PKG, "node package")
