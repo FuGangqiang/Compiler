@@ -37,7 +37,7 @@ void FuParser_drop(FuParser *p) {
 void FuParser_for_file(FuParser *p, FuStr *fpath) {
     p->lexer = FuLexer_new(p->pkg);
     p->tok_buf = FuVec_new(sizeof(FuToken));
-    p->in_tok_tree = 0;
+    p->use_raw_tok = FU_FALSE;
     FuLexer_for_file(p->lexer, fpath);
 }
 
@@ -51,7 +51,7 @@ static void FuParser_push_state(FuParser *p) {
     state->cur_dir = p->cur_dir;
     state->lexer = p->lexer;
     state->tok_buf = p->tok_buf;
-    state->in_tok_tree = p->in_tok_tree;
+    state->use_raw_tok = p->use_raw_tok;
     FuVec_push_ptr(p->states, state);
 }
 
@@ -61,7 +61,7 @@ static fu_bool_t FuParser_pop_state(FuParser *p) {
     }
     FuParserState *state;
     FuVec_pop_ptr(p->states, (void **)&state);
-    p->in_tok_tree = state->in_tok_tree;
+    p->use_raw_tok = state->use_raw_tok;
     p->tok_buf = state->tok_buf;
     p->lexer = state->lexer;
     p->cur_dir = state->cur_dir;
@@ -77,7 +77,7 @@ static FuToken FuParser_get_token(FuParser *p) {
     while (FuToken_is_blank(tok0)) {
         tok0 = FuLexer_get_token(p->lexer);
     }
-    if (p->in_tok_tree) {
+    if (p->use_raw_tok) {
         return tok0;
     }
 
@@ -1155,11 +1155,13 @@ static FuExpr *FuParser_parse_suffix_macro_expr(FuParser *p, FuExpr *left) {
         FuToken tok = FuParser_nth_token(p, 0);
         FATAL1(tok.sp, "expect `(`, `[`, `{`, find: `%s`", FuToken_kind_csr(tok));
     }
-    FuTokTree *tree = FuParser_parse_tok_tree(p);
-    FuSpan *sp = FuSpan_join(left->sp, tree->sp);
+    FuVec *tokens = FuVec_new(sizeof(FuToken));
+    FuParser_parse_tok_group(p, tokens);
+    FuToken *last_tok = FuVec_last(tokens);
+    FuSpan *sp = FuSpan_join(left->sp, last_tok->sp);
     FuMacroCall *call = FuMacroCall_new(sp, FU_TRUE, path);
     call->left = left;
-    call->args = tree;
+    call->args = tokens;
     FuExpr *expr = FuExpr_new(sp, EXPR_MACRO_CALL);
     expr->_macro_call = call;
     return expr;
@@ -1846,10 +1848,12 @@ static FuExpr *FuParser_parse_prefix_macro_expr(FuParser *p, FuPath *prefix) {
         FuToken tok = FuParser_nth_token(p, 0);
         FATAL1(tok.sp, "expect `(`, `[`, `{`, find: `%s`", FuToken_kind_csr(tok));
     }
-    FuTokTree *tree = FuParser_parse_tok_tree(p);
-    FuSpan *sp = FuSpan_join(prefix->sp, tree->sp);
+    FuVec *tokens = FuVec_new(sizeof(FuToken));
+    FuParser_parse_tok_group(p, tokens);
+    FuToken *last_tok = FuVec_last(tokens);
+    FuSpan *sp = FuSpan_join(prefix->sp, last_tok->sp);
     FuMacroCall *call = FuMacroCall_new(sp, FU_FALSE, prefix);
-    call->args = tree;
+    call->args = tokens;
     FuExpr *expr = FuExpr_new(sp, EXPR_MACRO_CALL);
     expr->_macro_call = call;
     return expr;
@@ -1983,21 +1987,20 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
     return left;
 }
 
-FuTokTree *FuParser_parse_tok_tree(FuParser *p) {
-    fu_bool_t old_in_tok_tree = p->in_tok_tree;
-    p->in_tok_tree = FU_TRUE;
+void FuParser_parse_tok_group(FuParser *p, FuVec *tokens) {
+    fu_bool_t old_use_raw_tok = p->use_raw_tok;
+    p->use_raw_tok = FU_TRUE;
     FuToken tok = FuParser_nth_token(p, 0);
     if (FuToken_is_close_delim(tok)) {
         FATAL1(tok.sp, "unblance tok tree group delimiter: `%s`", FuToken_kind_csr(tok));
     }
     if (!FuToken_is_open_delim(tok)) {
         FuParser_bump(p);
-        FuTokTree *tree = FuTokTree_new(tok.sp, FU_FALSE);
-        tree->_token = tok;
-        return tree;
+        FuVec_push(tokens, &tok);
+        return;
     }
     FuToken open_tok = FuParser_expect_token_fn(p, FuToken_is_open_delim, "tok tree group open delimiter");
-    FuVec *trees = FuVec_new(sizeof(FuTokTree *));
+    FuVec_push(tokens, &open_tok);
     while (1) {
         tok = FuParser_nth_token(p, 0);
         if (FuToken_is_match_delim(open_tok, tok)) {
@@ -2006,16 +2009,11 @@ FuTokTree *FuParser_parse_tok_tree(FuParser *p) {
         if (FuToken_is_close_delim(tok)) {
             FATAL1(tok.sp, "unblance tok tree group delimiter: `%s`", FuToken_kind_csr(tok));
         }
-        FuTokTree *item = FuParser_parse_tok_tree(p);
-        FuVec_push_ptr(trees, item);
+        FuParser_parse_tok_group(p, tokens);
     }
     FuToken close_tok = FuParser_expect_token_fn(p, FuToken_is_close_delim, "tok tree group close delimiter");
-    FuTokTree *tree = FuTokTree_new(tok.sp, FU_TRUE);
-    tree->_group.open_tok = open_tok;
-    tree->_group.close_tok = close_tok;
-    tree->_group.trees = trees;
-    p->in_tok_tree = old_in_tok_tree;
-    return tree;
+    FuVec_push(tokens, &close_tok);
+    p->use_raw_tok = old_use_raw_tok;
 }
 
 FuAttr *FuParser_parse_normal_attr(FuParser *p) {
@@ -2037,15 +2035,15 @@ FuAttr *FuParser_parse_normal_attr(FuParser *p) {
     if (path->is_macro) {
         ERROR(path->sp, "macro is not allowed in attribute path");
     }
-    FuTokTree *tok_tree = NULL;
+    FuVec *tokens = FuVec_new(sizeof(FuToken));
     if (FuParser_check_token_fn(p, FuToken_is_open_delim)) {
-        tok_tree = FuParser_parse_tok_tree(p);
+        FuParser_parse_tok_group(p, tokens);
     }
     FuToken end_tok = FuParser_expect_token(p, TOK_CLOSE_BRACKET);
     FuSpan *sp = FuSpan_join(start_tok.sp, end_tok.sp);
     FuAttr *attr = FuAttr_new(sp, ATTR_NORMAL, is_outer);
     attr->_normal.path = path;
-    attr->_normal.tok_tree = tok_tree;
+    attr->_normal.args = tokens;
     return attr;
 }
 
@@ -3150,14 +3148,18 @@ FuNode *FuParser_parse_item_mod(FuParser *p, FuVec *attrs) {
 }
 
 static void FuParser_parse_macro_pattern_template(FuParser *p, FuVec *patterns, FuVec *templates) {
-    FuTokTree *pattern = FuParser_parse_tok_tree(p);
-    if (!pattern->is_group) {
-        FATAL(pattern->sp, "macro pattern must starts with `(`, `[`, `}`");
+    FuVec *pattern = FuVec_new(sizeof(FuToken));
+    FuParser_parse_tok_group(p, pattern);
+    if (FuVec_len(pattern) < 2) {
+        FuToken *err_tok = FuVec_first(pattern);
+        FATAL(err_tok->sp, "macro pattern must starts with `(`, `[`, `{`");
     }
     FuParser_expect_token(p, TOK_FAT_ARROW);
-    FuTokTree *template = FuParser_parse_tok_tree(p);
-    if (!template->is_group || template->_group.open_tok.kd != TOK_OPEN_BRACE) {
-        FATAL(pattern->sp, "macro template must starts with `}`");
+    FuVec *template = FuVec_new(sizeof(FuToken));
+    FuParser_parse_tok_group(p, template);
+    FuToken *template_first_tok = FuVec_first(template);
+    if (template_first_tok->kd != TOK_OPEN_BRACE) {
+        FATAL(template_first_tok->sp, "macro template must starts with `{`");
     }
     FuVec_push_ptr(patterns, pattern);
     FuVec_push_ptr(templates, template);
@@ -3171,8 +3173,8 @@ FuNode *FuParser_parse_item_macro_def(FuParser *p, FuVec *attrs) {
     if (!ident->is_macro) {
         FATAL(ident->sp, "macro ident must ends with `!`");
     }
-    FuVec *patterns = FuVec_new(sizeof(FuTokTree *));
-    FuVec *templates = FuVec_new(sizeof(FuTokTree *));
+    FuVec *patterns = FuVec_new(sizeof(FuVec *));
+    FuVec *templates = FuVec_new(sizeof(FuVec *));
     FuSpan *hi;
     if (FuParser_check_token(p, TOK_FAT_ARROW)) {
         FuParser_expect_token(p, TOK_FAT_ARROW);
@@ -3187,8 +3189,9 @@ FuNode *FuParser_parse_item_macro_def(FuParser *p, FuVec *attrs) {
         hi = end_tok.sp;
     } else if (FuParser_check_token_fn(p, FuToken_is_open_delim)) {
         FuParser_parse_macro_pattern_template(p, patterns, templates);
-        FuTokTree *template = FuVec_last_ptr(templates);
-        hi = template->sp;
+        FuVec *last_template = FuVec_last_ptr(templates);
+        FuToken *last_tok = FuVec_last(last_template);
+        hi = last_tok->sp;
     } else {
         FuToken err_tok = FuParser_nth_token(p, 0);
         FATAL1(err_tok.sp, "expect `(`, `[`, `{`, `=>`, find: `%s`", FuToken_kind_csr(err_tok));
@@ -3212,12 +3215,13 @@ FuNode *FuParser_parse_item_macro_call(FuParser *p, FuVec *attrs) {
         FuToken err_tok = FuParser_nth_token(p, 0);
         FATAL1(err_tok.sp, "expect `(`, `[`, `{`, find: `%s`", FuToken_kind_csr(err_tok));
     }
-    FuTokTree *tree = FuParser_parse_tok_tree(p);
+    FuVec *tokens = FuVec_new(sizeof(FuToken));
+    FuParser_parse_tok_group(p, tokens);
     FuToken end_tok = FuParser_expect_token(p, TOK_SEMI);
     FuSpan *sp = FuSpan_join(path->sp, end_tok.sp);
     FuMacroCall *call = FuMacroCall_new(sp, FU_FALSE, path);
     call->left = NULL;
-    call->args = tree;
+    call->args = tokens;
     FuNode *nd = FuNode_new(p->pkg, sp, ND_MACRO_CALL);
     nd->attrs = attrs;
     nd->_macro_call = call;

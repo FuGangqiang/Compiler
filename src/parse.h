@@ -73,7 +73,6 @@ typedef struct FuMacroCall FuMacroCall;
 typedef struct FuPath FuPath;
 typedef struct FuPathItem FuPathItem;
 typedef struct FuPkg FuPkg;
-typedef struct FuTokTree FuTokTree;
 typedef struct FuUse FuUse;
 typedef struct FuVariant FuVariant;
 
@@ -418,7 +417,7 @@ struct FuParserState {
     FuStr *cur_dir;
     FuLexer *lexer;
     FuVec *tok_buf;
-    fu_bool_t in_tok_tree;
+    fu_bool_t use_raw_tok;
 };
 
 void FuParserState_drop(FuParserState *state);
@@ -429,7 +428,7 @@ struct FuParser {
     FuLexer *lexer;
     /* FuToken */
     FuVec *tok_buf;
-    fu_bool_t in_tok_tree;
+    fu_bool_t use_raw_tok;
     FuVec *states;
 };
 
@@ -443,7 +442,7 @@ FuIdent *FuParser_parse_ident(FuParser *p);
 FuLabel *FuParser_parse_label(FuParser *p);
 FuPath *FuParser_parse_path(FuParser *p);
 FuBlock *FuParser_parse_block(FuParser *p);
-FuTokTree *FuParser_parse_tok_tree(FuParser *p);
+void FuParser_parse_tok_group(FuParser *p, FuVec *tokens);
 FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 FuPat *FuParser_parse_pat(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 FuType *FuParser_parse_type(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
@@ -489,24 +488,6 @@ void FuParser_parse_pkg(FuParser *p);
 
 FuStr *FuParser_dump_tokens(FuParser *p);
 
-struct FuTokTree {
-    FuSpan *sp;
-    fu_bool_t is_group;
-    union {
-        FuToken _token;
-        struct {
-            FuToken open_tok;
-            FuToken close_tok;
-            /* FuTokTree */
-            FuVec *trees;
-        } _group;
-    };
-};
-
-FuTokTree *FuTokTree_new(FuSpan *sp, fu_bool_t is_group);
-void FuTokTree_drop(FuTokTree *tree);
-FuStr *FuTokTree_display(FuTokTree *tree, fu_size_t indent);
-
 struct FuIdent {
     FuSpan *sp;
     fu_bool_t is_macro;
@@ -534,7 +515,7 @@ struct FuAttr {
     union {
         struct {
             FuPath *path;
-            FuTokTree *tok_tree;
+            FuVec *args;
         } _normal;
         FuStr *_doc;
     };
@@ -765,7 +746,8 @@ struct FuMacroCall {
     fu_bool_t is_method;
     FuPath *path;
     FuExpr *left;
-    FuTokTree *args;
+    /* FuToken */
+    FuVec *args;
 };
 
 FuMacroCall *FuMacroCall_new(FuSpan *sp, fu_bool_t is_method, FuPath *path);
@@ -1140,9 +1122,9 @@ struct FuNode {
         struct {
             fu_vis_k vis;
             FuIdent *ident;
-            /* FuTokTree */
+            /* FuVec<FuToken> */
             FuVec *patterns;
-            /* FuTokTree */
+            /* FuVec<FuToken> */
             FuVec *templates;
         } _macro_def;
         FuMacroCall *_macro_call;

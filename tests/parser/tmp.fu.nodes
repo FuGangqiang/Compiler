@@ -6,70 +6,52 @@ items:
   ident:baz!
   patterns len: 2
   patterns:
-    is_group: 1
-    tok tree delimiter: (
-    group tree items len: 7
-      is_group: 0
-      tree token: $
-      is_group: 0
-      tree token: self
-      is_group: 0
-      tree token: ,
-      is_group: 0
-      tree token: $
-      is_group: 0
-      tree token: a
-      is_group: 0
-      tree token: :
-      is_group: 0
-      tree token: ident
-    is_group: 1
-    tok tree delimiter: [
-    group tree items len: 4
-      is_group: 0
-      tree token: $
-      is_group: 0
-      tree token: a
-      is_group: 0
-      tree token: :
-      is_group: 0
-      tree token: ident
+    pattern tokens len: 9
+    pattern tokens:
+      (
+      $
+      self
+      ,
+      $
+      a
+      :
+      ident
+      )
+    pattern tokens len: 6
+    pattern tokens:
+      [
+      $
+      a
+      :
+      ident
+      ]
+  templates len: 2
   templates:
-    is_group: 1
-    tok tree delimiter: {
-    group tree items len: 5
-      is_group: 0
-      tree token: $
-      is_group: 0
-      tree token: self
-      is_group: 0
-      tree token: +
-      is_group: 0
-      tree token: $
-      is_group: 0
-      tree token: a
-    is_group: 1
-    tok tree delimiter: {
-    group tree items len: 4
-      is_group: 0
-      tree token: $
-      is_group: 0
-      tree token: a
-      is_group: 0
-      tree token: +
-      is_group: 0
-      tree token: 1
+    template tokens len: 7
+    template tokens:
+      {
+      $
+      self
+      +
+      $
+      a
+      }
+    template tokens len: 6
+    template tokens:
+      {
+      $
+      a
+      +
+      1
+      }
   nid: 1
   kd: ND_MACRO_CALL
   is_method: 0
   path: baz!
-  args:
-    is_group: 1
-    tok tree delimiter: [
-    group tree items len: 3
-      is_group: 0
-      tree token: abc
-      is_group: 0
-      tree token: >
-      is_group: 0
-      tree token: =
+  args tokens len: 5
+  args tokens:
+    [
+    abc
+    >
+    =
+    ]
