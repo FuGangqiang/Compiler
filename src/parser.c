@@ -1898,9 +1898,10 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
     FuExpr *prefix_expr;
     FuToken tok = FuParser_nth_token(p, 0);
     switch (tok.kd) {
-    case TOK_OPEN_PAREN:
-        prefix_expr = FuParser_parse_group_or_tuple_expr(p);
+    case TOK_KEYWORD: {
+        prefix_expr = FuParser_parse_keyword_expr(p);
         break;
+    }
     case TOK_BYTE:
     case TOK_CHAR:
     case TOK_INT:
@@ -1915,10 +1916,9 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
         prefix_expr = FuExpr_new_lit(lit);
         break;
     }
-    case TOK_KEYWORD: {
-        prefix_expr = FuParser_parse_keyword_expr(p);
+    case TOK_OPEN_PAREN:
+        prefix_expr = FuParser_parse_group_or_tuple_expr(p);
         break;
-    }
     case TOK_OPEN_BRACKET:
         prefix_expr = FuParser_parse_array_expr(p);
         break;

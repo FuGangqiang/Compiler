@@ -39,7 +39,6 @@ typedef enum fu_use_k fu_use_k;
 typedef enum fu_variant_k fu_variant_k;
 typedef enum fu_vis_k fu_vis_k;
 
-typedef struct FuPkg FuPkg;
 typedef struct FuLog FuLog;
 typedef struct FuSpan FuSpan;
 typedef struct FuToken FuToken;
@@ -50,6 +49,7 @@ typedef struct FuLit FuLit;
 typedef struct FuPat FuPat;
 typedef struct FuExpr FuExpr;
 typedef struct FuNode FuNode;
+typedef struct FuPkg FuPkg;
 
 typedef struct FuType FuType;
 typedef struct FuScope FuScope;
