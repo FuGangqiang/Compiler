@@ -476,9 +476,9 @@ FuNode *FuParser_parse_item_alias(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_interface(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_extern(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_extension(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_mod(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_macro_def(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_macro_call(FuParser *p, FuVec *attrs);
+FuNode *FuParser_parse_item_mod(FuParser *p, FuVec *attrs);
 
 FuNode *FuParser_parse_mod_item(FuParser *p);
 FuNode *FuParser_parse_block_item(FuParser *p);

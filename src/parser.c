@@ -1534,23 +1534,26 @@ static fu_bool_t FuParser_check_loop(FuParser *p, fu_keyword_k keyword) {
     return FU_FALSE;
 }
 
+static fu_bool_t FuParser_check_item_declare(FuParser *p, fu_keyword_k kd) {
+    FuToken tok = FuParser_nth_token(p, 0);
+    if (tok.kd != TOK_KEYWORD) {
+        return FU_FALSE;
+    }
+    if (tok.sym == KW_PKG || tok.sym == KW_PUB) {
+        tok = FuParser_nth_token(p, 1);
+    }
+    if (tok.kd == TOK_KEYWORD && tok.sym == kd) {
+        return FU_TRUE;
+    }
+    return FU_FALSE;
+};
+
 FuNode *FuParser_parse_block_item(FuParser *p) {
     FuVec *attrs = FuVec_new(sizeof(FuAttr *));
-    /* todo: attrs */
+    FuParser_parse_outer_attrs(p, attrs);
     FuToken tok = FuParser_nth_token(p, 0);
     if (tok.kd == TOK_KEYWORD) {
         switch (tok.sym) {
-        case KW_USE:
-            return FuParser_parse_item_use(p, attrs);
-            break;
-        case KW_STATIC:
-            return FuParser_parse_item_static(p, attrs);
-            break;
-        case KW_CONST:
-            if (!FuParser_check_fn(p)) {
-                return FuParser_parse_item_const(p, attrs);
-            }
-            break;
         case KW_LET:
             return FuParser_parse_item_let(p, attrs);
             break;
@@ -1581,6 +1584,18 @@ FuNode *FuParser_parse_block_item(FuParser *p) {
         default:
             break;
         }
+    }
+    if (FuParser_check_item_declare(p, KW_USE)) {
+        return FuParser_parse_item_use(p, attrs);
+    }
+    if (FuParser_check_item_declare(p, KW_STATIC)) {
+        return FuParser_parse_item_static(p, attrs);
+    }
+    if (FuParser_check_item_declare(p, KW_CONST)) {
+        return FuParser_parse_item_const(p, attrs);
+    }
+    if (FuParser_check_item_declare(p, KW_MACRO)) {
+        return FuParser_parse_item_macro_def(p, attrs);
     }
     if (FuParser_check_fn(p)) {
         return FuParser_parse_item_fn(p, attrs);
@@ -1967,20 +1982,6 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
     }
     return left;
 }
-
-static fu_bool_t FuParser_check_item_declare(FuParser *p, fu_keyword_k kd) {
-    FuToken tok = FuParser_nth_token(p, 0);
-    if (tok.kd != TOK_KEYWORD) {
-        return FU_FALSE;
-    }
-    if (tok.sym == KW_PKG || tok.sym == KW_PUB) {
-        tok = FuParser_nth_token(p, 1);
-    }
-    if (tok.kd == TOK_KEYWORD && tok.sym == kd) {
-        return FU_TRUE;
-    }
-    return FU_FALSE;
-};
 
 FuTokTree *FuParser_parse_tok_tree(FuParser *p) {
     fu_bool_t old_in_tok_tree = p->in_tok_tree;
