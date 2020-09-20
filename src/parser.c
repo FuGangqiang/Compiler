@@ -1897,9 +1897,8 @@ static FuExpr *FuParser_parse_keyword_expr(FuParser *p) {
     return NULL;
 }
 
-FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null) {
-    /* parse prefix expr */
-    FuExpr *prefix_expr;
+static FuExpr *FuParser_parse_left_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null) {
+    FuExpr *prefix_expr = NULL;
     FuToken tok = FuParser_nth_token(p, 0);
     switch (tok.kd) {
     case TOK_KEYWORD: {
@@ -1930,8 +1929,8 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
         prefix_expr = FuParser_parse_block_expr(p);
         break;
     case TOK_LT:
-        /* check first invoke, begin expr */
         /* todo: expr->_path.anno */
+        /* check first invoke, begin expr */
         FATAL1(tok.sp, "unimplemented expr: `%s`", FuToken_kind_csr(tok));
     case TOK_MACRO:
     case TOK_IDENT: {
@@ -1950,22 +1949,23 @@ FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
     }
     default: {
         fu_op_k prefix_op;
-        if (!FuToken_to_prefix_op(tok, &prefix_op)) {
-            if (check_null) {
-                FATAL1(tok.sp, "expect expression, find `%s`", FuToken_kind_csr(tok));
-            } else {
-                return NULL;
-            }
+        if (FuToken_to_prefix_op(tok, &prefix_op)) {
+            prefix_expr = FuParser_parse_prefix_expr(p, prefix_op, FuOp_precedence(prefix_op));
         }
-        prefix_expr = FuParser_parse_prefix_expr(p, prefix_op, FuOp_precedence(prefix_op));
         break;
     }
     }
+    if (check_null && !prefix_expr) {
+        FATAL1(tok.sp, "expect expression, find `%s`", FuToken_kind_csr(tok));
+    }
+    return prefix_expr;
+}
 
+FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null) {
+    FuExpr *left = FuParser_parse_left_expr(p, prec, check_null);
     /* parse infix ops */
-    FuExpr *left = prefix_expr;
     while (1) {
-        tok = FuParser_nth_token(p, 0);
+        FuToken tok = FuParser_nth_token(p, 0);
 
         fu_op_k infix_op;
         if (FuToken_to_infix_op(tok, &infix_op)) {
