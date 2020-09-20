@@ -1200,6 +1200,13 @@ void FuPkg_intern_span(FuPkg *pkg, FuSpan *sp);
 fu_tid_t FuPkg_push_type(FuPkg *pkg, FuType *ty);
 FuType *FuPkg_get_type(FuPkg *pkg, fu_tid_t tid);
 
+/*
+ * namespaces:
+ * - macro
+ * - value
+ * - type
+ * - address
+ */
 struct FuScope {
     FuPkg *pkg;
     FuScope *super;
