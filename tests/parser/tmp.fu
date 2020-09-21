@@ -1,13 +1,3 @@
-pub macro baz! => {
-    ($self, $a: ident) => {
-        $self + $a
-    }
-    [$a: ident] => {
-        $a + 1
-    }
-}
-
 fn foo() {
-    baz!()
-    baz![abc>=];
+    let xs: std::vec::Vec#<u8> = std::vec::Vec::new#<ABC=std::Foo>();
 }

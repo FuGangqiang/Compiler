@@ -1,50 +1,6 @@
 pkg: $pkg
 items:
-  nid: 0
-  kd: ND_MACRO_DEF
-  vis: VIS_PUB
-  ident:baz!
-  patterns len: 2
-  patterns:
-    pattern tokens len: 9
-    pattern tokens:
-      (
-      $
-      self
-      ,
-      $
-      a
-      :
-      ident
-      )
-    pattern tokens len: 6
-    pattern tokens:
-      [
-      $
-      a
-      :
-      ident
-      ]
-  templates len: 2
-  templates:
-    template tokens len: 7
-    template tokens:
-      {
-      $
-      self
-      +
-      $
-      a
-      }
-    template tokens len: 6
-    template tokens:
-      {
-      $
-      a
-      +
-      1
-      }
-  nid: 3
+  nid: 1
   kd: ND_FN
   vis: VIS_PRIV
   ident: foo
@@ -53,24 +9,17 @@ items:
   params len: 0
   body:
     items:
-      nid: 1
-      kd: ND_MACRO_CALL
-      is_method: 0
-      path: baz!
-      args tokens len: 2
-      args tokens:
-        (
-        )
-      nid: 2
-      kd: ND_EXPR
-      expr:
-        kd: EXPR_MACRO_CALL
-        is_method: 0
-        path: baz!
-        args tokens len: 5
-        args tokens:
-          [
-          abc
-          >
-          =
-          ]
+      nid: 0
+      kd: ND_LET
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: xs
+      ty: std::vec::Vec#<u8>
+      init:
+        kd: EXPR_CALL
+        fn:
+          kd: EXPR_PATH
+          path: std::vec::Vec::new#<ABC=std::Foo>
+        args len: 0

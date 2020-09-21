@@ -139,17 +139,29 @@ void FuPathItem_drop(FuPathItem *item) {
     if (!item) {
         return;
     }
-    /* todo generic
-        item->ge_args
-    */
+    if (item->ge_args) {
+        FuVec_drop_with_ptrs(item->ge_args, (FuDropFn)FuGeArg_drop);
+    }
     FuIdent_drop(item->ident);
     FuMem_free(item);
 }
 
 FuStr *FuPathItem_display(FuPathItem *item) {
     FuStr *str = FuStr_new();
-    /* todo: generic */
     FuStr_append(str, FuIdent_display(item->ident));
+    if (item->ge_args) {
+        FuStr_push_utf8_cstr(str, "#<");
+        fu_size_t len = FuVec_len(item->ge_args);
+        fu_size_t i;
+        for (i = 0; i < len; i++) {
+            FuGeArg *arg = FuVec_get_ptr(item->ge_args, i);
+            FuStr_append(str, FuGeArg_display(arg));
+            if (i < len - 1) {
+                FuStr_push_utf8_cstr(str, ", ");
+            }
+        }
+        FuStr_push_utf8_cstr(str, ">");
+    }
     return str;
 }
 
@@ -541,6 +553,60 @@ FuStr *FuMacroCall_display(FuMacroCall *call, fu_size_t indent) {
         FuStr_append(str, FuExpr_display(call->left, indent + 1));
     }
     FuStr_append(str, FuToken_group_display("args", call->args, indent));
+    return str;
+}
+
+FuGeArg *FuGeArg_new(FuSpan *sp, fu_ge_arg_k kd) {
+    FuGeArg *arg = FuMem_new(FuGeArg);
+    arg->sp = sp;
+    arg->kd = kd;
+    return arg;
+}
+
+void FuGeArg_drop(FuGeArg *arg) {
+    if (!arg) {
+        return;
+    }
+    switch (arg->kd) {
+    case GE_ARG_CONST:
+        FuLit_drop(arg->_const);
+        break;
+    case GE_ARG_BINDING:
+        FuIdent_drop(arg->_binding.param);
+        break;
+    case GE_ARG_BINDING_CONST:
+        FuIdent_drop(arg->_binding_const.param);
+        FuLit_drop(arg->_binding_const.lit);
+        break;
+    default:
+        break;
+    }
+    FuMem_free(arg);
+}
+
+FuStr *FuGeArg_display(FuGeArg *arg) {
+    FuStr *str = FuStr_new();
+    switch (arg->kd) {
+    case GE_ARG_TYPE:
+        FuStr_append(str, FuType_display(arg->_type));
+        break;
+    case GE_ARG_CONST:
+        FuStr_append(str, FuSpan_content(arg->_const->sp));
+        break;
+    case GE_ARG_BINDING:
+        FuStr_append(str, FuIdent_display(arg->_binding.param));
+        FuStr_push_utf8_cstr(str, "=");
+        FuStr_append(str, FuType_display(arg->_binding.ty));
+        break;
+    case GE_ARG_BINDING_CONST:
+        FuStr_append(str, FuIdent_display(arg->_binding_const.param));
+        FuStr_push_utf8_cstr(str, "=");
+        FuStr_append(str, FuSpan_content(arg->_binding_const.lit->sp));
+        break;
+    default:
+        FATAL(NULL, "can not be here");
+        break;
+    }
     return str;
 }
 

@@ -566,15 +566,86 @@ FuIdent *FuParser_parse_ident(FuParser *p) {
     return ident;
 }
 
+FuLabel *FuParser_parse_label(FuParser *p) {
+    FuToken tok = FuParser_nth_token(p, 0);
+    if (tok.kd != TOK_LABEL) {
+        return NULL;
+    }
+    FuParser_bump(p);
+    return FuLabel_new(tok.sp, tok.sym);
+}
+
+static FuGeArg *FuParser_parse_ge_arg(FuParser *p) {
+    FuSpan *lo = FuParser_current_span(p);
+    FuGeArg *arg;
+    if (FuParser_check_2_token(p, TOK_IDENT, TOK_EQ)) {
+        FuIdent *param = FuParser_parse_ident(p);
+        if (param->is_macro) {
+            ERROR(param->sp, "generic arg param can not be macro ident");
+        }
+        FuParser_expect_token(p, TOK_EQ);
+        if (FuParser_check_token_fn(p, FuToken_is_lit)) {
+            /* `A=1` in `Foo<A=1>` */
+            FuLit *lit = FuParser_parse_lit(p);
+            FuSpan *sp = FuSpan_join(lo, lit->sp);
+            arg = FuGeArg_new(sp, GE_ARG_BINDING_CONST);
+            arg->_binding_const.param = param;
+            arg->_binding_const.lit = lit;
+            return arg;
+        }
+        /* `A = Bar` in `Foo<A = Bar>` */
+        FuType *ty = FuParser_parse_type(p, 0, FU_TRUE);
+        FuSpan *sp = FuSpan_join(lo, ty->sp);
+        arg = FuGeArg_new(sp, GE_ARG_BINDING);
+        arg->_binding.param = param;
+        arg->_binding.ty = ty;
+        return arg;
+    }
+    if (FuParser_check_token_fn(p, FuToken_is_lit)) {
+        /* `1` in `Foo<1>` */
+        FuLit *lit = FuParser_parse_lit(p);
+        arg = FuGeArg_new(lit->sp, GE_ARG_CONST);
+        arg->_const = lit;
+        return arg;
+    }
+    if (FuParser_check_token_fn(p, FuToken_is_ident)) {
+        /* `Bar` in `Foo<Bar>` */
+        FuType *ty = FuParser_parse_type(p, 0, FU_TRUE);
+        arg = FuGeArg_new(ty->sp, GE_ARG_TYPE);
+        arg->_type = ty;
+        return arg;
+    }
+    FATAL(lo, "expect generic argument");
+    return NULL;
+}
+
+static FuVec *FuParser_parse_ge_args(FuParser *p) {
+    FuParser_expect_token(p, TOK_POUND);
+    FuParser_expect_token(p, TOK_LT);
+    FuVec *args = FuVec_new(sizeof(FuGeArg *));
+    while (1) {
+        FuGeArg *arg = FuParser_parse_ge_arg(p);
+        FuVec_push_ptr(args, arg);
+        if (FuParser_check_token(p, TOK_GT)) {
+            break;
+        }
+        if (FuParser_check_token(p, TOK_COMMA)) {
+            FuParser_expect_token(p, TOK_COMMA);
+            continue;
+        }
+        break;
+    }
+    FuParser_expect_token(p, TOK_GT);
+    return args;
+}
+
 static FuPathItem *FuParser_parse_path_item(FuParser *p) {
     FuSpan *lo = FuParser_current_span(p);
     FuIdent *ident = FuParser_parse_ident(p);
     FuVec *ge_args = NULL;
-    /* todo: generic
     if (FuParser_check_2_token(p, TOK_POUND, TOK_LT)) {
         ge_args = FuParser_parse_ge_args(p);
     }
-    */
     FuPathItem *item = FuMem_new(FuPathItem);
     item->sp = FuSpan_join(lo, FuParser_current_span(p));
     item->ident = ident;
@@ -582,7 +653,7 @@ static FuPathItem *FuParser_parse_path_item(FuParser *p) {
     return item;
 }
 
-/* todo: generic */
+/* todo: anno */
 FuPath *FuParser_parse_path(FuParser *p) {
     FuPath *path = FuMem_new(FuPath);
     path->segments = FuVec_new(sizeof(FuPathItem *));
@@ -611,15 +682,6 @@ FuPath *FuParser_parse_path(FuParser *p) {
     path->sp = FuSpan_join(start->sp, end->sp);
     path->is_macro = item->ident->is_macro;
     return path;
-}
-
-FuLabel *FuParser_parse_label(FuParser *p) {
-    FuToken tok = FuParser_nth_token(p, 0);
-    if (tok.kd != TOK_LABEL) {
-        return NULL;
-    }
-    FuParser_bump(p);
-    return FuLabel_new(tok.sp, tok.sym);
 }
 
 static FuType *FuParser_parse_path_type(FuParser *p) {

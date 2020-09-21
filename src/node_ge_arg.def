@@ -3,8 +3,10 @@
 #endif
 
 /* `Bar` in `Foo#<Bar>` */
-GE_ARG(GE_ARG_Type, "generic type argument")
+GE_ARG(GE_ARG_TYPE, "generic type argument")
 /* `1` in `Foo#<1>` */
 GE_ARG(GE_ARG_CONST, "generic const argument")
 /* `A = Bar` in `Foo#<A = Bar>` */
 GE_ARG(GE_ARG_BINDING, "generic argument binding")
+/* `A = 1` in `Foo#<A = 1>` */
+GE_ARG(GE_ARG_BINDING_CONST, "generic argument const binding")

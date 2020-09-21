@@ -794,13 +794,21 @@ struct FuGeArg {
     fu_ge_arg_k kd;
     union {
         FuType *_type;
-        FuNode *_const;
+        FuLit *_const;
         struct {
-            FuType *param;
+            FuIdent *param;
             FuType *ty;
         } _binding;
+        struct {
+            FuIdent *param;
+            FuLit *lit;
+        } _binding_const;
     };
 };
+
+FuGeArg *FuGeArg_new(FuSpan *sp, fu_ge_arg_k kd);
+void FuGeArg_drop(FuGeArg *arg);
+FuStr *FuGeArg_display(FuGeArg *arg);
 
 struct FuLit {
     FuSpan *sp;
