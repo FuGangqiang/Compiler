@@ -44,14 +44,33 @@ items:
       +
       1
       }
-  nid: 1
-  kd: ND_MACRO_CALL
-  is_method: 0
-  path: baz!
-  args tokens len: 5
-  args tokens:
-    [
-    abc
-    >
-    =
-    ]
+  nid: 3
+  kd: ND_FN
+  vis: VIS_PRIV
+  ident: foo
+  vis: VIS_PRIV
+  sig: nil -> nil
+  params len: 0
+  body:
+    items:
+      nid: 1
+      kd: ND_MACRO_CALL
+      is_method: 0
+      path: baz!
+      args tokens len: 2
+      args tokens:
+        (
+        )
+      nid: 2
+      kd: ND_EXPR
+      expr:
+        kd: EXPR_MACRO_CALL
+        is_method: 0
+        path: baz!
+        args tokens len: 5
+        args tokens:
+          [
+          abc
+          >
+          =
+          ]

@@ -7,4 +7,7 @@ pub macro baz! => {
     }
 }
 
-baz![abc>=];
+fn foo() {
+    baz!()
+    baz![abc>=];
+}

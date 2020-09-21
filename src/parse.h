@@ -412,12 +412,19 @@ FuStr *FuLexer_dump(FuLexer *l);
 
 typedef fu_bool_t (*FuCheckTokenFn)(FuToken tok);
 
+typedef enum fu_tok_level_t fu_tok_level_t;
+enum fu_tok_level_t {
+    TOK_LEVEL_RAW,
+    TOK_LEVEL_NO_BLANK,
+    TOK_LEVEL_MERGED_OPS,
+};
+
 typedef struct FuParserState FuParserState;
 struct FuParserState {
     FuStr *cur_dir;
     FuLexer *lexer;
     FuVec *tok_buf;
-    fu_bool_t use_raw_tok;
+    fu_tok_level_t tok_level;
 };
 
 void FuParserState_drop(FuParserState *state);
@@ -428,7 +435,7 @@ struct FuParser {
     FuLexer *lexer;
     /* FuToken */
     FuVec *tok_buf;
-    fu_bool_t use_raw_tok;
+    fu_tok_level_t tok_level;
     FuVec *states;
 };
 
@@ -443,9 +450,10 @@ FuLabel *FuParser_parse_label(FuParser *p);
 FuPath *FuParser_parse_path(FuParser *p);
 FuBlock *FuParser_parse_block(FuParser *p);
 void FuParser_parse_tok_group(FuParser *p, FuVec *tokens);
-FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
+FuMacroCall *FuParser_parse_prefix_macro_call(FuParser *p);
 FuPat *FuParser_parse_pat(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
 FuType *FuParser_parse_type(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null);
+FuExpr *FuParser_parse_expr(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null, FuExpr *prefix_expr);
 
 void FuParser_parse_outer_attrs(FuParser *p, FuVec *attrs);
 void FuParser_parse_inner_attrs(FuParser *p, FuVec *attrs);
@@ -476,7 +484,6 @@ FuNode *FuParser_parse_item_interface(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_extern(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_extension(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_macro_def(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_macro_call(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_mod(FuParser *p, FuVec *attrs);
 
 FuNode *FuParser_parse_mod_item(FuParser *p);
