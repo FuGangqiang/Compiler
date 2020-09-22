@@ -11,47 +11,47 @@ pub struct Point {
 }
 
 #<T>
-extention Point#<T> {
+extension Point#<T> {
     /// create a new point
     #[inline]
     pub fn new(x: T, y: T) -> Self {
-        Self::{x, y}
+        return Self::{x, y};
     }
 
     /// get x
     #[inline]
     pub fn x(self) -> T {
-        self.x
+        return self.x;
     }
 
     /// get y
     #[inline]
     pub fn y(self) -> T {
-        self.y
+        return self.y;
     }
 
     /// set x
     #[inline]
     pub fn set_x(*self, x: T) {
-        self.x = x
+        self.x = x;
     }
 
     /// set y
     #[inline]
     pub fn set_y(*self, y: T) {
-        self.y = y
+        self.y = y;
     }
 }
 
-#<T: IAdd<Output=T>>
-extention Point#<T>: IAdd {
+#<T: IAdd#<Output=T>>
+extension Point#<T>: IAdd {
     type Output = Self;
 
-    pub add(self, other: Self) -> Self {
-        Self::{
-            x = self.x() + other.x(),
-            y = self.y() + other.y()
-        }
+    pub fn add(self, other: Self) -> Self {
+        return Self::{
+            .x = self.x() + other.x(),
+            .y = self.y() + other.y()
+        };
     }
 }
 
@@ -61,6 +61,6 @@ mod tests {
     fn point_add() {
         let p1 = Point::new(1, 0);
         let p2 = Point::new(2, 3);
-        assert_eq!(p1 + p2, Point::{.x=3, .y=3});
+        assert_eq!(p1 + p2, Point::{.x = 3, .y = 3});
     }
 }

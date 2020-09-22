@@ -24,6 +24,12 @@ FuIdent *FuIdent_new(FuSpan *sp, fu_sym_t name) {
     return ident;
 }
 
+FuIdent *FuIdent_clone(FuIdent *ident) {
+    FuIdent *new = FuIdent_new(ident->sp, ident->name);
+    new->is_macro = ident->is_macro;
+    return new;
+}
+
 FuIdent *FuIdent_from_idx(FuPkg *pkg, FuSpan *sp, fu_size_t i) {
     FuStr *symbol = FuStr_new();
     FuStr_push_utf8_format(symbol, "%d", i);
@@ -496,7 +502,7 @@ void FuFnSig_drop(FuFnSig *sig) {
         return;
     }
     FuVec_drop(sig->tys);
-    /* todo: generic */
+    FuGeneric_drop(sig->ge);
     FuMem_free(sig);
 }
 
@@ -606,6 +612,130 @@ FuStr *FuGeArg_display(FuGeArg *arg) {
     default:
         FATAL(NULL, "can not be here");
         break;
+    }
+    return str;
+}
+
+FuGeParam *FuGeParam_new(FuSpan *sp, fu_ge_param_k kd) {
+    FuGeParam *param = FuMem_new(FuGeParam);
+    param->sp = sp;
+    param->kd = kd;
+    return param;
+}
+
+void FuGeParam_drop(FuGeParam *param) {
+    if (!param) {
+        return;
+    }
+    FuIdent_drop(param->ident);
+    FuMem_free(param);
+}
+
+FuStr *FuGeParam_display(FuGeParam *param, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "kd: %s\n", FuKind_ge_param_cstr(param->kd));
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_cstr(str, "ident: ");
+    FuStr_append(str, FuIdent_display(param->ident));
+    FuStr_push_utf8_cstr(str, "\n");
+    switch (param->kd) {
+    case GE_PARAM_TYPE:
+        if (param->_type.def) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "default: ");
+            FuStr_append(str, FuType_display(param->_type.def));
+            FuStr_push_utf8_cstr(str, "\n");
+        }
+        break;
+    case GE_PARAM_CONST:
+        if (param->_const.ty) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "type: ");
+            FuStr_append(str, FuType_display(param->_const.ty));
+            FuStr_push_utf8_cstr(str, "\n");
+        }
+        break;
+    default:
+        FATAL(NULL, "can not be here");
+        break;
+    }
+
+    return str;
+}
+
+FuGeBound *FuGeBound_new(FuIdent *ty, FuVec *interfaces) {
+    FuGeBound *bound = FuMem_new(FuGeBound);
+    bound->ty = ty;
+    bound->interfaces = interfaces;
+    return bound;
+}
+
+void FuGeBound_drop(FuGeBound *bound) {
+    if (!bound) {
+        return;
+    }
+    FuIdent_drop(bound->ty);
+    FuVec_drop(bound->interfaces);
+    FuMem_free(bound);
+}
+
+FuStr *FuGeBound_display(FuGeBound *bound, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_cstr(str, "ident: ");
+    FuStr_append(str, FuIdent_display(bound->ty));
+    FuStr_push_utf8_cstr(str, "\n");
+    fu_size_t len = FuVec_len(bound->interfaces);
+    fu_size_t i;
+    for (i = 0; i < len; i++) {
+        FuType *item = FuVec_get_ptr(bound->interfaces, i);
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "bound: ");
+        FuStr_append(str, FuType_display(item));
+        FuStr_push_utf8_cstr(str, "\n");
+    }
+    return str;
+}
+
+FuGeneric *FuGeneric_new(FuVec *params, FuVec *bounds) {
+    FuGeneric *ge = FuMem_new(FuGeneric);
+    ge->params = params;
+    ge->bounds = bounds;
+    return ge;
+}
+
+void FuGeneric_drop(FuGeneric *ge) {
+    if (!ge) {
+        return;
+    }
+    FuVec_drop_with_ptrs(ge->bounds, (FuDropFn)FuGeBound_drop);
+    FuVec_drop_with_ptrs(ge->params, (FuDropFn)FuGeParam_drop);
+    FuMem_free(ge);
+}
+
+FuStr *FuGeneric_display(FuGeneric *ge, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    fu_size_t param_len = FuVec_len(ge->params);
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "params len: %d\n", param_len);
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_cstr(str, "params:\n");
+    fu_size_t i;
+    for (i = 0; i < param_len; i++) {
+        FuGeParam *param = FuVec_get_ptr(ge->params, i);
+        FuStr_append(str, FuGeParam_display(param, indent + 1));
+    }
+    fu_size_t bounds_len = FuVec_len(ge->bounds);
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "bounds len: %d\n", bounds_len);
+    if (bounds_len > 0) {
+        FuStr_push_indent(str, indent);
+        FuStr_push_utf8_cstr(str, "bounds:\n");
+        for (i = 0; i < bounds_len; i++) {
+            FuGeBound *bound = FuVec_get_ptr(ge->bounds, i);
+            FuStr_append(str, FuGeBound_display(bound, indent + 1));
+        }
     }
     return str;
 }
@@ -1623,6 +1753,7 @@ void FuNode_drop(FuNode *nd) {
         FuBlock_drop(nd->_try.finally);
         break;
     case ND_FN:
+        FuGeneric_drop(nd->_fn.ge);
         FuIdent_drop(nd->_fn.ident);
         FuScope_drop(nd->_fn.scope);
         FuVec_drop_with_ptrs(nd->_fn.params, (FuDropFn)FuFnParam_drop);
@@ -1630,21 +1761,26 @@ void FuNode_drop(FuNode *nd) {
         FuBlock_drop(nd->_fn.body);
         break;
     case ND_STRUCT:
+        FuGeneric_drop(nd->_struct.ge);
         FuVariant_drop(nd->_struct.va);
         break;
     case ND_ENUM:
+        FuGeneric_drop(nd->_enum.ge);
         FuIdent_drop(nd->_enum.ident);
         FuVec_drop_with_ptrs(nd->_enum.items, (FuDropFn)FuVariant_drop);
         break;
     case ND_UNION:
+        FuGeneric_drop(nd->_union.ge);
         FuVariant_drop(nd->_union.va);
         break;
     case ND_INTERFACE:
+        FuGeneric_drop(nd->_interface.ge);
         FuIdent_drop(nd->_interface.ident);
         FuVec_drop(nd->_interface.supers);
         FuVec_drop_with_ptrs(nd->_interface.assocs, (FuDropFn)FuAssoc_drop);
         break;
     case ND_TY_ALIAS:
+        FuGeneric_drop(nd->_ty_alias.ge);
         FuIdent_drop(nd->_ty_alias.ident);
         break;
     case ND_EXTERN:
@@ -1652,6 +1788,7 @@ void FuNode_drop(FuNode *nd) {
         FuVec_drop(nd->_extern.declares);
         break;
     case ND_EXTENSION:
+        FuGeneric_drop(nd->_extension.ge);
         FuVec_drop_with_ptrs(nd->_extension.assocs, (FuDropFn)FuAssoc_drop);
         break;
     case ND_MACRO_DEF:
@@ -1916,6 +2053,11 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         break;
     }
     case ND_FN: {
+        if (nd->_fn.ge) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "ge:\n");
+            FuStr_append(str, FuGeneric_display(nd->_fn.ge, indent + 1));
+        }
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(nd->_fn.vis));
         FuStr_push_indent(str, indent);
@@ -1946,9 +2088,19 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         break;
     }
     case ND_STRUCT:
+        if (nd->_struct.ge) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "ge:\n");
+            FuStr_append(str, FuGeneric_display(nd->_struct.ge, indent + 1));
+        }
         FuStr_append(str, FuVariant_display(nd->_struct.va, indent + 1));
         break;
     case ND_ENUM: {
+        if (nd->_enum.ge) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "ge:\n");
+            FuStr_append(str, FuGeneric_display(nd->_enum.ge, indent + 1));
+        }
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(nd->_enum.vis));
         FuStr_push_indent(str, indent);
@@ -1969,9 +2121,19 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         break;
     }
     case ND_UNION:
+        if (nd->_union.ge) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "ge:\n");
+            FuStr_append(str, FuGeneric_display(nd->_union.ge, indent + 1));
+        }
         FuStr_append(str, FuVariant_display(nd->_union.va, indent + 1));
         break;
     case ND_INTERFACE: {
+        if (nd->_interface.ge) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "ge:\n");
+            FuStr_append(str, FuGeneric_display(nd->_interface.ge, indent + 1));
+        }
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(nd->_interface.vis));
         FuStr_push_indent(str, indent);
@@ -2000,6 +2162,11 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         break;
     }
     case ND_TY_ALIAS:
+        if (nd->_ty_alias.ge) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "ge:\n");
+            FuStr_append(str, FuGeneric_display(nd->_ty_alias.ge, indent + 1));
+        }
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_format(str, "vis: %s\n", FuKind_vis_cstr(nd->_ty_alias.vis));
         FuStr_push_indent(str, indent);
@@ -2027,6 +2194,11 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
         }
         break;
     case ND_EXTENSION: {
+        if (nd->_extension.ge) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "ge:\n");
+            FuStr_append(str, FuGeneric_display(nd->_extension.ge, indent + 1));
+        }
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_format(str, "is_unsafe: %d\n", nd->_extension.is_unsafe);
         FuStr_push_indent(str, indent);

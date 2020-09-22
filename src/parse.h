@@ -414,8 +414,13 @@ typedef fu_bool_t (*FuCheckTokenFn)(FuToken tok);
 
 typedef enum fu_tok_level_t fu_tok_level_t;
 enum fu_tok_level_t {
+    /* raw tokens */
     TOK_LEVEL_RAW,
+    /* remove blanks, comments */
     TOK_LEVEL_NO_BLANK,
+    /* merged generic ops: `->`, `::` */
+    TOK_LEVEL_GE,
+    /* merger expr ops */
     TOK_LEVEL_MERGED_OPS,
 };
 
@@ -475,16 +480,16 @@ FuNode *FuParser_parse_item_loop(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_while(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_for(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_try(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_fn(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_struct(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_enum(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_union(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_alias(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_interface(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_extern(FuParser *p, FuVec *attrs);
-FuNode *FuParser_parse_item_extension(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_macro_def(FuParser *p, FuVec *attrs);
 FuNode *FuParser_parse_item_mod(FuParser *p, FuVec *attrs);
+FuNode *FuParser_parse_item_fn(FuParser *p, FuVec *attrs, FuGeneric *ge);
+FuNode *FuParser_parse_item_struct(FuParser *p, FuVec *attrs, FuGeneric *ge);
+FuNode *FuParser_parse_item_enum(FuParser *p, FuVec *attrs, FuGeneric *ge);
+FuNode *FuParser_parse_item_union(FuParser *p, FuVec *attrs, FuGeneric *ge);
+FuNode *FuParser_parse_item_interface(FuParser *p, FuVec *attrs, FuGeneric *ge);
+FuNode *FuParser_parse_item_alias(FuParser *p, FuVec *attrs, FuGeneric *ge);
+FuNode *FuParser_parse_item_extension(FuParser *p, FuVec *attrs, FuGeneric *ge);
 
 FuNode *FuParser_parse_mod_item(FuParser *p);
 FuNode *FuParser_parse_block_item(FuParser *p);
@@ -502,6 +507,7 @@ struct FuIdent {
 };
 
 FuIdent *FuIdent_new(FuSpan *sp, fu_sym_t sym);
+FuIdent *FuIdent_clone(FuIdent *ident);
 FuIdent *FuIdent_from_idx(FuPkg *pkg, FuSpan *sp, fu_size_t i);
 void FuIdent_drop(FuIdent *ident);
 FuStr *FuIdent_display(FuIdent *ident);
@@ -761,34 +767,6 @@ FuMacroCall *FuMacroCall_new(FuSpan *sp, fu_bool_t is_method, FuPath *path);
 void FuMacroCall_drop(FuMacroCall *call);
 FuStr *FuMacroCall_display(FuMacroCall *call, fu_size_t indent);
 
-struct FuGeParam {
-    FuSpan *sp;
-    fu_ge_param_k kd;
-    FuIdent *ident;
-    union {
-        struct {
-            FuType *deflt;
-        } _type;
-        struct {
-            FuType *ty;
-        } _const;
-    };
-};
-
-struct FuGeBound {
-    FuSpan *sp;
-    FuType *ty;
-    /* FuType */
-    FuVec *interfaces;
-};
-
-struct FuGeneric {
-    /* FuGeParam */
-    FuVec *params;
-    /* FuGeBound */
-    FuVec *bounds;
-};
-
 struct FuGeArg {
     FuSpan *sp;
     fu_ge_arg_k kd;
@@ -809,6 +787,45 @@ struct FuGeArg {
 FuGeArg *FuGeArg_new(FuSpan *sp, fu_ge_arg_k kd);
 void FuGeArg_drop(FuGeArg *arg);
 FuStr *FuGeArg_display(FuGeArg *arg);
+
+struct FuGeParam {
+    FuSpan *sp;
+    fu_ge_param_k kd;
+    FuIdent *ident;
+    union {
+        struct {
+            FuType *def;
+        } _type;
+        struct {
+            FuType *ty;
+        } _const;
+    };
+};
+
+FuGeParam *FuGeParam_new(FuSpan *sp, fu_ge_param_k kd);
+void FuGeParam_drop(FuGeParam *param);
+FuStr *FuGeParam_display(FuGeParam *param, fu_size_t indent);
+
+struct FuGeBound {
+    FuIdent *ty;
+    /* FuType */
+    FuVec *interfaces;
+};
+
+FuGeBound *FuGeBound_new(FuIdent *ty, FuVec *interfaces);
+void FuGeBound_drop(FuGeBound *bound);
+FuStr *FuGeBound_display(FuGeBound *bound, fu_size_t indent);
+
+struct FuGeneric {
+    /* FuGeParam */
+    FuVec *params;
+    /* FuGeBound */
+    FuVec *bounds;
+};
+
+FuGeneric *FuGeneric_new(FuVec *params, FuVec *bounds);
+void FuGeneric_drop(FuGeneric *ge);
+FuStr *FuGeneric_display(FuGeneric *ge, fu_size_t indent);
 
 struct FuLit {
     FuSpan *sp;
@@ -1084,6 +1101,7 @@ struct FuNode {
             FuBlock *finally;
         } _try;
         struct {
+            FuGeneric *ge;
             fu_vis_k vis;
             FuIdent *ident;
             /* FuFnParam */
@@ -1128,8 +1146,8 @@ struct FuNode {
             FuVec *declares;
         } _extern;
         struct {
-            fu_bool_t is_unsafe;
             FuGeneric *ge;
+            fu_bool_t is_unsafe;
             FuType *ty;
             FuType *interface;
             FuVec *assocs;

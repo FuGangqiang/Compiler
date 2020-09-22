@@ -5,4 +5,4 @@
 /* `Bar` in `#<Bar>` */
 GE_PARAM(GE_PARAM_TYPE, "generic type param")
 /* `const N: int` in `#<cosnt N: int>` */
-GE_PARAM(GE_PARAM_CONST_TYPE, "generic const type param")
+GE_PARAM(GE_PARAM_CONST, "generic const type param")

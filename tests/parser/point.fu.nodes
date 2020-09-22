@@ -1,0 +1,425 @@
+pkg: $pkg
+items:
+  nid: 0
+  kd: ND_USE
+  vis: VIS_PRIV
+    kd: USE_SIMPLE
+    prefix: std::ops::IAdd
+  nid: 1
+  kd: ND_STRUCT
+  ge:
+    params len: 1
+    params:
+      kd: GE_PARAM_TYPE
+      ident: T
+    bounds len: 0
+    kd: VA_STRUCT
+    attrs:
+      kd: ATTR_DOC
+      is_outer: 1
+      doc:  Point type
+      kd: ATTR_NORMAL
+      is_outer: 1
+      path: derive
+      arg tokens len: 7
+      arg tokens:
+        (
+        IDebug
+        ,
+        ICopy
+        ,
+        ICmp
+        )
+    vis: VIS_PUB
+    ident: Point
+    struct len: 2
+      vis: VIS_PRIV
+      ident: x
+      ty: T
+      vis: VIS_PRIV
+      ident: y
+      ty: T
+  nid: 7
+  kd: ND_EXTENSION
+  ge:
+    params len: 1
+    params:
+      kd: GE_PARAM_TYPE
+      ident: T
+    bounds len: 0
+  is_unsafe: 0
+  ty: Point#<T>
+  extension len: 5
+    kd: ASSOC_FN
+    attrs:
+      kd: ATTR_DOC
+      is_outer: 1
+      doc:  create a new point
+      kd: ATTR_NORMAL
+      is_outer: 1
+      path: inline
+      arg tokens len: 0
+      arg tokens:
+    vis: VIS_PUB
+    ident: new
+    sig: T -> T -> Self
+    params len: 2
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: x
+      ty: T
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: y
+      ty: T
+    body:
+      items:
+        nid: 2
+        kd: ND_RETURN
+        expr:
+          kd: EXPR_STRUCT
+          base:
+            kd: EXPR_PATH
+            path: Self
+          field inits len: 2
+          field inits:
+            kd: FLD_EXPR
+            expr:
+              kd: EXPR_PATH
+              path: x
+            kd: FLD_EXPR
+            expr:
+              kd: EXPR_PATH
+              path: y
+    kd: ASSOC_FN
+    attrs:
+      kd: ATTR_DOC
+      is_outer: 1
+      doc:  get x
+      kd: ATTR_NORMAL
+      is_outer: 1
+      path: inline
+      arg tokens len: 0
+      arg tokens:
+    vis: VIS_PUB
+    ident: x
+    sig: Self -> T
+    params len: 1
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: self
+      ty: Self
+    body:
+      items:
+        nid: 3
+        kd: ND_RETURN
+        expr:
+          kd: EXPR_FIELD
+          base:
+            kd: EXPR_PATH
+            path: self
+          ident: x
+    kd: ASSOC_FN
+    attrs:
+      kd: ATTR_DOC
+      is_outer: 1
+      doc:  get y
+      kd: ATTR_NORMAL
+      is_outer: 1
+      path: inline
+      arg tokens len: 0
+      arg tokens:
+    vis: VIS_PUB
+    ident: y
+    sig: Self -> T
+    params len: 1
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: self
+      ty: Self
+    body:
+      items:
+        nid: 4
+        kd: ND_RETURN
+        expr:
+          kd: EXPR_FIELD
+          base:
+            kd: EXPR_PATH
+            path: self
+          ident: y
+    kd: ASSOC_FN
+    attrs:
+      kd: ATTR_DOC
+      is_outer: 1
+      doc:  set x
+      kd: ATTR_NORMAL
+      is_outer: 1
+      path: inline
+      arg tokens len: 0
+      arg tokens:
+    vis: VIS_PUB
+    ident: set_x
+    sig: *Self -> T -> nil
+    params len: 2
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: self
+      ty: *Self
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: x
+      ty: T
+    body:
+      items:
+        nid: 5
+        kd: ND_ASSIGN
+        op: OP_ASSIGN
+        lexpr:
+          kd: EXPR_FIELD
+          base:
+            kd: EXPR_PATH
+            path: self
+          ident: x
+        rexpr:
+          kd: EXPR_PATH
+          path: x
+    kd: ASSOC_FN
+    attrs:
+      kd: ATTR_DOC
+      is_outer: 1
+      doc:  set y
+      kd: ATTR_NORMAL
+      is_outer: 1
+      path: inline
+      arg tokens len: 0
+      arg tokens:
+    vis: VIS_PUB
+    ident: set_y
+    sig: *Self -> T -> nil
+    params len: 2
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: self
+      ty: *Self
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: y
+      ty: T
+    body:
+      items:
+        nid: 6
+        kd: ND_ASSIGN
+        op: OP_ASSIGN
+        lexpr:
+          kd: EXPR_FIELD
+          base:
+            kd: EXPR_PATH
+            path: self
+          ident: y
+        rexpr:
+          kd: EXPR_PATH
+          path: y
+  nid: 9
+  kd: ND_EXTENSION
+  ge:
+    params len: 1
+    params:
+      kd: GE_PARAM_TYPE
+      ident: T
+    bounds len: 1
+    bounds:
+      ident: T
+      bound: IAdd#<Output=T>
+  is_unsafe: 0
+  ty: Point#<T>
+  interface: IAdd
+  extension len: 2
+    kd: ASSOC_TY_ALIAS
+    vis: VIS_PRIV
+    ident: Output
+    bounds len: 0
+    ty: Self
+    kd: ASSOC_FN
+    vis: VIS_PUB
+    ident: add
+    sig: Self -> Self -> Self
+    params len: 2
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: self
+      ty: Self
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: other
+      ty: Self
+    body:
+      items:
+        nid: 8
+        kd: ND_RETURN
+        expr:
+          kd: EXPR_STRUCT
+          base:
+            kd: EXPR_PATH
+            path: Self
+          field inits len: 2
+          field inits:
+            kd: FLD_NAME
+            name: x
+            init:
+              kd: EXPR_BINARY
+              op: OP_ADD
+              lexpr:
+                kd: EXPR_METHOD_CALL
+                method: x
+                args len: 1
+                args:
+                  kd: EXPR_PATH
+                  path: self
+              rexpr:
+                kd: EXPR_METHOD_CALL
+                method: x
+                args len: 1
+                args:
+                  kd: EXPR_PATH
+                  path: other
+            kd: FLD_NAME
+            name: y
+            init:
+              kd: EXPR_BINARY
+              op: OP_ADD
+              lexpr:
+                kd: EXPR_METHOD_CALL
+                method: y
+                args len: 1
+                args:
+                  kd: EXPR_PATH
+                  path: self
+              rexpr:
+                kd: EXPR_METHOD_CALL
+                method: y
+                args len: 1
+                args:
+                  kd: EXPR_PATH
+                  path: other
+  nid: 14
+  kd: ND_MOD
+  attrs:
+    kd: ATTR_NORMAL
+    is_outer: 1
+    path: cfg
+    arg tokens len: 3
+    arg tokens:
+      (
+      test
+      )
+  vis: VIS_PRIV
+  ident:tests
+  is_inline: 1
+  items len: 1
+    nid: 13
+    kd: ND_FN
+    attrs:
+      kd: ATTR_NORMAL
+      is_outer: 1
+      path: test
+      arg tokens len: 0
+      arg tokens:
+    vis: VIS_PRIV
+    ident: point_add
+    vis: VIS_PRIV
+    sig: nil -> nil
+    params len: 0
+    body:
+      items:
+        nid: 10
+        kd: ND_LET
+        pat:
+          kd: PAT_EXPR
+          expr:
+            kd: EXPR_PATH
+            path: p1
+        init:
+          kd: EXPR_CALL
+          fn:
+            kd: EXPR_PATH
+            path: Point::new
+          args len: 2
+          args:
+            kd: EXPR_LIT
+            lit:
+              kd: LIT_INT
+              size: 0, is_signed: 0, v: 1
+            kd: EXPR_LIT
+            lit:
+              kd: LIT_INT
+              size: 0, is_signed: 0, v: 0
+        nid: 11
+        kd: ND_LET
+        pat:
+          kd: PAT_EXPR
+          expr:
+            kd: EXPR_PATH
+            path: p2
+        init:
+          kd: EXPR_CALL
+          fn:
+            kd: EXPR_PATH
+            path: Point::new
+          args len: 2
+          args:
+            kd: EXPR_LIT
+            lit:
+              kd: LIT_INT
+              size: 0, is_signed: 0, v: 2
+            kd: EXPR_LIT
+            lit:
+              kd: LIT_INT
+              size: 0, is_signed: 0, v: 3
+        nid: 12
+        kd: ND_EXPR
+        expr:
+          kd: EXPR_MACRO_CALL
+          is_method: 0
+          path: assert_eq!
+          args tokens len: 20
+          args tokens:
+            (
+            p1
+            +
+            p2
+            ,
+            Point
+            :
+            :
+            {
+            .
+            x
+            =
+            3
+            ,
+            .
+            y
+            =
+            3
+            }
+            )

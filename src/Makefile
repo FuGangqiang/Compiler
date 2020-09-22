@@ -120,13 +120,8 @@ tokens_test: lexer_tokens_dump parser_tokens_dump
 	cmp -s $(TEST_DIR)/parser/point.fu.parser_tokens  $(TEST_DIR)/parser/point.fu.parser_tokens.tmp
 
 parser_test: lexer_tokens_dump parser_ast_dump
-	# cd $(TEST_DIR); $(MEM_CHECK_CMD) $(TOOL_DIR)/lexer_tokens_dump.bin parser/tmp.fu > parser/tmp.fu.lexer_tokens.tmp
-	# cmp -s $(TEST_DIR)/parser/tmp.fu.lexer_tokens  $(TEST_DIR)/parser/tmp.fu.lexer_tokens.tmp
-	# cd $(TEST_DIR); $(MEM_CHECK_CMD) $(TOOL_DIR)/parser_tokens_dump.bin parser/tmp.fu > parser/tmp.fu.parser_tokens.tmp
-	# cmp -s $(TEST_DIR)/parser/tmp.fu.parser_tokens  $(TEST_DIR)/parser/tmp.fu.parser_tokens.tmp
-
-	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(TOOL_DIR)/parser_ast_dump.bin parser/tmp.fu > parser/tmp.fu.nodes.tmp
-	cmp -s $(TEST_DIR)/parser/tmp.fu.nodes  $(TEST_DIR)/parser/tmp.fu.nodes.tmp
+	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(TOOL_DIR)/parser_ast_dump.bin parser/point.fu > parser/point.fu.nodes.tmp
+	cmp -s $(TEST_DIR)/parser/point.fu.nodes  $(TEST_DIR)/parser/point.fu.nodes.tmp
 
 clean:
 	rm -rf $(TOOL_DIR)/*.bin

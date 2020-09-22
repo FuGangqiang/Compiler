@@ -1,3 +1,0 @@
-fn foo() {
-    let xs: std::vec::Vec#<u8> = std::vec::Vec::new#<ABC=std::Foo>();
-}
