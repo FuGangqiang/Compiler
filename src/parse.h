@@ -20,6 +20,7 @@ typedef enum fu_op_assoc_k fu_op_assoc_k;
 typedef enum fu_op_fix_k fu_op_fix_k;
 typedef enum fu_op_k fu_op_k;
 typedef enum fu_ty_op_k fu_ty_op_k;
+typedef enum fu_tok_level_t fu_tok_level_t;
 
 typedef enum fu_arm_k fu_arm_k;
 typedef enum fu_assoc_k fu_assoc_k;
@@ -44,6 +45,7 @@ typedef struct FuSpan FuSpan;
 typedef struct FuToken FuToken;
 typedef struct FuLexer FuLexer;
 typedef struct FuParser FuParser;
+typedef struct FuParserState FuParserState;
 
 typedef struct FuLit FuLit;
 typedef struct FuPat FuPat;
@@ -412,7 +414,6 @@ FuStr *FuLexer_dump(FuLexer *l);
 
 typedef fu_bool_t (*FuCheckTokenFn)(FuToken tok);
 
-typedef enum fu_tok_level_t fu_tok_level_t;
 enum fu_tok_level_t {
     /* origin raw */
     TOK_LEVEL_RAW,
@@ -428,7 +429,6 @@ enum fu_tok_level_t {
     TOK_LEVEL_OPS,
 };
 
-typedef struct FuParserState FuParserState;
 struct FuParserState {
     FuStr *cur_dir;
     FuLexer *lexer;
