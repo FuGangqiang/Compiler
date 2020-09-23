@@ -1431,7 +1431,7 @@ static FuExpr *FuParser_parse_index_expr(FuParser *p, FuExpr *left) {
 static FuFieldInit *FuParser_parse_field_init(FuParser *p) {
     FuToken tok0, tok1;
     FuVec *attrs = FuVec_new(sizeof(FuAttr *));
-    /* todo: parse attr */
+    FuParser_parse_outer_attrs(p, attrs);
     tok0 = FuParser_nth_token(p, 0);
     if (tok0.kd == TOK_DOT) {
         tok1 = FuParser_nth_token(p, 1);
@@ -1595,7 +1595,6 @@ static FuExpr *FuParser_parse_prefix_expr(FuParser *p, fu_op_k op, fu_op_prec_t 
 static FuExpr *FuParser_parse_infix_expr(FuParser *p, FuExpr *left, fu_op_k op, fu_op_prec_t prec) {
     FuToken op_tok = FuParser_nth_token(p, 0);
     switch (op) {
-        /* todo: macro */
     case OP_DOT:
         return FuParser_parse_dot_expr(p, left);
         break;
@@ -2101,7 +2100,6 @@ static FuExpr *FuParser_parse_closure_expr(FuParser *p) {
     FuSpan *lo = FuParser_current_span(p);
     fu_bool_t is_async = FuParser_eat_keyword(p, KW_ASYNC);
     fu_bool_t is_unsafe = FuParser_eat_keyword(p, KW_UNSAFE);
-    /* todo: parse closure type */
     FuVec *params;
     if (FuParser_check_token(p, TOK_OR_OR)) {
         /* `|| expr` */
@@ -2754,7 +2752,7 @@ FuNode *FuParser_parse_item_match(FuParser *p, FuVec *attrs) {
     FuVec *arms = FuVec_new(sizeof(FuArm *));
     while (1) {
         FuVec *attrs = FuVec_new(sizeof(FuAttr *));
-        /* todo: parse attrs */
+        FuParser_parse_outer_attrs(p, attrs);
         FuPat *pat = FuParser_parse_pat(p, 0, FU_TRUE);
         FuExpr *guard = NULL;
         if (FuParser_check_keyword(p, KW_IF)) {
@@ -2850,7 +2848,7 @@ FuNode *FuParser_parse_item_try(FuParser *p, FuVec *attrs) {
             break;
         }
         FuVec *arm_attrs = FuVec_new(sizeof(FuArm *));
-        /* todo: parse attrs */
+        FuParser_parse_outer_attrs(p, arm_attrs);
         FuToken tok = FuParser_expect_keyword(p, KW_CATCH);
         FuPat *arm_pat = FuParser_parse_pat(p, 0, FU_FALSE);
         FuExpr *arm_guard = NULL;
