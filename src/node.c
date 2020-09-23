@@ -171,6 +171,11 @@ FuStr *FuPathItem_display(FuPathItem *item) {
     return str;
 }
 
+void FuPath_push_item(FuPath *path, FuPathItem *item) {
+    FuVec_push_ptr(path->segments, item);
+    path->sp = FuSpan_join(path->sp, item->sp);
+}
+
 void FuPath_drop(FuPath *path) {
     if (!path) {
         return;
@@ -190,6 +195,24 @@ FuStr *FuPath_display(FuPath *path) {
             FuStr_push_utf8_cstr(str, "::");
         }
     }
+    return str;
+}
+
+void FuAnno_drop(FuAnno *anno) {
+    if (!anno) {
+        return;
+    }
+    FuMem_free(anno);
+}
+
+FuStr *FuAnno_display(FuAnno *anno, fu_size_t indent) {
+    FuStr *str = FuStr_new();
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_cstr(str, "ty: ");
+    FuStr_append(str, FuType_display(anno->ty));
+    FuStr_push_utf8_cstr(str, "\n");
+    FuStr_push_indent(str, indent);
+    FuStr_push_utf8_format(str, "idx: %d\n", anno->idx);
     return str;
 }
 
@@ -1326,7 +1349,7 @@ FuExpr *FuExpr_new_lit(FuLit *lit) {
     return expr;
 }
 
-FuExpr *FuExpr_new_path(FuAnnoSelf *anno, FuPath *path) {
+FuExpr *FuExpr_new_path(FuAnno *anno, FuPath *path) {
     FuSpan *sp;
     if (anno) {
         sp = FuSpan_join(anno->sp, path->sp);
@@ -1359,7 +1382,7 @@ void FuExpr_drop(FuExpr *expr) {
         FuLit_drop(expr->_lit);
         break;
     case EXPR_PATH:
-        /* todo: expr->_path.anno */
+        FuAnno_drop(expr->_path.anno);
         FuPath_drop(expr->_path.path);
         break;
     case EXPR_ARRAY:
@@ -1449,9 +1472,13 @@ FuStr *FuExpr_display(FuExpr *expr, fu_size_t indent) {
         FuStr_append(str, FuLit_display(expr->_lit, indent + 1));
         break;
     case EXPR_PATH:
+        if (expr->_path.anno) {
+            FuStr_push_indent(str, indent);
+            FuStr_push_utf8_cstr(str, "anno:\n");
+            FuStr_append(str, FuAnno_display(expr->_path.anno, indent + 1));
+        }
         FuStr_push_indent(str, indent);
         FuStr_push_utf8_cstr(str, "path: ");
-        /* todo: expr->_path.anno */
         FuStr_append(str, FuPath_display(expr->_path.path));
         FuStr_push(str, '\n');
         break;

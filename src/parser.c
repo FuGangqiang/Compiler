@@ -37,7 +37,7 @@ void FuParser_drop(FuParser *p) {
 void FuParser_for_file(FuParser *p, FuStr *fpath) {
     p->lexer = FuLexer_new(p->pkg);
     p->tok_buf = FuVec_new(sizeof(FuToken));
-    p->tok_level = TOK_LEVEL_MERGED_OPS;
+    p->tok_level = TOK_LEVEL_OPS;
     FuLexer_for_file(p->lexer, fpath);
 }
 
@@ -69,6 +69,37 @@ static fu_bool_t FuParser_pop_state(FuParser *p) {
     return FU_TRUE;
 }
 
+static FuToken FuParser_convert_raw_ident(FuParser *p, FuToken tok0) {
+    FuToken tok1 = FuLexer_get_token(p->lexer);
+    if (tok1.kd == TOK_NOT) {
+        FuSpan *sp = FuSpan_join(tok0.sp, tok1.sp);
+        FuStr *name = FuStr_clone(FuPkg_get_symbol(p->pkg, tok0.sym));
+        FuStr_push(name, '!');
+        fu_sym_t sym = FuPkg_intern_symbol(p->pkg, name);
+        return FuToken_new_macro(sp, sym);
+    } else {
+        FuLexer_unget_token(p->lexer, tok1);
+    }
+    return FuToken_new_ident(tok0.sp, tok0.sym);
+}
+
+static FuToken FuParser_convert_macro_keyword_ident(FuParser *p, FuToken tok0) {
+    if (tok0.sym < _KW_LAST_UNUSED) {
+        return FuToken_new_keyword(tok0.sp, tok0.sym);
+    }
+    FuToken tok1 = FuLexer_get_token(p->lexer);
+    if (tok1.kd == TOK_NOT) {
+        FuSpan *sp = FuSpan_join(tok0.sp, tok1.sp);
+        FuStr *name = FuStr_clone(FuPkg_get_symbol(p->pkg, tok0.sym));
+        FuStr_push(name, '!');
+        fu_sym_t sym = FuPkg_intern_symbol(p->pkg, name);
+        return FuToken_new_macro(sp, sym);
+    } else {
+        FuLexer_unget_token(p->lexer, tok1);
+    }
+    return tok0;
+}
+
 static FuToken FuParser_get_token(FuParser *p) {
     FuToken tok0, tok1, tok2;
     FuSpan *sp;
@@ -78,6 +109,15 @@ static FuToken FuParser_get_token(FuParser *p) {
     if (p->tok_level >= TOK_LEVEL_NO_BLANK) {
         while (FuToken_is_blank(tok0)) {
             tok0 = FuLexer_get_token(p->lexer);
+        }
+    }
+
+    if (p->tok_level >= TOK_LEVEL_IDENT) {
+        if (tok0.kd == TOK_RAW_IDENT) {
+            tok0 = FuParser_convert_raw_ident(p, tok0);
+        }
+        if (tok0.kd == TOK_IDENT) {
+            tok0 = FuParser_convert_macro_keyword_ident(p, tok0);
         }
     }
 
@@ -111,39 +151,8 @@ static FuToken FuParser_get_token(FuParser *p) {
         return tok0;
     }
 
-    /* TOK_LEVEL_MERGED_OPS */
+    /* TOK_LEVEL_OPS */
     switch (tok0.kd) {
-    case TOK_RAW_IDENT: {
-        tok1 = FuLexer_get_token(p->lexer);
-        if (tok1.kd == TOK_NOT) {
-            sp = FuSpan_join(tok0.sp, tok1.sp);
-            FuStr *name = FuStr_clone(FuPkg_get_symbol(p->pkg, tok0.sym));
-            FuStr_push(name, '!');
-            fu_sym_t sym = FuPkg_intern_symbol(p->pkg, name);
-            return FuToken_new_macro(sp, sym);
-        } else {
-            FuLexer_unget_token(p->lexer, tok1);
-        }
-        return FuToken_new_ident(tok0.sp, tok0.sym);
-        break;
-    }
-    case TOK_IDENT: {
-        if (tok0.sym < _KW_LAST_UNUSED) {
-            return FuToken_new_keyword(tok0.sp, tok0.sym);
-        }
-        tok1 = FuLexer_get_token(p->lexer);
-        if (tok1.kd == TOK_NOT) {
-            sp = FuSpan_join(tok0.sp, tok1.sp);
-            FuStr *name = FuStr_clone(FuPkg_get_symbol(p->pkg, tok0.sym));
-            FuStr_push(name, '!');
-            fu_sym_t sym = FuPkg_intern_symbol(p->pkg, name);
-            return FuToken_new_macro(sp, sym);
-        } else {
-            FuLexer_unget_token(p->lexer, tok1);
-        }
-        return tok0;
-        break;
-    }
     case TOK_PLUS: {
         /* `+`, `+=` */
         tok1 = FuLexer_get_token(p->lexer);
@@ -496,9 +505,11 @@ static fu_bool_t FuParser_check_token(FuParser *p, fu_token_k kd) {
 
 static fu_bool_t FuParser_check_2_token(FuParser *p, fu_token_k kd0, fu_token_k kd1) {
     FuToken tok0 = FuParser_nth_token(p, 0);
-    FuToken tok1 = FuParser_nth_token(p, 1);
-    if (tok0.kd == kd0 && tok1.kd == kd1) {
-        return FU_TRUE;
+    if (tok0.kd == kd0) {
+        FuToken tok1 = FuParser_nth_token(p, 1);
+        if (tok1.kd == kd1) {
+            return FU_TRUE;
+        }
     }
     return FU_FALSE;
 }
@@ -629,7 +640,7 @@ static FuGeArg *FuParser_parse_ge_arg(FuParser *p) {
     return NULL;
 }
 
-static FuVec *FuParser_parse_ge_args(FuParser *p) {
+static FuVec *FuParser_parse_ge_args(FuParser *p, FuSpan **end_sp_p) {
     FuParser_expect_token(p, TOK_POUND);
     FuParser_expect_token(p, TOK_LT);
     FuVec *args = FuVec_new(sizeof(FuGeArg *));
@@ -645,7 +656,8 @@ static FuVec *FuParser_parse_ge_args(FuParser *p) {
         }
         break;
     }
-    FuParser_expect_token(p, TOK_GT);
+    FuToken end_tok = FuParser_expect_token(p, TOK_GT);
+    *end_sp_p = end_tok.sp;
     return args;
 }
 
@@ -744,19 +756,20 @@ static FuGeneric *FuParser_parse_ge(FuParser *p) {
 
 static FuPathItem *FuParser_parse_path_item(FuParser *p) {
     FuSpan *lo = FuParser_current_span(p);
+    FuSpan *hi;
     FuIdent *ident = FuParser_parse_ident(p);
+    hi = ident->sp;
     FuVec *ge_args = NULL;
     if (FuParser_check_2_token(p, TOK_POUND, TOK_LT)) {
-        ge_args = FuParser_parse_ge_args(p);
+        ge_args = FuParser_parse_ge_args(p, &hi);
     }
     FuPathItem *item = FuMem_new(FuPathItem);
-    item->sp = FuSpan_join(lo, FuParser_current_span(p));
+    item->sp = FuSpan_join(lo, hi);
     item->ident = ident;
     item->ge_args = ge_args;
     return item;
 }
 
-/* todo: anno */
 FuPath *FuParser_parse_path(FuParser *p) {
     FuPath *path = FuMem_new(FuPath);
     path->segments = FuVec_new(sizeof(FuPathItem *));
@@ -787,6 +800,25 @@ FuPath *FuParser_parse_path(FuParser *p) {
     return path;
 }
 
+FuAnno *FuParser_parse_anno(FuParser *p, FuPath **path_p) {
+    fu_tok_level_t old_tok_level = p->tok_level;
+    p->tok_level = TOK_LEVEL_GE;
+    FuToken start_tok = FuParser_expect_token(p, TOK_LT);
+    FuType *ty = FuParser_parse_type(p, 0, FU_TRUE);
+    FuParser_expect_keyword(p, KW_AS);
+    FuPath *path = FuParser_parse_path(p);
+    FuToken end_tok = FuParser_expect_token(p, TOK_GT);
+    fu_size_t idx = FuVec_len(path->segments);
+    FuSpan *sp = FuSpan_join(start_tok.sp, end_tok.sp);
+    FuAnno *anno = FuMem_new(FuAnno);
+    anno->sp = sp;
+    anno->ty = ty;
+    anno->idx = idx;
+    *path_p = path;
+    p->tok_level = old_tok_level;
+    return anno;
+}
+
 static FuType *FuParser_parse_path_type(FuParser *p) {
     FuToken tok = FuParser_nth_token(p, 0);
     if (!FuParser_check_token_fn(p, FuToken_is_ident)) {
@@ -796,7 +828,7 @@ static FuType *FuParser_parse_path_type(FuParser *p) {
     if (path->is_macro) {
         ERROR(path->sp, "macro ident can not be allowed in type");
     }
-    return FuType_new_path(p->pkg, path);
+    return FuType_new_path(p->pkg, NULL, path);
 }
 
 static FuType *FuParser_parse_keyword_type(FuParser *p) {
@@ -964,6 +996,15 @@ FuType *FuParser_parse_type(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
     case TOK_KEYWORD:
         prefix_type = FuParser_parse_keyword_type(p);
         break;
+    case TOK_LT: {
+        FuPath *path;
+        FuAnno *anno = FuParser_parse_anno(p, &path);
+        FuParser_expect_token(p, TOK_MOD_SEP);
+        FuPathItem *item = FuParser_parse_path_item(p);
+        FuPath_push_item(path, item);
+        prefix_type = FuType_new_path(p->pkg, anno, path);
+        break;
+    }
     case TOK_IDENT:
         prefix_type = FuParser_parse_path_type(p);
         break;
@@ -1736,7 +1777,6 @@ static fu_bool_t FuParser_check_item_declare(FuParser *p, fu_keyword_k kd) {
     fu_size_t i = 0;
     while (1) {
         tok = FuParser_nth_token(p, i);
-
         if (tok.kd != TOK_KEYWORD) {
             return FU_FALSE;
         }
@@ -2220,10 +2260,15 @@ static FuExpr *FuParser_parse_left_expr(FuParser *p, fu_op_prec_t prec, fu_bool_
     case TOK_OPEN_BRACE:
         prefix_expr = FuParser_parse_block_expr(p);
         break;
-    case TOK_LT:
-        /* todo: expr->_path.anno */
-        /* check first invoke, begin expr */
-        FATAL1(tok.sp, "unimplemented expr: `%s`", FuToken_kind_csr(tok));
+    case TOK_LT: {
+        FuPath *path;
+        FuAnno *anno = FuParser_parse_anno(p, &path);
+        FuParser_expect_token(p, TOK_MOD_SEP);
+        FuPathItem *item = FuParser_parse_path_item(p);
+        FuPath_push_item(path, item);
+        prefix_expr = FuExpr_new_path(anno, path);
+        break;
+    }
     case TOK_MACRO:
     case TOK_IDENT: {
         FuPath *path = FuParser_parse_path(p);

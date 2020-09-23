@@ -38,8 +38,15 @@ FuType *FuType_from_keyword(FuPkg *pkg, FuSpan *sp, fu_keyword_k keyword) {
     return ty;
 }
 
-FuType *FuType_new_path(FuPkg *pkg, FuPath *path) {
-    FuType *ty = FuType_new(pkg, path->sp, TY_PATH);
+FuType *FuType_new_path(FuPkg *pkg, FuAnno *anno, FuPath *path) {
+    FuSpan *sp;
+    if (anno) {
+        sp = FuSpan_join(anno->sp, path->sp);
+    } else {
+        sp = path->sp;
+    }
+    FuType *ty = FuType_new(pkg, sp, TY_PATH);
+    ty->_path.anno = anno;
     ty->_path.path = path;
     return ty;
 }
@@ -56,6 +63,7 @@ void FuType_drop(FuType *ty) {
     }
     switch (ty->kd) {
     case TY_PATH:
+        FuAnno_drop(ty->_path.anno);
         FuPath_drop(ty->_path.path);
         break;
     case TY_ARRAY:
@@ -97,7 +105,7 @@ FuStr *FuType_display(FuType *ty) {
         FuStr_push_utf8_cstr(str, FuKind_type_cstr(ty->kd));
         break;
     case TY_PATH:
-        FuStr_append(str, FuPath_display(ty->_path.path));
+        FuStr_append(str, FuSpan_content(ty->sp));
         break;
     case TY_PTR: {
         fu_bool_t need_paren = FU_FALSE;

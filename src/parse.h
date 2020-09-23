@@ -54,7 +54,7 @@ typedef struct FuPkg FuPkg;
 typedef struct FuType FuType;
 typedef struct FuScope FuScope;
 
-typedef struct FuAnnoSelf FuAnnoSelf;
+typedef struct FuAnno FuAnno;
 typedef struct FuArm FuArm;
 typedef struct FuAssoc FuAssoc;
 typedef struct FuAttr FuAttr;
@@ -418,10 +418,12 @@ enum fu_tok_level_t {
     TOK_LEVEL_RAW,
     /* remove blanks, comments */
     TOK_LEVEL_NO_BLANK,
+    /* keyword ident, raw ident, macro ident */
+    TOK_LEVEL_IDENT,
     /* merged generic ops: `->`, `::` */
     TOK_LEVEL_GE,
-    /* merger expr ops */
-    TOK_LEVEL_MERGED_OPS,
+    /* expr ops: `=>`, `>>`, ... */
+    TOK_LEVEL_OPS,
 };
 
 typedef struct FuParserState FuParserState;
@@ -588,6 +590,7 @@ struct FuPath {
     FuVec *segments;
 };
 
+void FuPath_push_item(FuPath *path, FuPathItem *item);
 void FuPath_drop(FuPath *path);
 FuStr *FuPath_display(FuPath *path);
 
@@ -600,17 +603,16 @@ FuStr *FuPath_display(FuPath *path);
  * <Vec#<T> as a::b::IInterface>::AssocItem
  *  ^~~~~     ~~~~~~~~~~~~~~^
  *  ty        idx = 3
- *
- * Vec#<T>::AssocItem
- *  ^~~~~    ^
- *  ty       idx = 0
  * ```
  */
-struct FuAnnoSelf {
+struct FuAnno {
     FuSpan *sp;
     FuType *ty;
     fu_size_t idx;
 };
+
+void FuAnno_drop(FuAnno *anno);
+FuStr *FuAnno_display(FuAnno *anno, fu_size_t indent);
 
 struct FuArm {
     fu_arm_k kd;
@@ -873,7 +875,7 @@ struct FuExpr {
     union {
         FuLit *_lit;
         struct {
-            FuAnnoSelf *anno;
+            FuAnno *anno;
             FuPath *path;
         } _path;
         struct {
@@ -969,7 +971,7 @@ struct FuExpr {
 
 FuExpr *FuExpr_new(FuSpan *sp, fu_expr_k kd);
 FuExpr *FuExpr_new_lit(FuLit *lit);
-FuExpr *FuExpr_new_path(FuAnnoSelf *anno, FuPath *path);
+FuExpr *FuExpr_new_path(FuAnno *anno, FuPath *path);
 fu_bool_t FuExpr_can_endwith_semi(FuExpr *expr);
 
 void FuExpr_drop(FuExpr *expr);
@@ -1269,7 +1271,7 @@ struct FuType {
     FuVec *attrs;
     union {
         struct {
-            FuAnnoSelf *anno;
+            FuAnno *anno;
             FuPath *path;
         } _path;
         FuType *_ptr;
@@ -1288,7 +1290,7 @@ struct FuType {
 
 FuType *FuType_new(FuPkg *pkg, FuSpan *sp, fu_type_k kd);
 FuType *FuType_from_keyword(FuPkg *pkg, FuSpan *sp, fu_keyword_k keyword);
-FuType *FuType_new_path(FuPkg *pkg, FuPath *path);
+FuType *FuType_new_path(FuPkg *pkg, FuAnno *anno, FuPath *path);
 FuType *FuType_new_fn_sig(FuPkg *pkg, FuSpan *sp, FuFnSig *sig);
 
 void FuType_drop(FuType *ty);
