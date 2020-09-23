@@ -414,15 +414,17 @@ typedef fu_bool_t (*FuCheckTokenFn)(FuToken tok);
 
 typedef enum fu_tok_level_t fu_tok_level_t;
 enum fu_tok_level_t {
-    /* raw tokens */
+    /* origin raw */
     TOK_LEVEL_RAW,
-    /* remove blanks, comments */
+    /* no blanks, comments */
     TOK_LEVEL_NO_BLANK,
     /* keyword ident, raw ident, macro ident */
     TOK_LEVEL_IDENT,
-    /* merged generic ops: `->`, `::` */
-    TOK_LEVEL_GE,
-    /* expr ops: `=>`, `>>`, ... */
+    /* `::` */
+    TOK_LEVEL_PATH,
+    /* `->` */
+    TOK_LEVEL_TYPE,
+    /* `&&`, `||`, `<<`, `>>`, `=>`, ... */
     TOK_LEVEL_OPS,
 };
 

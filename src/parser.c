@@ -104,14 +104,17 @@ static FuToken FuParser_get_token(FuParser *p) {
     FuToken tok0, tok1, tok2;
     FuSpan *sp;
 
+    /* TOK_LEVEL_RAW */
     tok0 = FuLexer_get_token(p->lexer);
 
+    /* TOK_LEVEL_NO_BLANK */
     if (p->tok_level >= TOK_LEVEL_NO_BLANK) {
         while (FuToken_is_blank(tok0)) {
             tok0 = FuLexer_get_token(p->lexer);
         }
     }
 
+    /* TOK_LEVEL_IDENT */
     if (p->tok_level >= TOK_LEVEL_IDENT) {
         if (tok0.kd == TOK_RAW_IDENT) {
             tok0 = FuParser_convert_raw_ident(p, tok0);
@@ -121,19 +124,9 @@ static FuToken FuParser_get_token(FuParser *p) {
         }
     }
 
-    if (p->tok_level >= TOK_LEVEL_GE) {
-        /* generic ops: `->`, `::` */
-        if (tok0.kd == TOK_MINUS) {
-            tok1 = FuLexer_get_token(p->lexer);
-            if (tok1.kd == TOK_GT) {
-                /* `->` */
-                sp = FuSpan_join(tok0.sp, tok1.sp);
-                tok0 = FuToken_new(TOK_RARROW, sp);
-            } else {
-                /* `-` */
-                FuLexer_unget_token(p->lexer, tok1);
-            }
-        }
+    /* TOK_LEVEL_PATH */
+    if (p->tok_level >= TOK_LEVEL_PATH) {
+        /* `::` */
         if (tok0.kd == TOK_COLON) {
             tok1 = FuLexer_get_token(p->lexer);
             if (tok1.kd == TOK_COLON) {
@@ -147,7 +140,23 @@ static FuToken FuParser_get_token(FuParser *p) {
         }
     }
 
-    if (p->tok_level <= TOK_LEVEL_GE) {
+    /* TOK_LEVEL_TYPE */
+    if (p->tok_level >= TOK_LEVEL_TYPE) {
+        /* generic ops: `->` */
+        if (tok0.kd == TOK_MINUS) {
+            tok1 = FuLexer_get_token(p->lexer);
+            if (tok1.kd == TOK_GT) {
+                /* `->` */
+                sp = FuSpan_join(tok0.sp, tok1.sp);
+                tok0 = FuToken_new(TOK_RARROW, sp);
+            } else {
+                /* `-` */
+                FuLexer_unget_token(p->lexer, tok1);
+            }
+        }
+    }
+
+    if (p->tok_level <= TOK_LEVEL_TYPE) {
         return tok0;
     }
 
@@ -578,12 +587,15 @@ FuLit *FuParser_parse_lit(FuParser *p) {
 }
 
 FuIdent *FuParser_parse_ident(FuParser *p) {
+    fu_tok_level_t old_tok_level = p->tok_level;
+    p->tok_level = TOK_LEVEL_IDENT;
     FuSpan *sp = FuParser_current_span(p);
     FuToken tok = FuParser_expect_token_fn(p, FuToken_is_ident, "expect ident");
     FuIdent *ident = FuMem_new(FuIdent);
     ident->sp = sp;
     ident->is_macro = tok.kd == TOK_MACRO ? FU_TRUE : FU_FALSE;
     ident->name = tok.sym;
+    p->tok_level = old_tok_level;
     return ident;
 }
 
@@ -726,7 +738,7 @@ static void FuParser_parse_ge_bound(FuParser *p, FuVec *bounds) {
 
 static FuGeneric *FuParser_parse_ge(FuParser *p) {
     fu_tok_level_t old_tok_level = p->tok_level;
-    p->tok_level = TOK_LEVEL_GE;
+    p->tok_level = TOK_LEVEL_TYPE;
     FuParser_expect_token(p, TOK_POUND);
     FuParser_expect_token(p, TOK_LT);
     FuVec *params = FuVec_new(sizeof(FuGeParam *));
@@ -771,6 +783,8 @@ static FuPathItem *FuParser_parse_path_item(FuParser *p) {
 }
 
 FuPath *FuParser_parse_path(FuParser *p) {
+    fu_tok_level_t old_tok_level = p->tok_level;
+    p->tok_level = TOK_LEVEL_PATH;
     FuPath *path = FuMem_new(FuPath);
     path->segments = FuVec_new(sizeof(FuPathItem *));
     FuPathItem *item;
@@ -797,12 +811,13 @@ FuPath *FuParser_parse_path(FuParser *p) {
     FuPathItem *end = FuVec_last_ptr(path->segments);
     path->sp = FuSpan_join(start->sp, end->sp);
     path->is_macro = item->ident->is_macro;
+    p->tok_level = old_tok_level;
     return path;
 }
 
 FuAnno *FuParser_parse_anno(FuParser *p, FuPath **path_p) {
     fu_tok_level_t old_tok_level = p->tok_level;
-    p->tok_level = TOK_LEVEL_GE;
+    p->tok_level = TOK_LEVEL_TYPE;
     FuToken start_tok = FuParser_expect_token(p, TOK_LT);
     FuType *ty = FuParser_parse_type(p, 0, FU_TRUE);
     FuParser_expect_keyword(p, KW_AS);
@@ -987,8 +1002,11 @@ static FuType *FuParser_parse_infix_type(FuParser *p, FuType *left, fu_ty_op_k o
 }
 
 FuType *FuParser_parse_type(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null) {
+    fu_tok_level_t old_tok_level = p->tok_level;
+    p->tok_level = TOK_LEVEL_TYPE;
     FuToken tok = FuParser_nth_token(p, 0);
     FuType *prefix_type;
+    FuType *left;
     switch (tok.kd) {
     case TOK_OPEN_PAREN:
         prefix_type = FuParser_parse_group_or_tuple_type(p);
@@ -1017,14 +1035,16 @@ FuType *FuParser_parse_type(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
             if (check_null) {
                 FATAL1(tok.sp, "expect type, find `%s`", FuToken_kind_csr(tok));
             } else {
-                return NULL;
+                left = NULL;
+                goto done;
             }
         }
         prefix_type = FuParser_parse_prefix_type(p, prefix_op, FuTyOp_precedence(prefix_op));
         break;
     }
     }
-    FuType *left = prefix_type;
+
+    left = prefix_type;
     while (1) {
         tok = FuParser_nth_token(p, 0);
 
@@ -1044,6 +1064,8 @@ FuType *FuParser_parse_type(FuParser *p, fu_op_prec_t prec, fu_bool_t check_null
         }
         break;
     }
+done:
+    p->tok_level = old_tok_level;
     return left;
 }
 
