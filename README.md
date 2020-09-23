@@ -7,6 +7,13 @@
 - C89 implementation: almost every c compiler can build it
 - less dependence: bootstrapping depends only on the c compiler
 
+## Todos
+
+- [x] lexer
+- [x] parser
+- [ ] macro expander
+- [ ] type checker
+- [ ] ir
 
 ## Test
 
