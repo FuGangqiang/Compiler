@@ -248,6 +248,36 @@ fu_bool_t FuStr_eq_cstr(FuStr *str, char *cstr) {
     return res;
 }
 
+fu_bool_t FuStr_find(FuStr *str, FuChar fc, fu_size_t *idx) {
+    fu_size_t len = FuStr_len(str);
+    fu_size_t i;
+    for (i = 0; i < len; i++) {
+        FuChar c = FuStr_get_char(str, i);
+        if (c == fc) {
+            if (idx) {
+                *idx = i;
+            }
+            return FU_TRUE;
+        }
+    }
+    return FU_FALSE;
+}
+
+fu_bool_t FuStr_rfind(FuStr *str, FuChar fc, fu_size_t *idx) {
+    fu_size_t len = FuStr_len(str);
+    fu_size_t i;
+    for (i = len; i > 0; i--) {
+        FuChar c = FuStr_get_char(str, i - 1);
+        if (c == fc) {
+            if (idx) {
+                *idx = i - 1;
+            }
+            return FU_TRUE;
+        }
+    }
+    return FU_FALSE;
+}
+
 fu_bool_t FuStr_starts_with(FuStr *str, FuStr *pat) {
     fu_size_t str_len = FuStr_len(str);
     fu_size_t pat_len = FuStr_len(pat);
@@ -271,11 +301,10 @@ fu_bool_t FuStr_ends_with(FuStr *str, FuStr *pat) {
     if (pat_len > str_len) {
         return FU_FALSE;
     }
-    fu_size_t last_idx = pat_len - 1;
     fu_size_t i;
     for (i = 0; i < pat_len; i++) {
-        FuChar fc0 = FuStr_get_char(str, last_idx - i);
-        FuChar fc1 = FuStr_get_char(pat, last_idx - i);
+        FuChar fc0 = FuStr_get_char(str, str_len - 1 - i);
+        FuChar fc1 = FuStr_get_char(pat, pat_len - 1 - i);
         if (fc0 != fc1) {
             return FU_FALSE;
         }
@@ -283,7 +312,7 @@ fu_bool_t FuStr_ends_with(FuStr *str, FuStr *pat) {
     return FU_TRUE;
 }
 
-void FuStr_to_utf8(FuStr *str, char *buf, fu_size_t len) {
+void FuStr_to_cstr(FuStr *str, char *buf, fu_size_t len) {
     fu_size_t str_len = FuStr_len(str);
     fu_size_t consumed = 0;
     fu_size_t i;
@@ -299,7 +328,7 @@ void FuStr_to_utf8(FuStr *str, char *buf, fu_size_t len) {
 
 void FuStr_read_file(FuStr *str, FuStr *fpath) {
     char path[4096];
-    FuStr_to_utf8(fpath, path, 4096);
+    FuStr_to_cstr(fpath, path, 4096);
     FILE *f = fopen(path, "r");
     if (!f) {
         FATAL1(NULL, "can not open file: `%s`", path);
@@ -315,7 +344,7 @@ void FuStr_read_file(FuStr *str, FuStr *fpath) {
     fclose(f);
 }
 
-int FuStr_print(FILE *out, FuStr *str) {
+int FuStr_print(FuStr *str, FILE *out) {
     char buf[8];
     fu_size_t n;
     fu_size_t acc = 0;
@@ -328,7 +357,7 @@ int FuStr_print(FILE *out, FuStr *str) {
     return acc;
 }
 
-int FuStr_print_slice(FILE *out, FuStr *str, fu_size_t start, fu_size_t len) {
+int FuStr_print_slice(FuStr *str, fu_size_t start, fu_size_t len, FILE *out) {
     fu_size_t end = FuStr_len(str);
     len = end - start >= len ? len : end - start;
 

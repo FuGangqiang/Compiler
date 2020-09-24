@@ -40,9 +40,9 @@ FuStr *FuLog_dispaly(FuLog *log) {
 void FuLog_print(FuLog *log) {
     FuStr *display = FuLog_dispaly(log);
     if (log->kd >= LOG_WARN) {
-        FuStr_print(stderr, display);
+        FuStr_print(display, stderr);
     } else {
-        FuStr_print(stdout, display);
+        FuStr_print(display, stdout);
     }
     if (log->kd == LOG_FATAL) {
         exit(1);

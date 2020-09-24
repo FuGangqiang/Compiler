@@ -45,6 +45,104 @@ FuStr *FuStr_path_dir(FuStr *path) {
     return FuStr_from_slice(path, 0, i);
 }
 
+FuStr *FuStr_path_fname(FuStr *path) {
+    fu_size_t len = FuStr_len(path);
+    assert(len > 0);
+
+    if (FuStr_last_char(path) == '/') {
+        fprintf(stdout, "file path can not be a dir: ");
+        FuStr_print(path, stderr);
+        fprintf(stdout, "\n");
+        exit(1);
+    }
+
+    fu_size_t i;
+    if (FuStr_rfind(path, '/', &i)) {
+        return FuStr_from_slice(path, i, len);
+    }
+    return FuStr_clone(path);
+}
+
+FuStr *FuStr_path_file_stem(FuStr *path) {
+    fu_size_t len = FuStr_len(path);
+    assert(len > 0);
+
+    if (FuStr_last_char(path) == '/') {
+        fprintf(stdout, "file path can not be a dir: ");
+        FuStr_print(path, stderr);
+        fprintf(stdout, "\n");
+        exit(1);
+    }
+
+    fu_bool_t found = FU_FALSE;
+    fu_size_t i;
+    for (i = len; i > 0; i--) {
+        FuChar fc = FuStr_get_char(path, i - 1);
+        if (fc == '.') {
+            found = FU_TRUE;
+            break;
+        }
+        if (fc == '/') {
+            break;
+        }
+    }
+
+    FuStr *new;
+    if (i == 0 || !found) {
+        new = FuStr_clone(path);
+    } else {
+        new = FuStr_from_slice(path, 0, i - 1);
+    }
+    return new;
+}
+
+FuStr *FuStr_path_with_extension(FuStr *path, char *extension) {
+    fu_size_t len = FuStr_len(path);
+    assert(len > 0);
+
+    if (FuStr_last_char(path) == '/') {
+        fprintf(stdout, "file path can not be a dir: ");
+        FuStr_print(path, stderr);
+        fprintf(stdout, "\n");
+        exit(1);
+    }
+
+    fu_bool_t found = FU_FALSE;
+    fu_size_t i;
+    for (i = len; i > 0; i--) {
+        FuChar fc = FuStr_get_char(path, i - 1);
+        if (fc == '.') {
+            found = FU_TRUE;
+            break;
+        }
+        if (fc == '/') {
+            break;
+        }
+    }
+
+    FuStr *new;
+    if (i == 0 || !found) {
+        new = FuStr_clone(path);
+        FuStr_push(path, '.');
+    } else {
+        /* found */
+        new = FuStr_from_slice(path, 0, i);
+    }
+    FuStr_push_utf8_cstr(new, extension);
+    return new;
+}
+
+FuStr *FuStr_get_cur_dir() {
+    char path[4096];
+    if (!getcwd(path, 4096)) {
+        fprintf(stderr, "Error: getcwd error");
+        exit(1);
+    }
+    FuStr *str = FuStr_new();
+    FuStr_push_utf8_cstr(str, path);
+    return str;
+}
+
 void FuStr_path_join(FuStr *dir, FuStr *name) {
     if (FuStr_last_char(dir) != '/') {
         FuStr_push(dir, '/');

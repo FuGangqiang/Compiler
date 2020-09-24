@@ -175,7 +175,8 @@ point.fu:46:11:TOK_LT
 point.fu:46:12:TOK_IDENT:Output
 point.fu:46:18:TOK_EQ
 point.fu:46:19:TOK_IDENT:T
-point.fu:46:20:TOK_SHR
+point.fu:46:20:TOK_GT
+point.fu:46:21:TOK_GT
 point.fu:47:1:TOK_KEYWORD:extension
 point.fu:47:11:TOK_IDENT:Point
 point.fu:47:16:TOK_POUND
@@ -290,7 +291,8 @@ point.fu:64:23:TOK_PLUS
 point.fu:64:25:TOK_IDENT:p2
 point.fu:64:27:TOK_COMMA
 point.fu:64:29:TOK_IDENT:Point
-point.fu:64:34:TOK_MOD_SEP
+point.fu:64:34:TOK_COLON
+point.fu:64:35:TOK_COLON
 point.fu:64:36:TOK_OPEN_BRACE
 point.fu:64:37:TOK_DOT
 point.fu:64:38:TOK_IDENT:x

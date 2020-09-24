@@ -16,10 +16,19 @@ void FuParserState_drop(FuParserState *state) {
     FuMem_free(state);
 }
 
+static void FuParser_for_file(FuParser *p, FuStr *fpath) {
+    p->lexer = FuLexer_new(p->pkg);
+    p->tok_buf = FuVec_new(sizeof(FuToken));
+    p->tok_level = TOK_LEVEL_OPS;
+    FuLexer_for_file(p->lexer, fpath);
+}
+
 FuParser *FuParser_new(FuPkg *pkg) {
     FuParser *p = FuMem_new(FuParser);
     p->pkg = pkg;
     p->states = FuVec_new(sizeof(FuParserState *));
+    p->cur_dir = FuStr_path_dir(pkg->fpath);
+    FuParser_for_file(p, FuStr_clone(pkg->fpath));
     return p;
 }
 
@@ -32,13 +41,6 @@ void FuParser_drop(FuParser *p) {
     FuVec_drop(p->tok_buf);
     FuLexer_drop(p->lexer);
     FuMem_free(p);
-}
-
-void FuParser_for_file(FuParser *p, FuStr *fpath) {
-    p->lexer = FuLexer_new(p->pkg);
-    p->tok_buf = FuVec_new(sizeof(FuToken));
-    p->tok_level = TOK_LEVEL_OPS;
-    FuLexer_for_file(p->lexer, fpath);
 }
 
 static void FuParser_unfor_file(FuParser *p) {
@@ -100,7 +102,7 @@ static FuToken FuParser_convert_macro_keyword_ident(FuParser *p, FuToken tok0) {
     return tok0;
 }
 
-static FuToken FuParser_get_token(FuParser *p) {
+FuToken FuParser_get_token(FuParser *p) {
     FuToken tok0, tok1, tok2;
     FuSpan *sp;
 
@@ -420,17 +422,15 @@ static FuToken FuParser_nth_token(FuParser *p, fu_size_t n) {
     return *(FuToken *)FuVec_get(p->tok_buf, n);
 }
 
-static fu_bool_t FuParser_is_eof(FuParser *p) {
-    FuToken tok = FuParser_nth_token(p, 0);
-    if (tok.kd == TOK_EOF) {
-        return FU_TRUE;
-    }
-    return FU_FALSE;
-}
-
 static FuToken FuParser_bump(FuParser *p) {
     FuToken cur_tok = FuParser_nth_token(p, 0);
     FuVec_remove_slice(p->tok_buf, 0, 1, NULL);
+    if (p->pkg->cfg->emit == EMIT_PARSER_TOKENS) {
+        FuStr *str = FuToken_debug(cur_tok);
+        FuStr_print(str, p->pkg->cfg->out);
+        fprintf(p->pkg->cfg->out, "\n");
+        FuStr_drop(str);
+    }
     return cur_tok;
 }
 
@@ -3573,18 +3573,4 @@ void FuParser_parse_pkg(FuParser *p) {
     p->pkg->attrs = attrs;
     p->pkg->name = KW_DOLLAR_PKG;
     p->pkg->items = items;
-}
-
-FuStr *FuParser_dump_tokens(FuParser *p) {
-    FuStr *dump = FuStr_new();
-    while (!FuParser_is_eof(p)) {
-        FuToken tok = FuParser_nth_token(p, 0);
-        FuStr *tok_str = FuToken_display(tok);
-        FuStr_append(dump, FuSpan_display(tok.sp));
-        FuStr_push_utf8_cstr(dump, ":");
-        FuStr_append(dump, tok_str);
-        FuStr_push_utf8_cstr(dump, "\n");
-        FuParser_bump(p);
-    }
-    return dump;
 }

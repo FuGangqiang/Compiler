@@ -91,7 +91,7 @@ void test_utf8(void) {
     assert(str->len == 3);
     assert(str->chars[2] == fc3);
 
-    FuStr_print(stdout, str);
+    FuStr_print(str, stdout);
     printf("\n");
     FuStr_drop(str);
 }
