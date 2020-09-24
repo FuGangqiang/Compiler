@@ -281,6 +281,13 @@ FuStr *FuToken_display(FuToken tok) {
     return str;
 }
 
+FuStr *FuToken_debug(FuToken tok) {
+    FuStr *str = FuSpan_display(tok.sp);
+    FuStr_push_utf8_cstr(str, ":");
+    FuStr_append(str, FuToken_display(tok));
+    return str;
+}
+
 char *FuToken_kind_csr(FuToken tok) {
     if (tok.kd == TOK_KEYWORD) {
         return FuKind_keyword_cstr(tok.sym);

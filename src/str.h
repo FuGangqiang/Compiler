@@ -44,6 +44,8 @@ fu_size_t FuStr_hash(FuStr **str);
 
 fu_bool_t FuStr_eq_cstr(FuStr *str, char *cstr);
 
+fu_bool_t FuStr_find(FuStr *str, FuChar fc, fu_size_t *idx);
+fu_bool_t FuStr_rfind(FuStr *str, FuChar fc, fu_size_t *idx);
 fu_bool_t FuStr_starts_with(FuStr *str, FuStr *start);
 fu_bool_t FuStr_ends_with(FuStr *str, FuStr *start);
 
@@ -55,12 +57,12 @@ void FuStr_push_utf8_format_v(FuStr *str, const char *format, va_list params);
 
 void FuStr_append(FuStr *str, FuStr *other);
 
-void FuStr_to_utf8(FuStr *str, char *buf, fu_size_t len);
+void FuStr_to_cstr(FuStr *str, char *buf, fu_size_t len);
 
 void FuStr_read_file(FuStr *str, FuStr *fpath);
 
-int FuStr_print(FILE *out, FuStr *str);
-int FuStr_print_slice(FILE *out, FuStr *str, fu_size_t start, fu_size_t len);
+int FuStr_print(FuStr *str, FILE *out);
+int FuStr_print_slice(FuStr *str, fu_size_t start, fu_size_t len, FILE *out);
 
 void FuStr_clear(FuStr *str);
 

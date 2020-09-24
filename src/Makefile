@@ -15,7 +15,7 @@ endif
 FU_CC=$(CC) $(CFLAGS)
 ROOT_DIR=..
 TEST_DIR=$(ROOT_DIR)/tests
-TOOL_DIR=$(ROOT_DIR)/tools
+FUC=$(ROOT_DIR)/fuc
 
 alloc.o: alloc.c alloc.h
 hash.o: hash.c hash.h
@@ -27,6 +27,7 @@ map.o: map.c map.h def.h hash.o alloc.o
 set.o: set.c set.h def.h hash.o alloc.o
 bitset.o: bitset.c bitset.h def.h alloc.o
 
+driver.o: driver.c driver.h alloc.o driver_emit.def
 unix.o: unix.c unix.h str.o
 
 kind.o: kind.c parse.h keyword.def token.def symbol.def node.def node_arm.def node_expr.def node_ge_arg.def \
@@ -43,16 +44,10 @@ scope.o: scope.c parse.h
 # dep objs
 
 DEP_OBJS=char.o bytes.o str.o hash.o span.o vec.o map.o set.o log.o alloc.o kind.o node.o token.o lexer.o parser.o \
-    scope.o type.o unix.o
+    scope.o type.o unix.o driver.o
 
-# tools
-
-lexer_tokens_dump: $(TOOL_DIR)/lexer_tokens_dump.c token.o $(DEP_OBJS)
-	$(FU_CC) -o $(TOOL_DIR)/$@.bin $^
-parser_tokens_dump: $(TOOL_DIR)/parser_tokens_dump.c  token.o $(DEP_OBJS)
-	$(FU_CC) -o $(TOOL_DIR)/$@.bin $^
-parser_ast_dump: $(TOOL_DIR)/parser_ast_dump.c  token.o $(DEP_OBJS)
-	$(FU_CC) -o $(TOOL_DIR)/$@.bin $^
+fuc: main.c $(DEP_OBJS)
+	$(FU_CC) -o $(ROOT_DIR)/fuc $^
 
 # tests
 
@@ -62,8 +57,7 @@ else
   MEM_CHECK_CMD=
 endif
 
-test: char_test bytes_test str_test vec_test map_test set_test bitset_test pkg_test \
-	  tokens_test parser_test
+test: char_test bytes_test str_test vec_test map_test set_test bitset_test pkg_test fuc_test
 test-mem: test
 
 char_test: $(TEST_DIR)/char_test.c char.o
@@ -98,36 +92,29 @@ pkg_test: $(TEST_DIR)/pkg_test.c node.o $(DEP_OBJS)
 	$(FU_CC) -o $(TEST_DIR)/$@.bin $^
 	$(MEM_CHECK_CMD) $(TEST_DIR)/$@.bin
 
-tokens_test: lexer_tokens_dump parser_tokens_dump
-	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(TOOL_DIR)/lexer_tokens_dump.bin lexer/literal.fu > lexer/literal.fu.lexer_tokens.tmp
-	cmp -s $(TEST_DIR)/lexer/literal.fu.lexer_tokens  $(TEST_DIR)/lexer/literal.fu.lexer_tokens.tmp
-	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(TOOL_DIR)/parser_tokens_dump.bin lexer/literal.fu > lexer/literal.fu.parser_tokens.tmp
-	cmp -s $(TEST_DIR)/lexer/literal.fu.parser_tokens  $(TEST_DIR)/lexer/literal.fu.parser_tokens.tmp
+fuc_test: fuc
+	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(FUC) --emit raw-tokens --out-dir lexer -O literal.tokens.raw.tmp lexer/literal.fu
+	cmp -s $(TEST_DIR)/lexer/literal.tokens.raw  $(TEST_DIR)/lexer/literal.tokens.raw.tmp
+	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(FUC) --emit greed-tokens --out-dir lexer -O literal.tokens.greed.tmp  lexer/literal.fu
+	cmp -s $(TEST_DIR)/lexer/literal.tokens.greed  $(TEST_DIR)/lexer/literal.tokens.greed.tmp
 
-	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(TOOL_DIR)/lexer_tokens_dump.bin lexer/ops_keyword.fu > lexer/ops_keyword.fu.lexer_tokens.tmp
-	cmp -s $(TEST_DIR)/lexer/ops_keyword.fu.lexer_tokens  $(TEST_DIR)/lexer/ops_keyword.fu.lexer_tokens.tmp
-	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(TOOL_DIR)/parser_tokens_dump.bin lexer/ops_keyword.fu > lexer/ops_keyword.fu.parser_tokens.tmp
-	cmp -s $(TEST_DIR)/lexer/ops_keyword.fu.parser_tokens  $(TEST_DIR)/lexer/ops_keyword.fu.parser_tokens.tmp
+	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(FUC) --emit raw-tokens --out-dir lexer -O ops_keyword.tokens.raw.tmp lexer/ops_keyword.fu
+	cmp -s $(TEST_DIR)/lexer/ops_keyword.tokens.raw $(TEST_DIR)/lexer/ops_keyword.tokens.raw.tmp
+	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(FUC) --emit greed-tokens --out-dir lexer -O ops_keyword.tokens.greed.tmp lexer/ops_keyword.fu
+	cmp -s $(TEST_DIR)/lexer/ops_keyword.tokens.greed  $(TEST_DIR)/lexer/ops_keyword.tokens.greed.tmp
 
-	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(TOOL_DIR)/lexer_tokens_dump.bin lexer/expr.fu > lexer/expr.fu.lexer_tokens.tmp
-	cmp -s $(TEST_DIR)/lexer/expr.fu.lexer_tokens  $(TEST_DIR)/lexer/expr.fu.lexer_tokens.tmp
-	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(TOOL_DIR)/parser_tokens_dump.bin lexer/expr.fu > lexer/expr.fu.parser_tokens.tmp
-	cmp -s $(TEST_DIR)/lexer/expr.fu.parser_tokens  $(TEST_DIR)/lexer/expr.fu.parser_tokens.tmp
-
-	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(TOOL_DIR)/lexer_tokens_dump.bin parser/point.fu > parser/point.fu.lexer_tokens.tmp
-	cmp -s $(TEST_DIR)/parser/point.fu.lexer_tokens  $(TEST_DIR)/parser/point.fu.lexer_tokens.tmp
-	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(TOOL_DIR)/parser_tokens_dump.bin parser/point.fu > parser/point.fu.parser_tokens.tmp
-	cmp -s $(TEST_DIR)/parser/point.fu.parser_tokens  $(TEST_DIR)/parser/point.fu.parser_tokens.tmp
-
-parser_test: lexer_tokens_dump parser_ast_dump
-	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(TOOL_DIR)/parser_ast_dump.bin parser/point.fu > parser/point.fu.nodes.tmp
-	cmp -s $(TEST_DIR)/parser/point.fu.nodes  $(TEST_DIR)/parser/point.fu.nodes.tmp
+	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(FUC) --emit raw-tokens --out-dir parser -O point.tokens.raw.tmp parser/point.fu
+	cmp -s $(TEST_DIR)/parser/point.tokens.raw  $(TEST_DIR)/parser/point.tokens.raw.tmp
+	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(FUC) --emit parser-tokens --out-dir parser -O point.tokens.parser.tmp parser/point.fu
+	cmp -s $(TEST_DIR)/parser/point.tokens.parser $(TEST_DIR)/parser/point.tokens.parser.tmp
+	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(FUC) --emit raw-ast --out-dir parser -O point.ast.raw.tmp parser/point.fu
+	cmp -s $(TEST_DIR)/parser/point.ast.raw  $(TEST_DIR)/parser/point.ast.raw.tmp
 
 clean:
-	rm -rf $(TOOL_DIR)/*.bin
 	rm -rf $(TEST_DIR)/*.bin
 	rm -rf $(TEST_DIR)/lexer/*.tmp
 	rm -rf $(TEST_DIR)/parser/*.tmp
+	rm -rf $(ROOT_DIR)/fuc
 	rm -rf *.o
 	rm -rf *.h.gch
 	rm -rf vgcore.*

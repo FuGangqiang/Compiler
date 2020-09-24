@@ -1,6 +1,8 @@
 #include "alloc.h"
+#include "driver.h"
 #include "log.h"
 #include "parse.h"
+#include "unix.h"
 
 fu_bool_t FuId_eq(fu_id_t *id1, fu_id_t *id2) {
     return *id1 == *id2;
@@ -2306,9 +2308,12 @@ FuStr *FuNode_display(FuNode *nd, fu_size_t indent) {
     return str;
 }
 
-FuPkg *FuPkg_new(FuStr *dir) {
+FuPkg *FuPkg_new(FuConfig *cfg) {
     FuPkg *pkg = FuMem_new(FuPkg);
-    pkg->dir = dir;
+    pkg->cfg = cfg;
+    pkg->dir = FuStr_path_dir(cfg->input_fpath);
+    pkg->fpath = FuStr_clone(cfg->input_fpath);
+
     pkg->symbols = FuSet_with_capacity(1024, sizeof(FuStr *), (FuEqFn)FuStr_eq, (FuHashFn)FuStr_hash);
     pkg->fmap = FuMap_new(sizeof(fu_sym_t), sizeof(fu_size_t), (FuEqFn)FuId_eq, (FuHashFn)FuId_hash);
     pkg->fcontents = FuVec_new(sizeof(FuStr *));
@@ -2344,7 +2349,7 @@ void FuPkg_drop(FuPkg *pkg) {
     FuVec_drop(pkg->items);
     FuVec_drop_with_ptrs(pkg->attrs, (FuDropFn)FuAttr_drop);
 
-    FuStr_drop(pkg->dir);
+    FuConfig_drop(pkg->cfg);
 
     FuMem_free(pkg);
 }
@@ -2404,6 +2409,9 @@ void FuPkg_init(FuPkg *pkg) {
 #include "symbol.def"
 #undef SYMBOL
     FuPkg_init_builtin_types(pkg);
+
+    FuPkg_intern_symbol(pkg, pkg->dir);
+    FuPkg_intern_symbol(pkg, pkg->fpath);
 }
 
 fu_sym_t FuPkg_intern_symbol(FuPkg *pkg, FuStr *symbol) {

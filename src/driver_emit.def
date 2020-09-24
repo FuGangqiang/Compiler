@@ -1,0 +1,13 @@
+#ifndef EMIT
+#error "You must define EMIT macro before include this file"
+#endif
+
+EMIT(EMIT_NONE, "none")
+EMIT(EMIT_RAW_TOKENS, "raw tokens")
+EMIT(EMIT_GREED_TOKENS, "greed tokens")
+EMIT(EMIT_PARSER_TOKENS, "parser tokens")
+EMIT(EMIT_RAW_AST, "raw ast")
+EMIT(EMIT_EXPENDED_AST, "expended ast")
+EMIT(EMIT_TYPED_AST, "typed ast")
+EMIT(EMIT_IR, "ir")
+EMIT(EMIT_BIN, "bin")

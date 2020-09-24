@@ -24,13 +24,14 @@ void FuLexer_drop(FuLexer *l) {
 
 void FuLexer_for_file(FuLexer *l, FuStr *fpath) {
     l->kd = LEXER_FILE;
-    fu_sym_t sym = FuPkg_intern_symbol(l->pkg, fpath);
-    l->_file.fpath = sym;
 
     FuStr *fcontent = FuStr_new();
     FuStr_read_file(fcontent, fpath);
-    FuPkg_intern_file(l->pkg, sym, fcontent);
     l->_file.chars = fcontent;
+
+    fu_sym_t sym = FuPkg_intern_symbol(l->pkg, fpath);
+    l->_file.fpath = sym;
+    FuPkg_intern_file(l->pkg, sym, fcontent);
 
     l->_file.cur_line = 1;
     l->_file.cur_column = 1;
@@ -896,18 +897,4 @@ FuToken FuLexer_get_token(FuLexer *l) {
     /* unknown */
     FuSpan *sp = FuLexer_token_span(l, l->_file.cursor - 1);
     return FuToken_new(TOK_UNKNOWN, sp);
-}
-
-FuStr *FuLexer_dump(FuLexer *l) {
-    FuStr *dump = FuStr_new();
-    FuToken token = FuLexer_get_token(l);
-    while (!FuToken_is_eof(token)) {
-        FuStr *token_str = FuToken_display(token);
-        FuStr_append(dump, FuSpan_display(token.sp));
-        FuStr_push_utf8_cstr(dump, ":");
-        FuStr_append(dump, token_str);
-        FuStr_push_utf8_cstr(dump, "\n");
-        token = FuLexer_get_token(l);
-    }
-    return dump;
 }

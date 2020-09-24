@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include "driver.h"
 #include "parse.h"
 #include "str.h"
 
@@ -36,7 +37,11 @@ void test_file(FuPkg *pkg) {
 }
 
 int main(void) {
-    FuPkg *pkg = FuPkg_new(FuStr_new());
+    FuConfig *cfg = FuConfig_new();
+    cfg->input_fpath = FuStr_from_utf8_cstr("/tmp/test.fu");
+    cfg->out_dir = FuStr_from_utf8_cstr("/tmp");
+    FuConfig_init(cfg);
+    FuPkg *pkg = FuPkg_new(cfg);
     FuPkg_init(pkg);
     test_symbol(pkg);
     test_keyword(pkg);

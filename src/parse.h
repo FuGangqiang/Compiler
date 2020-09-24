@@ -4,6 +4,7 @@
 #include "bytes.h"
 #include "char.h"
 #include "def.h"
+#include "driver.h"
 #include "map.h"
 #include "set.h"
 #include "str.h"
@@ -369,6 +370,7 @@ fu_bool_t FuToken_to_suffix_ty_op(FuToken tok, fu_ty_op_k *op);
 fu_size_t FuToken_left_skip_count(FuToken tok);
 
 FuStr *FuToken_display(FuToken tok);
+FuStr *FuToken_debug(FuToken tok);
 char *FuToken_kind_csr(FuToken tok);
 
 typedef enum fu_lexer_k fu_lexer_k;
@@ -410,8 +412,6 @@ void FuLexer_for_tokens(FuLexer *l, FuVec *tokens);
 FuToken FuLexer_get_token(FuLexer *l);
 void FuLexer_unget_token(FuLexer *l, FuToken tok);
 
-FuStr *FuLexer_dump(FuLexer *l);
-
 typedef fu_bool_t (*FuCheckTokenFn)(FuToken tok);
 
 enum fu_tok_level_t {
@@ -451,7 +451,7 @@ struct FuParser {
 FuParser *FuParser_new(FuPkg *pkg);
 void FuParser_drop(FuParser *p);
 
-void FuParser_for_file(FuParser *p, FuStr *fpath);
+FuToken FuParser_get_token(FuParser *p);
 
 FuLit *FuParser_parse_lit(FuParser *p);
 FuIdent *FuParser_parse_ident(FuParser *p);
@@ -501,8 +501,6 @@ FuNode *FuParser_parse_extern_item(FuParser *p);
 FuAssoc *FuParser_parse_assoc(FuParser *p);
 
 void FuParser_parse_pkg(FuParser *p);
-
-FuStr *FuParser_dump_tokens(FuParser *p);
 
 struct FuIdent {
     FuSpan *sp;
@@ -1188,7 +1186,9 @@ FuNode *FuNode_new_pkg(FuPkg *pkg, FuSpan *sp);
 FuStr *FuNode_display(FuNode *nd, fu_size_t indent);
 
 struct FuPkg {
+    FuConfig *cfg;
     FuStr *dir;
+    FuStr *fpath;
     fu_sym_t name;
 
     FuSpan *sp;
@@ -1215,7 +1215,7 @@ struct FuPkg {
     FuVec *types;
 };
 
-FuPkg *FuPkg_new(FuStr *dir);
+FuPkg *FuPkg_new(FuConfig *config);
 void FuPkg_drop(FuPkg *pkg);
 FuStr *FuPkg_display(FuPkg *pkg, fu_size_t indent);
 
