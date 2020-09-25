@@ -39,7 +39,7 @@ items:
       vis: VIS_PRIV
       ident: y
       ty: T
-  nid: 7
+  nid: 8
   kd: ND_EXTENSION
   ge:
     params len: 1
@@ -49,7 +49,7 @@ items:
     bounds len: 0
   is_unsafe: 0
   ty: Point#<T>
-  extension len: 5
+  extension len: 6
     kd: ASSOC_FN
     attrs:
       kd: ATTR_DOC
@@ -235,7 +235,67 @@ items:
         rexpr:
           kd: EXPR_PATH
           path: y
-  nid: 9
+    kd: ASSOC_FN
+    attrs:
+      kd: ATTR_DOC
+      is_outer: 1
+      doc:  map point
+    vis: VIS_PUB
+    ident: map
+    sig: Self -> (T -> U) -> Point#<U>
+    params len: 2
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: self
+      ty: Self
+      pat:
+        kd: PAT_EXPR
+        expr:
+          kd: EXPR_PATH
+          path: f
+      ty: T -> U
+    body:
+      items:
+        nid: 7
+        kd: ND_RETURN
+        expr:
+          kd: EXPR_STRUCT
+          base:
+            kd: EXPR_PATH
+            path: Point
+          field inits len: 2
+          field inits:
+            kd: FLD_NAME
+            name: x
+            init:
+              kd: EXPR_CALL
+              fn:
+                kd: EXPR_PATH
+                path: f
+              args len: 1
+              args:
+                kd: EXPR_FIELD
+                base:
+                  kd: EXPR_PATH
+                  path: self
+                ident: x
+            kd: FLD_NAME
+            name: y
+            init:
+              kd: EXPR_CALL
+              fn:
+                kd: EXPR_PATH
+                path: f
+              args len: 1
+              args:
+                kd: EXPR_FIELD
+                base:
+                  kd: EXPR_PATH
+                  path: self
+                ident: y
+  nid: 10
   kd: ND_EXTENSION
   ge:
     params len: 1
@@ -274,7 +334,7 @@ items:
       ty: Self
     body:
       items:
-        nid: 8
+        nid: 9
         kd: ND_RETURN
         expr:
           kd: EXPR_STRUCT
@@ -321,7 +381,7 @@ items:
                 args:
                   kd: EXPR_PATH
                   path: other
-  nid: 14
+  nid: 15
   kd: ND_MOD
   attrs:
     kd: ATTR_NORMAL
@@ -336,7 +396,7 @@ items:
   ident:tests
   is_inline: 1
   items len: 1
-    nid: 13
+    nid: 14
     kd: ND_FN
     attrs:
       kd: ATTR_NORMAL
@@ -351,7 +411,7 @@ items:
     params len: 0
     body:
       items:
-        nid: 10
+        nid: 11
         kd: ND_LET
         pat:
           kd: PAT_EXPR
@@ -373,7 +433,7 @@ items:
             lit:
               kd: LIT_INT
               size: 0, is_signed: 0, v: 0
-        nid: 11
+        nid: 12
         kd: ND_LET
         pat:
           kd: PAT_EXPR
@@ -395,7 +455,7 @@ items:
             lit:
               kd: LIT_INT
               size: 0, is_signed: 0, v: 3
-        nid: 12
+        nid: 13
         kd: ND_EXPR
         expr:
           kd: EXPR_MACRO_CALL

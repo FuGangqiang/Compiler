@@ -421,9 +421,7 @@ enum fu_tok_level_t {
     TOK_LEVEL_NO_BLANK,
     /* keyword ident, raw ident, macro ident */
     TOK_LEVEL_IDENT,
-    /* `::` */
-    TOK_LEVEL_PATH,
-    /* `->` */
+    /* `::`, `->` */
     TOK_LEVEL_TYPE,
     /* `&&`, `||`, `<<`, `>>`, `=>`, ... */
     TOK_LEVEL_OPS,
