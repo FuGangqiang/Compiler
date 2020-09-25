@@ -41,6 +41,15 @@ extension Point#<T> {
     pub fn set_y(*self, y: T) {
         self.y = y;
     }
+
+    /// map point
+    #<U>
+    pub fn map(self, f: T -> U) -> Point#<U> {
+        return Point::{
+            .x = f(self.x),
+            .y = f(self.y),
+        };
+    }
 }
 
 #<T: IAdd#<Output=T>>
