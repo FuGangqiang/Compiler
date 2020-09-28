@@ -29,9 +29,18 @@ void test_heap(void) {
     assert(FuHeapFreeList_len() == 1);
 }
 
+void test_with_macro() {
+    WITH_HEAP(NULL) {
+        int *p = FuMem_alloc(sizeof(int));
+        FuMem_free(p);
+    }
+    END_WITH
+}
+
 int main(void) {
     FuHeapList_init(FU_TRUE);
     test_heap();
+    test_with_macro();
     FuHeapList_drop();
     return 0;
 }
