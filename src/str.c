@@ -79,6 +79,9 @@ FuStr *FuStr_clone(FuStr *str) {
 }
 
 FuStr *FuStr_from_slice(FuStr *str, fu_size_t start, fu_size_t len) {
+    if (len == 0) {
+        return FuStr_new();
+    }
     fu_size_t end = FuStr_len(str);
     len = end - start >= len ? len : end - start;
     FuStr *new = FuStr_with_capacity(len);

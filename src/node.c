@@ -1829,6 +1829,7 @@ void FuNode_drop(FuNode *nd) {
         FuMacroCall_drop(nd->_macro_call);
         break;
     case ND_MOD:
+        FuStr_drop(nd->_mod.dir);
         FuIdent_drop(nd->_mod.ident);
         FuVec_drop(nd->_mod.items);
         break;
@@ -2314,6 +2315,7 @@ FuPkg *FuPkg_new(FuConfig *cfg) {
     pkg->dir = FuStr_path_dir(cfg->input_fpath);
     pkg->fpath = FuStr_clone(cfg->input_fpath);
 
+    pkg->unresolved_file_mods = FuVec_new(sizeof(fu_nid_t));
     pkg->symbols = FuSet_with_capacity(1024, sizeof(FuStr *), (FuEqFn)FuStr_eq, (FuHashFn)FuStr_hash);
     pkg->fmap = FuMap_new(sizeof(fu_sym_t), sizeof(fu_size_t), (FuEqFn)FuId_eq, (FuHashFn)FuId_hash);
     pkg->fcontents = FuVec_new(sizeof(FuStr *));
@@ -2340,6 +2342,7 @@ void FuPkg_drop(FuPkg *pkg) {
     FuVec_drop_with_ptrs(pkg->fcontents, (FuDropFn)FuStr_drop);
     FuMap_drop(pkg->fmap);
     FuSet_drop_with_ptrs(pkg->symbols, (FuDropFn)FuStr_drop);
+    FuVec_drop(pkg->unresolved_file_mods);
 
     FuScope_drop(pkg->globals);
     FuScope_drop(pkg->builtins);
@@ -2452,6 +2455,10 @@ FuStr *FuPkg_get_file(FuPkg *pkg, fu_sym_t fpath) {
 
 void FuPkg_intern_span(FuPkg *pkg, FuSpan *sp) {
     FuVec_push_ptr(pkg->spans, sp);
+}
+
+FuNode *FuPkg_get_node(FuPkg *pkg, fu_nid_t nid) {
+    return FuVec_get_ptr(pkg->nodes, nid);
 }
 
 fu_tid_t FuPkg_push_type(FuPkg *pkg, FuType *ty) {
