@@ -10,6 +10,8 @@ typedef struct FuHeap FuHeap;
 typedef union FuHeapAlign FuHeapAlign;
 typedef union FuHeapHeader FuHeapHeader;
 
+extern FuHeap *CURRENT_HEAP_LIST;
+
 union FuHeapAlign {
     long l;
     char *p;
@@ -52,5 +54,16 @@ void *FuMem_zalloc(fu_size_t size);
 void FuMem_free(void *ptr);
 
 #define FuMem_new(obj_type) (obj_type *)FuMem_zalloc(sizeof(obj_type))
+
+/* clang-format off */
+#define WITH_HEAP(heap)                            \
+{                                                  \
+    FuHeap *__heap_list_bak__ = CURRENT_HEAP_LIST; \
+    CURRENT_HEAP_LIST = heap;                      \
+
+#define END_WITH                           \
+    CURRENT_HEAP_LIST = __heap_list_bak__; \
+}
+/* clang-format on */
 
 #endif /* FU_ALLOC_H */
