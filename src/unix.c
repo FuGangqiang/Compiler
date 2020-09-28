@@ -2,6 +2,7 @@
 #include <limits.h>
 #include <unistd.h>
 
+#include "log.h"
 #include "unix.h"
 
 FuStr *FuStr_abs_path(char *fpath) {
@@ -15,6 +16,9 @@ FuStr *FuStr_rel_path(FuStr *real_path, FuStr *start) {
     if (FuStr_starts_with(real_path, start)) {
         fu_size_t start_len = FuStr_len(start);
         fu_size_t real_len = FuStr_len(real_path);
+        if (start_len == real_len) {
+            FATAL(NULL, "relpath two same dir");
+        }
         if (FuStr_get_char(start, start_len - 1) != '/') {
             start_len++;
         }

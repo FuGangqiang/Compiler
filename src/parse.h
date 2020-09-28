@@ -427,15 +427,6 @@ enum fu_tok_level_t {
     TOK_LEVEL_OPS,
 };
 
-struct FuParserState {
-    FuStr *cur_dir;
-    FuLexer *lexer;
-    FuVec *tok_buf;
-    fu_tok_level_t tok_level;
-};
-
-void FuParserState_drop(FuParserState *state);
-
 struct FuParser {
     FuPkg *pkg;
     FuStr *cur_dir;
@@ -443,7 +434,6 @@ struct FuParser {
     /* FuToken */
     FuVec *tok_buf;
     fu_tok_level_t tok_level;
-    FuVec *states;
 };
 
 FuParser *FuParser_new(FuPkg *pkg);
@@ -1162,12 +1152,13 @@ struct FuNode {
         } _macro_def;
         FuMacroCall *_macro_call;
         struct {
+            FuStr *dir;
             fu_vis_k vis;
             FuIdent *ident;
             FuScope *scope;
-            /* inner file span` */
+            /* inner file span */
             FuSpan *inner_sp;
-            /* flase for `mod name;` */
+            /* flase if a file module when `mod name;` */
             fu_bool_t is_inline;
             /* FuNode */
             FuVec *items;
@@ -1197,6 +1188,9 @@ struct FuPkg {
     FuVec *extern_pkgs;
     FuScope *builtins;
     FuScope *globals;
+
+    /* fu_nid_t */
+    FuVec *unresolved_file_mods;
 
     /* intern symbols */
     /* FuStr* */
@@ -1230,6 +1224,9 @@ FuStr *FuPkg_get_file(FuPkg *pkg, fu_sym_t fpath);
 
 /* context spans */
 void FuPkg_intern_span(FuPkg *pkg, FuSpan *sp);
+
+/* context nodes */
+FuNode *FuPkg_get_node(FuPkg *pkg, fu_nid_t nid);
 
 /* context types */
 fu_tid_t FuPkg_push_type(FuPkg *pkg, FuType *ty);
