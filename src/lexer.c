@@ -5,9 +5,13 @@
 #include "parse.h"
 
 FuLexer *FuLexer_new(FuPkg *pkg) {
-    FuLexer *l = FuMem_new(FuLexer);
-    l->pkg = pkg;
-    l->tok_buf = FuVec_new(sizeof(FuToken));
+    FuLexer *l;
+    WITH_HEAP(NULL) {
+        l = FuMem_new(FuLexer);
+        l->pkg = pkg;
+        l->tok_buf = FuVec_new(sizeof(FuToken));
+    }
+    END_WITH
     return l;
 }
 
@@ -18,8 +22,21 @@ void FuLexer_drop(FuLexer *l) {
     if (l->kd == LEXER_TOKENS) {
         FuVec_drop(l->_tokens.tokens);
     }
-    FuVec_drop(l->tok_buf);
-    FuMem_free(l);
+    WITH_HEAP(NULL) {
+        FuVec_drop(l->tok_buf);
+        FuMem_free(l);
+    }
+    END_WITH
+}
+
+void FuLexer_unget_token(FuLexer *l, FuToken tok) {
+    if (tok.kd == TOK_EOF) {
+        return;
+    }
+    WITH_HEAP(NULL) {
+        FuVec_push(l->tok_buf, &tok);
+    }
+    END_WITH
 }
 
 void FuLexer_for_file(FuLexer *l, FuStr *fpath) {
@@ -649,13 +666,6 @@ static FuToken FuLexer_raw_double_quoted_format_string(FuLexer *l) {
     FuSpan *sp = FuLexer_token_span(l, start);
     fu_sym_t sym = FuLexer_token_str_sym(l, sp, start + n_hashes + 3, sp->len - n_hashes * 2 - 4, prefix_ignore);
     return FuToken_new_lit_str(TOK_FORMAT_RAW_STR, sp, sym, n_hashes, started, prefix_ignore, terminated);
-}
-
-void FuLexer_unget_token(FuLexer *l, FuToken tok) {
-    if (tok.kd == TOK_EOF) {
-        return;
-    }
-    FuVec_push(l->tok_buf, &tok);
 }
 
 FuToken FuLexer_get_token(FuLexer *l) {
