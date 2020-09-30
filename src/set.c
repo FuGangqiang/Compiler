@@ -10,8 +10,22 @@ FuSet *FuSet_new(fu_size_t key_size, FuEqFn key_eq_fn, FuHashFn key_hash_fn) {
     return set;
 }
 
-/* capacity 需要设为 2 的 n 次方，否则有些地方会 segement fault，目前尚未查到原因 */
+static fu_size_t is_power_of_2(fu_size_t num) {
+    fu_size_t num_of_one_bits = 0;
+    while (num && num_of_one_bits <= 1) {
+        if ((num & 1) == 1) {
+            num_of_one_bits++;
+        }
+        num >>= 1;
+    }
+    return num_of_one_bits == 1;
+}
+
+/* capacity must be  2**n because `FuSet_get_cell_idx` use this feature  */
 FuSet *FuSet_with_capacity(fu_size_t capacity, fu_size_t key_size, FuEqFn key_eq_fn, FuHashFn key_hash_fn) {
+    if (!is_power_of_2(capacity)) {
+        FATAL(NULL, "capacity must be power of two");
+    }
     FuSet *set = FuMem_alloc(sizeof(FuSet));
     set->len = 0;
     set->cell_cap = capacity;
