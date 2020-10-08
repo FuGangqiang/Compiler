@@ -101,29 +101,13 @@ FuStr *FuSpan_line(FuSpan *sp) {
     FuStr *fcontent = FuPkg_get_file(sp->pkg, sp->fpath);
     fu_size_t len = FuStr_len(fcontent);
 
-    fu_size_t start, end;
+    fu_size_t start;
+    fu_size_t end;
     start = end = sp->start + sp->offset;
-
-    /* EOF */
-    if (start >= len) {
-        return 0;
-    }
-
-    while (start != 0) {
-        if (FuStr_get_char(fcontent, start) == '\n') {
-            start++;
-            break;
-        }
+    while (start > 0 && FuStr_get_char(fcontent, start - 1) != '\n') {
         start--;
     }
-    while (end != len) {
-        if (end >= len) {
-            break;
-        }
-        if (FuStr_get_char(fcontent, end) == '\n') {
-            end++;
-            break;
-        }
+    while (end < len && FuStr_get_char(fcontent, end) != '\n') {
         end++;
     }
     return FuStr_from_slice(fcontent, start, end - start);
