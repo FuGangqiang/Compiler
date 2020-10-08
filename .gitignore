@@ -6,6 +6,11 @@ docs/
 core
 *.core
 *.bin
-*.tmp
 vgcore.*
 fuc
+
+*.tmp
+*.tokens.raw
+*.tokens.parser
+*.tokens.greed
+*.ast.raw

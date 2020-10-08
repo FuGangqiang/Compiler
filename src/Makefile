@@ -13,7 +13,7 @@ else
 endif
 
 FU_CC=$(CC) $(CFLAGS)
-ROOT_DIR=..
+ROOT_DIR=$(abspath ..)
 TEST_DIR=$(ROOT_DIR)/tests
 FUC=$(ROOT_DIR)/fuc
 
@@ -96,28 +96,54 @@ pkg_test: $(TEST_DIR)/pkg_test.c node.o $(DEP_OBJS)
 	$(FU_CC) -o $(TEST_DIR)/$@.bin $^
 	$(MEM_CHECK_CMD) $(TEST_DIR)/$@.bin
 
-fuc_test: fuc
-	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(FUC) --emit raw-tokens --out-dir lexer -O literal.tokens.raw.tmp lexer/literal.fu
-	cmp -s $(TEST_DIR)/lexer/literal.tokens.raw  $(TEST_DIR)/lexer/literal.tokens.raw.tmp
-	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(FUC) --emit greed-tokens --out-dir lexer -O literal.tokens.greed.tmp  lexer/literal.fu
-	cmp -s $(TEST_DIR)/lexer/literal.tokens.greed  $(TEST_DIR)/lexer/literal.tokens.greed.tmp
+lexer_test: fuc $(wildcard $(TEST_DIR)/lexer/*.fu)
+	cd $(TEST_DIR)/lexer; \
+	for i in $^; \
+	do \
+	    if [ $$i = fuc ]; then continue; fi; \
+	    echo "fuc --emit raw-tokens $$(basename $$i)"; \
+	    $(MEM_CHECK_CMD) $(FUC) --emit raw-tokens $$i || exit 1; \
+	    echo "check expected"; \
+	    cmp -s $$(basename $$i .fu).tokens.raw $$(basename $$i .fu).tokens.raw.expect || exit 1; \
+	    echo; \
+	    echo "fuc --emit greed-tokens $$(basename $$i)"; \
+	    $(MEM_CHECK_CMD) $(FUC) --emit greed-tokens $$i || exit 1; \
+	    echo "check expected"; \
+	    cmp -s $$(basename $$i .fu).tokens.greed $$(basename $$i .fu).tokens.greed.expect || exit 1; \
+	    echo; \
+	done
 
-	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(FUC) --emit raw-tokens --out-dir lexer -O ops_keyword.tokens.raw.tmp lexer/ops_keyword.fu
-	cmp -s $(TEST_DIR)/lexer/ops_keyword.tokens.raw $(TEST_DIR)/lexer/ops_keyword.tokens.raw.tmp
-	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(FUC) --emit greed-tokens --out-dir lexer -O ops_keyword.tokens.greed.tmp lexer/ops_keyword.fu
-	cmp -s $(TEST_DIR)/lexer/ops_keyword.tokens.greed  $(TEST_DIR)/lexer/ops_keyword.tokens.greed.tmp
+parser_test: fuc $(wildcard $(TEST_DIR)/parser/*.fu)
+	cd $(TEST_DIR)/parser; \
+	for i in $^; \
+	do \
+	    if [ $$i = fuc ]; then continue; fi; \
+	    echo "fuc --emit raw-tokens $$(basename $$i)"; \
+	    $(MEM_CHECK_CMD) $(FUC) --emit raw-tokens $$i || exit 1; \
+	    echo "check expected"; \
+	    cmp -s $$(basename $$i .fu).tokens.raw $$(basename $$i .fu).tokens.raw.expect || exit 1; \
+	    echo; \
+	    echo "fuc --emit parser-tokens $$(basename $$i)"; \
+	    $(MEM_CHECK_CMD) $(FUC) --emit parser-tokens $$i || exit 1; \
+	    echo "check expected"; \
+	    cmp -s $$(basename $$i .fu).tokens.parser $$(basename $$i .fu).tokens.parser.expect || exit 1; \
+	    echo; \
+	    echo "fuc --emit raw-ast $$(basename $$i)"; \
+	    $(MEM_CHECK_CMD) $(FUC) --emit raw-ast $$i || exit 1; \
+	    echo "check expected"; \
+	    cmp -s $$(basename $$i .fu).ast.raw $$(basename $$i .fu).ast.raw.expect || exit 1; \
+	    echo; \
+	done
 
-	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(FUC) --emit raw-tokens --out-dir parser -O point.tokens.raw.tmp parser/point.fu
-	cmp -s $(TEST_DIR)/parser/point.tokens.raw  $(TEST_DIR)/parser/point.tokens.raw.tmp
-	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(FUC) --emit parser-tokens --out-dir parser -O point.tokens.parser.tmp parser/point.fu
-	cmp -s $(TEST_DIR)/parser/point.tokens.parser $(TEST_DIR)/parser/point.tokens.parser.tmp
-	cd $(TEST_DIR); $(MEM_CHECK_CMD) $(FUC) --emit raw-ast --out-dir parser -O point.ast.raw.tmp parser/point.fu
-	cmp -s $(TEST_DIR)/parser/point.ast.raw  $(TEST_DIR)/parser/point.ast.raw.tmp
+fuc_test: lexer_test parser_test
 
 clean:
 	rm -rf $(TEST_DIR)/*.bin
-	rm -rf $(TEST_DIR)/lexer/*.tmp
-	rm -rf $(TEST_DIR)/parser/*.tmp
+	rm -rf $(TEST_DIR)/lexer/*.tokens.raw
+	rm -rf $(TEST_DIR)/lexer/*.tokens.greed
+	rm -rf $(TEST_DIR)/parser/*.tokens.raw
+	rm -rf $(TEST_DIR)/parser/*.tokens.parser
+	rm -rf $(TEST_DIR)/parser/*.ast.raw
 	rm -rf $(ROOT_DIR)/fuc
 	rm -rf *.o
 	rm -rf *.h.gch
