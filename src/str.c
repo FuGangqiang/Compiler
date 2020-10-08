@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <errno.h>
 #include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -334,11 +335,15 @@ void FuStr_read_file(FuStr *str, FuStr *fpath) {
     FuStr_to_cstr(fpath, path, 4096);
     FILE *f = fopen(path, "r");
     if (!f) {
-        FATAL1(NULL, "can not open file: `%s`", path);
+        FATAL2(NULL, "can not open file: `%s`: %s", path, strerror(errno));
     }
-    fseek(f, 0, SEEK_END);
+    if (fseek(f, 0, SEEK_END) == -1) {
+        FATAL2(NULL, "can not fseek file: `%s`: %s", path, strerror(errno));
+    }
     long fsize = ftell(f);
-    rewind(f);
+    if (fseek(f, 0, SEEK_SET) == -1) {
+        FATAL2(NULL, "can not fseek file: `%s`: %s", path, strerror(errno));
+    }
     FuStr_reserve(str, fsize);
     char *buf = (char *)FuMem_alloc(fsize);
     fread(buf, 1, fsize, f);
